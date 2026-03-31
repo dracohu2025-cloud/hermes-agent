@@ -75,7 +75,7 @@ my-project/
 
 ## SOUL.md
 
-`SOUL.md` 控制代理的个性、语气和沟通风格。完整细节请参阅[个性](/docs/user-guide/features/personality)页面。
+`SOUL.md` 控制代理的个性、语气和沟通风格。完整细节请参阅[个性](/user-guide/features/personality)页面。
 
 **位置：**
 

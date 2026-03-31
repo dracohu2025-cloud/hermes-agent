@@ -168,7 +168,7 @@ required_environment_variables:
 用户可以跳过设置并继续加载技能。Hermes 永远不会向模型暴露原始密钥值。网关和消息会话会显示本地设置指南，而不是在会话中收集密钥。
 
 :::tip 沙盒传递
-当你的技能被加载时，任何已设置的 `required_environment_variables` 都会**自动传递**到 `execute_code` 和 `terminal` 沙盒中 — 包括 Docker 和 Modal 等远程后端。你的技能的脚本可以访问 `$TENOR_API_KEY`（或在 Python 中访问 `os.environ["TENOR_API_KEY"]`），而无需用户配置任何额外内容。详情请参阅[环境变量传递](/docs/user-guide/security#environment-variable-passthrough)。
+当你的技能被加载时，任何已设置的 `required_environment_variables` 都会**自动传递**到 `execute_code` 和 `terminal` 沙盒中 — 包括 Docker 和 Modal 等远程后端。你的技能的脚本可以访问 `$TENOR_API_KEY`（或在 Python 中访问 `os.environ["TENOR_API_KEY"]`），而无需用户配置任何额外内容。详情请参阅[环境变量传递](/user-guide/security#environment-variable-passthrough)。
 :::
 
 为了向后兼容，仍支持旧版的 `prerequisites.env_vars` 作为别名。

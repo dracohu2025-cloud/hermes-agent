@@ -138,7 +138,7 @@ quick_commands:
     command: nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader
 ```
 
-然后在任何聊天中输入 `/status` 或 `/gpu`。更多示例请参阅 [配置指南](/docs/user-guide/configuration#quick-commands)。
+然后在任何聊天中输入 `/status` 或 `/gpu`。更多示例请参阅 [配置指南](/user-guide/configuration#quick-commands)。
 
 ## 启动时预加载技能
 
@@ -230,7 +230,7 @@ CLI 会在代理工作时显示动画反馈：
   ┊ 📄 web_extract (2.1s)
 ```
 
-使用 `/verbose` 循环切换显示模式：`off → new → all → verbose`。此命令也可为消息平台启用 —— 请参阅 [配置](/docs/user-guide/configuration#display-settings)。
+使用 `/verbose` 循环切换显示模式：`off → new → all → verbose`。此命令也可为消息平台启用 —— 请参阅 [配置](/user-guide/configuration#display-settings)。
 
 ## 会话管理
 

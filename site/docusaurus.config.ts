@@ -2,13 +2,21 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
+const deploymentUrl =
+  process.env.DOCS_SITE_URL
+  ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : undefined)
+  ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
+  ?? 'https://hermes-agent.nousresearch.com';
+
 const config: Config = {
   title: 'Hermes Agent 中文文档',
   tagline: '会在使用中持续成长的 AI Agent',
   favicon: 'img/favicon.ico',
 
-  url: 'https://hermes-agent.nousresearch.com',
-  baseUrl: '/docs/',
+  url: deploymentUrl,
+  baseUrl: '/',
 
   organizationName: 'NousResearch',
   projectName: 'hermes-agent',
@@ -49,7 +57,7 @@ const config: Config = {
         docs: {
           routeBasePath: '/',  // Docs at the root of /docs/
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/NousResearch/hermes-agent/edit/main/website/',
+          editUrl: 'https://github.com/dracohu2025-cloud/hermes-agent/edit/main/site/',
         },
         blog: false,
         theme: {

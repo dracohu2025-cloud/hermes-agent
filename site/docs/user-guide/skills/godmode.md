@@ -9,7 +9,7 @@ description: "使用 G0DM0D3 技术自动对 LLM 做越狱测试——包括 sys
 
 **Skill 路径：** `skills/red-teaming/godmode/`
 
-**和 [OBLITERATUS](/docs/reference/skills-catalog#mlopsinference) 的关键区别：** OBLITERATUS 会直接修改模型权重，属于永久性改动，要求使用开源权重模型和 GPU。这个 skill 工作在 prompt/API 层，可以用于**任何能通过 API 访问的模型**，包括闭源模型（GPT、Claude、Gemini、Grok）。
+**和 [OBLITERATUS](/reference/skills-catalog#mlopsinference) 的关键区别：** OBLITERATUS 会直接修改模型权重，属于永久性改动，要求使用开源权重模型和 GPU。这个 skill 工作在 prompt/API 层，可以用于**任何能通过 API 访问的模型**，包括闭源模型（GPT、Claude、Gemini、Grok）。
 
 ## 什么是 G0DM0D3？
 

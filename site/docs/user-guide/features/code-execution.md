@@ -187,7 +187,7 @@ terminal:
     - ANOTHER_TOKEN
 ```
 
-完整细节请参阅[安全指南](/docs/user-guide/security#environment-variable-passthrough)。
+完整细节请参阅[安全指南](/user-guide/security#environment-variable-passthrough)。
 
 脚本在临时目录中运行，执行后会被清理。子进程在其自己的进程组中运行，以便在超时或中断时能够被干净地终止。
 
@@ -201,7 +201,7 @@ terminal:
 | 运行构建或测试套件 | ❌ | ✅ |
 | 循环处理搜索结果 | ✅ | ❌ |
 | 交互式/后台进程 | ❌ | ✅ |
-| 需要在环境中使用 API 密钥 | ⚠️ 仅通过[透传](/docs/user-guide/security#environment-variable-passthrough) | ✅（大多数会透传） |
+| 需要在环境中使用 API 密钥 | ⚠️ 仅通过[透传](/user-guide/security#environment-variable-passthrough) | ✅（大多数会透传） |
 
 **经验法则：** 当你需要以编程方式调用 Hermes 工具，并在调用之间加入逻辑时，使用 `execute_code`。对于运行 shell 命令、构建和进程，使用 `terminal`。
 

@@ -14,8 +14,8 @@ description: "按需知识文档——渐进式披露、代理管理的技能以
 
 另请参阅：
 
-- [捆绑技能目录](/docs/reference/skills-catalog)
-- [官方可选技能目录](/docs/reference/optional-skills-catalog)
+- [捆绑技能目录](/reference/skills-catalog)
+- [官方可选技能目录](/reference/optional-skills-catalog)
 
 ## 使用技能
 
@@ -140,7 +140,7 @@ required_environment_variables:
 
 当遇到缺失的值时，Hermes 仅在技能实际在本地 CLI 中加载时才会安全地询问。你可以跳过设置并继续使用该技能。消息界面永远不会在聊天中询问密钥——它们会告诉你在本地使用 `hermes setup` 或 `~/.hermes/.env`。
 
-一旦设置，声明的环境变量会**自动传递**到 `execute_code` 和 `terminal` 沙箱——技能的脚本可以直接使用 `$TENOR_API_KEY`。对于非技能的环境变量，请使用 `terminal.env_passthrough` 配置选项。详情请参阅[环境变量传递](/docs/user-guide/security#environment-variable-passthrough)。
+一旦设置，声明的环境变量会**自动传递**到 `execute_code` 和 `terminal` 沙箱——技能的脚本可以直接使用 `$TENOR_API_KEY`。对于非技能的环境变量，请使用 `terminal.env_passthrough` 配置选项。详情请参阅[环境变量传递](/user-guide/security#environment-variable-passthrough)。
 
 ## 技能目录结构
 

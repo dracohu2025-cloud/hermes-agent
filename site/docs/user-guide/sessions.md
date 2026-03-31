@@ -270,7 +270,7 @@ Total messages: 3847
 Database size: 12.4 MB
 ```
 
-要进行更深入的分析——令牌使用情况、成本估算、工具使用细分和活动模式——请使用 [`hermes insights`](/docs/reference/cli-commands#hermes-insights)。
+要进行更深入的分析——令牌使用情况、成本估算、工具使用细分和活动模式——请使用 [`hermes insights`](/reference/cli-commands#hermes-insights)。
 
 ## 会话搜索工具
 

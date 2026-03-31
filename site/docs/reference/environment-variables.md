@@ -298,7 +298,7 @@ fallback_model:
   model: anthropic/claude-sonnet-4
 ```
 
-完整详情请参阅[备用提供商](/docs/user-guide/features/fallback-providers)。
+完整详情请参阅[备用提供商](/user-guide/features/fallback-providers)。
 
 ## 提供商路由（仅限 config.yaml）
 

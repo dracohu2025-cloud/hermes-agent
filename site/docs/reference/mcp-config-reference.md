@@ -9,8 +9,8 @@ description: "Hermes Agent MCP 配置键、过滤语义及工具策略参考"
 本文档是主 MCP 文档的简明参考手册。
 
 概念性指南请参阅：
-- [MCP（模型上下文协议）](/docs/user-guide/features/mcp)
-- [在 Hermes 中使用 MCP](/docs/guides/use-mcp-with-hermes)
+- [MCP（模型上下文协议）](/user-guide/features/mcp)
+- [在 Hermes 中使用 MCP](/guides/use-mcp-with-hermes)
 
 ## 根配置结构
 

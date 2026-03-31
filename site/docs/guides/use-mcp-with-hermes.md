@@ -410,6 +410,6 @@ enabled: false
 
 ## 相关文档
 
-- [MCP (Model Context Protocol)](/docs/user-guide/features/mcp)
-- [FAQ](/docs/reference/faq)
-- [Slash Commands](/docs/reference/slash-commands)
+- [MCP (Model Context Protocol)](/user-guide/features/mcp)
+- [FAQ](/reference/faq)
+- [Slash Commands](/reference/slash-commands)

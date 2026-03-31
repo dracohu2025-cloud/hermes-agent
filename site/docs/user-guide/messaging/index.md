@@ -8,7 +8,7 @@ description: "通过 Telegram、Discord、Slack、WhatsApp、Signal、SMS、Emai
 
 通过 Telegram、Discord、Slack、WhatsApp、Signal、SMS、Email、Home Assistant、Mattermost、Matrix、DingTalk、飞书/Lark、企业微信或你的浏览器与 Hermes 聊天。网关是一个单一的后台进程，连接到所有你配置的平台，处理会话，运行定时任务，并传递语音消息。
 
-要使用完整的语音功能集——包括 CLI 麦克风模式、消息中的语音回复以及 Discord 语音频道对话——请参阅[语音模式](/docs/user-guide/features/voice-mode)和[使用 Hermes 的语音模式](/docs/guides/use-voice-mode-with-hermes)。
+要使用完整的语音功能集——包括 CLI 麦克风模式、消息中的语音回复以及 Discord 语音频道对话——请参阅[语音模式](/user-guide/features/voice-mode)和[使用 Hermes 的语音模式](/guides/use-voice-mode-with-hermes)。
 
 ## 架构
 

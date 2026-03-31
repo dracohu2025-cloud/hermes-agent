@@ -469,9 +469,9 @@ hermes chat
 ```
 
 另请参阅：
-- [MCP (Model Context Protocol)](/docs/user-guide/features/mcp)
-- [在 Hermes 中使用 MCP](/docs/guides/use-mcp-with-hermes)
-- [MCP 配置参考](/docs/reference/mcp-config-reference)
+- [MCP (Model Context Protocol)](/user-guide/features/mcp)
+- [在 Hermes 中使用 MCP](/guides/use-mcp-with-hermes)
+- [MCP 配置参考](/reference/mcp-config-reference)
 
 #### MCP 超时错误
 

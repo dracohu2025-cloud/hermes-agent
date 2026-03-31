@@ -196,5 +196,5 @@ provider_routing:
 当没有配置 `provider_routing` 部分时（默认情况），OpenRouter 使用其自身的默认路由逻辑，通常会自动平衡成本和可用性。
 
 :::tip 供应商路由 vs. 后备模型
-供应商路由控制 OpenRouter 内部的**子供应商**处理你的请求。关于当你的主模型失败时自动故障转移到完全不同的供应商，请参阅[后备供应商](/docs/user-guide/features/fallback-providers)。
+供应商路由控制 OpenRouter 内部的**子供应商**处理你的请求。关于当你的主模型失败时自动故障转移到完全不同的供应商，请参阅[后备供应商](/user-guide/features/fallback-providers)。
 :::

@@ -11,7 +11,7 @@ hide_table_of_contents: true
 由 [Nous Research](https://nousresearch.com) 构建的自我改进 AI 智能体。唯一内置学习循环的智能体——它从经验中创建技能，在使用中改进它们，推动自身持久化知识，并在不同会话间逐步构建关于你的深层模型。
 
 <div style={{display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap'}}>
-  <a href="/docs/getting-started/installation" style={{display: 'inline-block', padding: '0.6rem 1.2rem', backgroundColor: '#FFD700', color: '#07070d', borderRadius: '8px', fontWeight: 600, textDecoration: 'none'}}>开始使用 →</a>
+  <a href="/getting-started/installation" style={{display: 'inline-block', padding: '0.6rem 1.2rem', backgroundColor: '#FFD700', color: '#07070d', borderRadius: '8px', fontWeight: 600, textDecoration: 'none'}}>开始使用 →</a>
   <a href="https://github.com/NousResearch/hermes-agent" style={{display: 'inline-block', padding: '0.6rem 1.2rem', border: '1px solid rgba(255,215,0,0.2)', borderRadius: '8px', textDecoration: 'none'}}>在 GitHub 上查看</a>
 </div>
 
@@ -23,24 +23,24 @@ hide_table_of_contents: true
 
 | | |
 |---|---|
-| 🚀 **[安装](/docs/getting-started/installation)** | 在 Linux、macOS 或 WSL2 上 60 秒内完成安装 |
-| 📖 **[快速入门教程](/docs/getting-started/quickstart)** | 你的第一次对话及需要尝试的关键功能 |
-| 🗺️ **[学习路径](/docs/getting-started/learning-path)** | 根据你的经验水平找到合适的文档 |
-| ⚙️ **[配置](/docs/user-guide/configuration)** | 配置文件、提供商、模型和选项 |
-| 💬 **[消息网关](/docs/user-guide/messaging)** | 设置 Telegram、Discord、Slack 或 WhatsApp |
-| 🔧 **[工具与工具集](/docs/user-guide/features/tools)** | 40 多个内置工具及其配置方法 |
-| 🧠 **[记忆系统](/docs/user-guide/features/memory)** | 跨会话增长的持久化记忆 |
-| 📚 **[技能系统](/docs/user-guide/features/skills)** | 智能体创建并重用的程序性记忆 |
-| 🔌 **[MCP 集成](/docs/user-guide/features/mcp)** | 连接到 MCP 服务器，过滤其工具，并安全地扩展 Hermes |
-| 🧭 **[在 Hermes 中使用 MCP](/docs/guides/use-mcp-with-hermes)** | 实用的 MCP 设置模式、示例和教程 |
-| 🎙️ **[语音模式](/docs/user-guide/features/voice-mode)** | 在 CLI、Telegram、Discord 和 Discord VC 中进行实时语音交互 |
-| 🗣️ **[在 Hermes 中使用语音模式](/docs/guides/use-voice-mode-with-hermes)** | Hermes 语音工作流的实践设置和使用模式 |
-| 🎭 **[个性与 SOUL.md](/docs/user-guide/features/personality)** | 通过全局 SOUL.md 定义 Hermes 的默认声音 |
-| 📄 **[上下文文件](/docs/user-guide/features/context-files)** | 塑造每次对话的项目上下文文件 |
-| 🔒 **[安全性](/docs/user-guide/security)** | 命令批准、授权、容器隔离 |
-| 💡 **[技巧与最佳实践](/docs/guides/tips)** | 快速上手，充分利用 Hermes |
-| 🏗️ **[架构](/docs/developer-guide/architecture)** | 底层工作原理 |
-| ❓ **[常见问题与故障排除](/docs/reference/faq)** | 常见问题及解决方案 |
+| 🚀 **[安装](/getting-started/installation)** | 在 Linux、macOS 或 WSL2 上 60 秒内完成安装 |
+| 📖 **[快速入门教程](/getting-started/quickstart)** | 你的第一次对话及需要尝试的关键功能 |
+| 🗺️ **[学习路径](/getting-started/learning-path)** | 根据你的经验水平找到合适的文档 |
+| ⚙️ **[配置](/user-guide/configuration)** | 配置文件、提供商、模型和选项 |
+| 💬 **[消息网关](/user-guide/messaging)** | 设置 Telegram、Discord、Slack 或 WhatsApp |
+| 🔧 **[工具与工具集](/user-guide/features/tools)** | 40 多个内置工具及其配置方法 |
+| 🧠 **[记忆系统](/user-guide/features/memory)** | 跨会话增长的持久化记忆 |
+| 📚 **[技能系统](/user-guide/features/skills)** | 智能体创建并重用的程序性记忆 |
+| 🔌 **[MCP 集成](/user-guide/features/mcp)** | 连接到 MCP 服务器，过滤其工具，并安全地扩展 Hermes |
+| 🧭 **[在 Hermes 中使用 MCP](/guides/use-mcp-with-hermes)** | 实用的 MCP 设置模式、示例和教程 |
+| 🎙️ **[语音模式](/user-guide/features/voice-mode)** | 在 CLI、Telegram、Discord 和 Discord VC 中进行实时语音交互 |
+| 🗣️ **[在 Hermes 中使用语音模式](/guides/use-voice-mode-with-hermes)** | Hermes 语音工作流的实践设置和使用模式 |
+| 🎭 **[个性与 SOUL.md](/user-guide/features/personality)** | 通过全局 SOUL.md 定义 Hermes 的默认声音 |
+| 📄 **[上下文文件](/user-guide/features/context-files)** | 塑造每次对话的项目上下文文件 |
+| 🔒 **[安全性](/user-guide/security)** | 命令批准、授权、容器隔离 |
+| 💡 **[技巧与最佳实践](/guides/tips)** | 快速上手，充分利用 Hermes |
+| 🏗️ **[架构](/developer-guide/architecture)** | 底层工作原理 |
+| ❓ **[常见问题与故障排除](/reference/faq)** | 常见问题及解决方案 |
 
 ## 主要特性
 

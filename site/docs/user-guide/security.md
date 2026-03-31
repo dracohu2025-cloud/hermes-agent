@@ -395,7 +395,7 @@ security:
 
 当请求被阻止的 URL 时，工具会返回一个错误，说明该域名已被策略阻止。阻止列表在 `web_search`、`web_extract`、`browser_navigate` 以及所有支持 URL 的工具中强制执行。
 
-完整详情请参阅配置指南中的[网站阻止列表](/docs/user-guide/configuration#website-blocklist)。
+完整详情请参阅配置指南中的[网站阻止列表](/user-guide/configuration#website-blocklist)。
 
 ### SSRF 防护
 

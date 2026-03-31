@@ -291,7 +291,7 @@ display:
 
 通过编辑 `~/.hermes/SOUL.md` 来自定义机器人的沟通方式：
 
-完整指南请参阅 [在 Hermes 中使用 SOUL.md](/docs/guides/use-soul-with-hermes)。
+完整指南请参阅 [在 Hermes 中使用 SOUL.md](/guides/use-soul-with-hermes)。
 
 ```markdown
 # 灵魂

@@ -8,13 +8,13 @@ description: "与 Hermes Agent 进行实时语音对话 — 支持 CLI、Telegra
 
 Hermes Agent 在 CLI 和消息平台上支持完整的语音交互。你可以使用麦克风与智能体对话，收听语音回复，并在 Discord 语音频道中进行实时语音对话。
 
-如果你想了解包含推荐配置和实际使用模式的完整设置步骤，请参阅[《使用 Hermes 的语音模式》](/docs/guides/use-voice-mode-with-hermes)。
+如果你想了解包含推荐配置和实际使用模式的完整设置步骤，请参阅[《使用 Hermes 的语音模式》](/guides/use-voice-mode-with-hermes)。
 
 ## 先决条件
 
 在使用语音功能之前，请确保你已具备：
 
-1.  **已安装 Hermes Agent** — `pip install hermes-agent`（参见[安装指南](/docs/getting-started/installation)）
+1.  **已安装 Hermes Agent** — `pip install hermes-agent`（参见[安装指南](/getting-started/installation)）
 2.  **已配置 LLM 提供商** — 运行 `hermes model` 或在 `~/.hermes/.env` 中设置你偏好的提供商凭据
 3.  **基础设置正常工作** — 运行 `hermes` 以验证在启用语音前智能体能响应文本
 

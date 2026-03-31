@@ -287,7 +287,7 @@ delegation:
   # api_key: "local-key"
 ```
 
-完整配置细节请参阅[子代理委派](/docs/user-guide/features/delegation)。
+完整配置细节请参阅[子代理委派](/user-guide/features/delegation)。
 
 ---
 
@@ -305,7 +305,7 @@ cronjob(
 )
 ```
 
-完整配置细节请参阅[定时任务 (Cron)](/docs/user-guide/features/cron)。
+完整配置细节请参阅[定时任务 (Cron)](/user-guide/features/cron)。
 
 ---
 

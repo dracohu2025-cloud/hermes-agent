@@ -47,7 +47,7 @@ curl http://localhost:8642/v1/chat/completions \
   -d '{"model": "hermes-agent", "messages": [{"role": "user", "content": "Hello!"}]}'
 ```
 
-或者连接 Open WebUI、LobeChat 或任何其他前端 —— 请参阅 [Open WebUI 集成指南](/docs/user-guide/messaging/open-webui) 获取分步说明。
+或者连接 Open WebUI、LobeChat 或任何其他前端 —— 请参阅 [Open WebUI 集成指南](/user-guide/messaging/open-webui) 获取分步说明。
 
 ## 端点
 
@@ -228,7 +228,7 @@ API_SERVER_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
 | 前端 | Stars | 连接方式 |
 |----------|-------|------------|
-| [Open WebUI](/docs/user-guide/messaging/open-webui) | 126k | 提供完整指南 |
+| [Open WebUI](/user-guide/messaging/open-webui) | 126k | 提供完整指南 |
 | LobeChat | 73k | 自定义提供者端点 |
 | LibreChat | 34k | librechat.yaml 中的自定义端点 |
 | AnythingLLM | 56k | 通用 OpenAI 提供者 |
