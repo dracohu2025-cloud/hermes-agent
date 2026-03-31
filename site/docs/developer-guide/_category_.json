@@ -1,0 +1,8 @@
+{
+  "label": "开发者指南",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "了解 Hermes Agent 的架构、工具、skills 等内容，方便继续扩展和贡献。"
+  }
+}
