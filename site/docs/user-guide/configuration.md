@@ -15,9 +15,9 @@ description: "配置 Hermes Agent — config.yaml、提供商、模型、API 密
 ├── config.yaml     # 设置（模型、终端、TTS、压缩等）
 ├── .env            # API 密钥和密钥
 ├── auth.json       # OAuth 提供商凭据（Nous Portal 等）
-├── SOUL.md         # 主要代理身份（系统提示词中的槽位 #1）
+├── SOUL.md         # 主要 Agent 身份（系统提示词中的槽位 #1）
 ├── memories/       # 持久化记忆（MEMORY.md, USER.md）
-├── skills/         # 代理创建的技能（通过 skill_manage 工具管理）
+├── skills/         # Agent 创建的技能（通过 skill_manage 工具管理）
 ├── cron/           # 计划任务
 ├── sessions/       # 网关会话
 └── logs/           # 日志（errors.log, gateway.log — 密钥自动脱敏）
@@ -174,7 +174,7 @@ Copilot API **不**支持经典的个人访问令牌 (`ghp_*`)。支持的令牌
 
 **API 路由**：GPT-5+ 模型（除了 `gpt-5-mini`）自动使用 Responses API。所有其他模型（GPT-4o、Claude、Gemini 等）使用 Chat Completions。模型从实时 Copilot 目录中自动检测。
 
-**`copilot-acp` — Copilot ACP 代理后端**。将本地 Copilot CLI 作为子进程生成：
+**`copilot-acp` — Copilot ACP Agent 后端**。将本地 Copilot CLI 作为子进程生成：
 
 ```bash
 hermes chat --provider copilot-acp --model copilot-acp
@@ -697,7 +697,7 @@ smart_model_routing:
 
 ## 终端后端配置
 
-配置代理使用哪个环境来执行终端命令：
+配置 Agent 使用哪个环境来执行终端命令：
 
 ```yaml
 terminal:
@@ -767,13 +767,13 @@ terminal:
   docker_volumes:
     - "/home/user/projects:/workspace/projects"   # 读写（默认）
     - "/home/user/datasets:/data:ro"              # 只读
-    - "/home/user/outputs:/outputs"               # 代理写入，你读取
+    - "/home/user/outputs:/outputs"               # Agent 写入，你读取
 ```
 
 这适用于：
-- **向代理提供文件**（数据集、配置、参考代码）
-- **从代理接收文件**（生成的代码、报告、导出文件）
-- **共享工作区**，你和代理都可以访问相同的文件
+- **向 Agent 提供文件**（数据集、配置、参考代码）
+- **从 Agent 接收文件**（生成的代码、报告、导出文件）
+- **共享工作区**，你和 Agent 都可以访问相同的文件
 
 也可以通过环境变量设置：`TERMINAL_DOCKER_VOLUMES='["/host:/container"]'`（JSON 数组）。
 
@@ -874,14 +874,14 @@ memory:
 
 ## Git 工作树隔离
 
-为在同一仓库上并行运行多个代理启用隔离的 git 工作树：
+为在同一仓库上并行运行多个 Agent 启用隔离的 git 工作树：
 
 ```yaml
 worktree: true    # 始终创建工作树（与 hermes -w 相同）
 # worktree: false # 默认 — 仅在传递 -w 标志时创建
 ```
 
-启用后，每个 CLI 会话都会在 `.worktrees/` 下创建一个新的工作树及其自己的分支。代理可以编辑文件、提交、推送和创建 PR，而不会相互干扰。干净的工作树在退出时被移除；脏的工作树被保留以供手动恢复。
+启用后，每个 CLI 会话都会在 `.worktrees/` 下创建一个新的工作树及其自己的分支。Agent 可以编辑文件、提交、推送和创建 PR，而不会相互干扰。干净的工作树在退出时被移除；脏的工作树被保留以供手动恢复。
 
 你也可以通过在仓库根目录创建 `.worktreeinclude` 文件，列出要复制到工作树中的 git 忽略文件：
 
@@ -946,7 +946,7 @@ compression:
 
 ## 迭代预算压力
 
-当代理处理包含大量工具调用的复杂任务时，可能会在不知不觉中快速消耗其迭代预算（默认：90 轮）。预算压力会在接近限制时自动警告模型：
+当 Agent 处理包含大量工具调用的复杂任务时，可能会在不知不觉中快速消耗其迭代预算（默认：90 轮）。预算压力会在接近限制时自动警告模型：
 
 | 阈值 | 级别 | 模型看到的内容 |
 |-----------|-------|---------------------|
@@ -960,11 +960,11 @@ agent:
   max_turns: 90                # 每次对话轮次的最大迭代次数（默认：90）
 ```
 
-预算压力默认启用。代理会自然地看到警告，作为工具结果的一部分，鼓励它在迭代次数用完之前整合工作并给出响应。
+预算压力默认启用。Agent 会自然地看到警告，作为工具结果的一部分，鼓励它在迭代次数用完之前整合工作并给出响应。
 
 ## 上下文压力警告
 
-与迭代预算压力不同，上下文压力跟踪对话距离**压缩阈值**有多近——即触发上下文压缩以总结旧消息的点。这有助于您和代理了解对话何时变得过长。
+与迭代预算压力不同，上下文压力跟踪对话距离**压缩阈值**有多近——即触发上下文压缩以总结旧消息的点。这有助于您和 Agent 了解对话何时变得过长。
 
 | 进度 | 级别 | 发生的情况 |
 |----------|-------|-------------|
@@ -1224,7 +1224,7 @@ display:
   personality: "kawaii"  # 遗留的装饰性字段，仍出现在某些摘要中
   compact: false          # 紧凑输出模式（减少空白）
   resume_display: full    # full（恢复时显示之前的消息）| minimal（仅显示一行摘要）
-  bell_on_complete: false # 代理完成任务时播放终端响铃（适用于长时间任务）
+  bell_on_complete: false # Agent 完成任务时播放终端响铃（适用于长时间任务）
   show_reasoning: false   # 在每个响应上方显示模型推理/思考过程（用 /reasoning show|hide 切换）
   streaming: false        # 令牌到达时实时流式传输到终端
   background_process_notifications: all  # all | result | error | off（仅限网关）
@@ -1475,7 +1475,7 @@ browser:
 浏览器工具集支持多个提供商。有关 Browserbase、Browser Use 和本地 Chrome CDP 设置的详细信息，请参阅[浏览器功能页面](/user-guide/features/browser)。
 ## 网站黑名单 {#website-blocklist}
 
-阻止代理的网络和浏览器工具访问特定域名：
+阻止 Agent 的网络和浏览器工具访问特定域名：
 
 ```yaml
 security:
@@ -1515,7 +1515,7 @@ approvals:
 | `smart` | 使用辅助 LLM 来评估被标记的命令是否确实危险。低风险命令会自动批准，并在会话级别保持持久性。真正有风险的命令会升级给用户处理。 |
 | `off` | 跳过所有审批检查。等同于 `HERMES_YOLO_MODE=true`。**请谨慎使用。** |
 
-智能模式对于减少审批疲劳特别有用——它让代理在安全操作上更自主地工作，同时仍能捕获真正具有破坏性的命令。
+智能模式对于减少审批疲劳特别有用——它让 Agent 在安全操作上更自主地工作，同时仍能捕获真正具有破坏性的命令。
 
 :::warning
 设置 `approvals.mode: off` 会禁用终端命令的所有安全检查。仅在受信任的沙盒环境中使用此设置。
@@ -1533,7 +1533,7 @@ checkpoints:
 
 ## 委派
 
-为委派工具配置子代理行为：
+为委派工具配置子 Agent 行为：
 
 ```yaml
 delegation:
@@ -1543,9 +1543,9 @@ delegation:
   # api_key: "local-key"                    # base_url 的 API 密钥（回退到 OPENAI_API_KEY）
 ```
 
-**子代理 provider:model 覆盖：** 默认情况下，子代理继承父代理的提供商和模型。设置 `delegation.provider` 和 `delegation.model` 可以将子代理路由到不同的提供商:模型组合——例如，为主代理使用昂贵/复杂的推理模型，而为范围狭窄的子任务使用廉价/快速的模型。
+**子 Agent provider:model 覆盖：** 默认情况下，子 Agent 继承父 Agent 的提供商和模型。设置 `delegation.provider` 和 `delegation.model` 可以将子 Agent 路由到不同的提供商:模型组合——例如，为主 Agent 使用昂贵/复杂的推理模型，而为范围狭窄的子任务使用廉价/快速的模型。
 
-**直接端点覆盖：** 如果你想要明显的自定义端点路径，请设置 `delegation.base_url`、`delegation.api_key` 和 `delegation.model`。这将直接把子代理发送到该 OpenAI 兼容端点，并优先于 `delegation.provider`。如果省略 `delegation.api_key`，Hermes 仅回退到 `OPENAI_API_KEY`。
+**直接端点覆盖：** 如果你想要明显的自定义端点路径，请设置 `delegation.base_url`、`delegation.api_key` 和 `delegation.model`。这将直接把子 Agent 发送到该 OpenAI 兼容端点，并优先于 `delegation.provider`。如果省略 `delegation.api_key`，Hermes 仅回退到 `OPENAI_API_KEY`。
 
 委派提供商使用与 CLI/网关启动相同的凭据解析机制。支持所有已配置的提供商：`openrouter`、`nous`、`copilot`、`zai`、`kimi-coding`、`minimax`、`minimax-cn`。设置提供商后，系统会自动解析正确的基础 URL、API 密钥和 API 模式——无需手动连接凭据。
 
@@ -1566,14 +1566,14 @@ Hermes 使用两种不同的上下文作用域：
 
 | 文件 | 用途 | 作用域 |
 |------|---------|-------|
-| `SOUL.md` | **主要代理身份**——定义代理是谁（系统提示中的槽位 #1） | `~/.hermes/SOUL.md` 或 `$HERMES_HOME/SOUL.md` |
+| `SOUL.md` | **主要 Agent 身份**——定义 Agent 是谁（系统提示中的槽位 #1） | `~/.hermes/SOUL.md` 或 `$HERMES_HOME/SOUL.md` |
 | `.hermes.md` / `HERMES.md` | 项目特定指令（最高优先级） | 向上遍历到 git 根目录 |
 | `AGENTS.md` | 项目特定指令，编码规范 | 递归目录遍历 |
 | `CLAUDE.md` | Claude Code 上下文文件（也会被检测） | 仅工作目录 |
 | `.cursorrules` | Cursor IDE 规则（也会被检测） | 仅工作目录 |
 | `.cursor/rules/*.mdc` | Cursor 规则文件（也会被检测） | 仅工作目录 |
 
-- **SOUL.md** 是代理的主要身份。它占据系统提示中的槽位 #1，完全替换内置的默认身份。编辑它以完全自定义代理的身份。
+- **SOUL.md** 是 Agent 的主要身份。它占据系统提示中的槽位 #1，完全替换内置的默认身份。编辑它以完全自定义 Agent 的身份。
 - 如果 SOUL.md 缺失、为空或无法加载，Hermes 会回退到内置的默认身份。
 - **项目上下文文件使用优先级系统**——只加载一种类型（首次匹配优先）：`.hermes.md` → `AGENTS.md` → `CLAUDE.md` → `.cursorrules`。SOUL.md 总是独立加载。
 - **AGENTS.md** 是分层的：如果子目录也有 AGENTS.md，则所有文件都会被合并。

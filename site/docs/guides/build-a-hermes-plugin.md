@@ -338,7 +338,7 @@ requires_env:
   - WEATHER_API_KEY
 ```
 
-如果 `WEATHER_API_KEY` 未设置，插件将被禁用并显示明确消息。不会崩溃，代理中不会出错 — 只是“Plugin weather disabled (missing: WEATHER_API_KEY)”。
+如果 `WEATHER_API_KEY` 未设置，插件将被禁用并显示明确消息。不会崩溃，Agent 中不会出错 — 只是“Plugin weather disabled (missing: WEATHER_API_KEY)”。
 
 ### 条件性工具可用性
 
@@ -375,7 +375,7 @@ def register(ctx):
 | `on_session_end` | 每次 `run_conversation` 调用结束时 | `session_id`, `completed`, `interrupted`, `model`, `platform` | — |
 
 大多数钩子是触发即忘的观察者。例外是 `pre_llm_call`：如果回调返回一个包含 `"context"` 键的字典（或纯字符串），该值将被附加到当前轮次的临时系统提示中。这允许记忆插件在不触及核心代码的情况下注入回忆的上下文。
-如果钩子函数崩溃，会被记录日志并跳过；其他钩子和代理会继续正常运行。
+如果钩子函数崩溃，会被记录日志并跳过；其他钩子和 Agent 会继续正常运行。
 
 ### 通过 pip 分发
 

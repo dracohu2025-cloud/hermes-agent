@@ -171,7 +171,7 @@ Hermes 支持配置一个后备模型/provider 对，允许在主模型遇到错
 
 ### 不支持后备的情况
 
--   **子代理委托** (`tools/delegate_tool.py`)：子代理继承父级的 provider，但不继承后备配置
+-   **子 Agent 委托** (`tools/delegate_tool.py`)：子 Agent 继承父级的 provider，但不继承后备配置
 -   **Cron 任务** (`cron/`)：使用固定的 provider 运行，无后备机制
 -   **辅助任务**：使用其自身独立的 provider 自动检测链（参见上文的辅助模型路由）
 

@@ -6,7 +6,7 @@ description: "通过 OpenAI 兼容的 API 服务器将 Open WebUI 连接到 Herm
 
 # Open WebUI 集成
 
-[Open WebUI](https://github.com/open-webui/open-webui) (126k★) 是最受欢迎的 AI 自托管聊天界面。借助 Hermes Agent 内置的 API 服务器，你可以将 Open WebUI 用作代理的精美 Web 前端——具备完整的对话管理、用户账户和现代化聊天界面。
+[Open WebUI](https://github.com/open-webui/open-webui) (126k★) 是最受欢迎的 AI 自托管聊天界面。借助 Hermes Agent 内置的 API 服务器，你可以将 Open WebUI 用作 Agent 的精美 Web 前端——具备完整的对话管理、用户账户和现代化聊天界面。
 
 ## 架构
 
@@ -18,7 +18,7 @@ flowchart LR
     B -->|SSE 流式响应| A
 ```
 
-Open WebUI 连接到 Hermes Agent 的 API 服务器，就像连接到 OpenAI 一样。你的代理会使用其完整的工具集（终端、文件操作、网络搜索、记忆、技能）来处理请求，并返回最终响应。
+Open WebUI 连接到 Hermes Agent 的 API 服务器，就像连接到 OpenAI 一样。你的 Agent 会使用其完整的工具集（终端、文件操作、网络搜索、记忆、技能）来处理请求，并返回最终响应。
 
 Open WebUI 以服务器到服务器的形式与 Hermes 通信，因此此集成无需配置 `API_SERVER_CORS_ORIGINS`。
 
@@ -146,12 +146,12 @@ Open WebUI 即使在响应模式下目前也是客户端管理对话历史——
 
 1.  Open WebUI 发送一个包含你的消息和对话历史的 `POST /v1/chat/completions` 请求
 2.  Hermes Agent 创建一个带有完整工具集的 AIAgent 实例
-3.  代理处理你的请求——它可能会调用工具（终端、文件操作、网络搜索等）
+3.  Agent 处理你的请求——它可能会调用工具（终端、文件操作、网络搜索等）
 4.  工具调用在服务器端隐形地进行
-5.  代理的最终文本响应返回给 Open WebUI
+5.  Agent 的最终文本响应返回给 Open WebUI
 6.  Open WebUI 在其聊天界面中显示响应
 
-你的代理拥有和使用 CLI 或 Telegram 时相同的所有工具和能力——唯一的区别是前端界面。
+你的 Agent 拥有和使用 CLI 或 Telegram 时相同的所有工具和能力——唯一的区别是前端界面。
 
 ## 配置参考
 
@@ -186,7 +186,7 @@ Open WebUI 即使在响应模式下目前也是客户端管理对话历史——
 
 ### 响应时间过长
 
-Hermes Agent 可能在生成最终响应前执行多个工具调用（读取文件、运行命令、搜索网络等）。对于复杂查询这是正常的。响应会在代理完成后一次性出现。
+Hermes Agent 可能在生成最终响应前执行多个工具调用（读取文件、运行命令、搜索网络等）。对于复杂查询这是正常的。响应会在 Agent 完成后一次性出现。
 
 ### "无效的 API 密钥" 错误
 

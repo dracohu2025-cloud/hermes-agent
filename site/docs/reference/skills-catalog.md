@@ -305,7 +305,7 @@ hermes skills install official/<category>/<skill>
 
 | 技能 | 描述 | 路径 |
 |-------|-------------|------|
-| `blackbox` | 将编码任务委托给 Blackbox AI CLI 代理。这是一个多模型代理，内置评判器，可通过多个 LLM 运行任务并选择最佳结果。需要 blackbox CLI 和 Blackbox AI API 密钥。 | `autonomous-ai-agents/blackbox` |
+| `blackbox` | 将编码任务委托给 Blackbox AI CLI Agent。这是一个多模型 Agent，内置评判器，可通过多个 LLM 运行任务并选择最佳结果。需要 blackbox CLI 和 Blackbox AI API 密钥。 | `autonomous-ai-agents/blackbox` |
 
 ## blockchain
 
@@ -331,7 +331,7 @@ hermes skills install official/<category>/<skill>
 
 | 技能 | 描述 | 路径 |
 |-------|-------------|------|
-| `agentmail` | 通过 AgentMail 为代理提供其专属的电子邮件收件箱。使用代理拥有的电子邮件地址（例如 hermes-agent@agentmail.to）自主发送、接收和管理电子邮件。 | `email/agentmail` |
+| `agentmail` | 通过 AgentMail 为 Agent 提供其专属的电子邮件收件箱。使用 Agent 拥有的电子邮件地址（例如 hermes-agent@agentmail.to）自主发送、接收和管理电子邮件。 | `email/agentmail` |
 
 ## health
 

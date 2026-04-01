@@ -6,18 +6,18 @@ description: "通过 RPC 工具访问的沙盒化 Python 执行 —— 将多步
 
 # 代码执行（编程式工具调用）
 
-`execute_code` 工具允许代理编写能够以编程方式调用 Hermes 工具的 Python 脚本，从而将多步骤工作流压缩为一次 LLM 轮次。脚本在代理主机上的沙盒子进程中运行，通过 Unix 域套接字 RPC 进行通信。
+`execute_code` 工具允许 Agent 编写能够以编程方式调用 Hermes 工具的 Python 脚本，从而将多步骤工作流压缩为一次 LLM 轮次。脚本在 Agent 主机上的沙盒子进程中运行，通过 Unix 域套接字 RPC 进行通信。
 
 ## 工作原理
 
-1.  代理使用 `from hermes_tools import ...` 编写 Python 脚本
+1.  Agent 使用 `from hermes_tools import ...` 编写 Python 脚本
 2.  Hermes 生成一个包含 RPC 函数的 `hermes_tools.py` 存根模块
 3.  Hermes 打开一个 Unix 域套接字并启动一个 RPC 监听线程
 4.  脚本在子进程中运行 —— 工具调用通过套接字传回 Hermes
 5.  只有脚本的 `print()` 输出会返回给 LLM；中间工具结果永远不会进入上下文窗口
 
 ```python
-# 代理可以编写如下脚本：
+# Agent 可以编写如下脚本：
 from hermes_tools import web_search, web_extract
 
 results = web_search("Python 3.13 新特性", limit=5)
@@ -29,9 +29,9 @@ print(summary)
 
 **沙盒中可用的工具：** `web_search`, `web_extract`, `read_file`, `write_file`, `search_files`, `patch`, `terminal`（仅前台模式）。
 
-## 代理何时使用此功能
+## Agent 何时使用此功能
 
-当出现以下情况时，代理会使用 `execute_code`：
+当出现以下情况时，Agent 会使用 `execute_code`：
 
 - **3 次以上工具调用**，且调用之间存在处理逻辑
 - 批量数据过滤或条件分支
@@ -157,11 +157,11 @@ code_execution:
 
 ## 错误处理
 
-当脚本失败时，代理会收到结构化的错误信息：
+当脚本失败时，Agent 会收到结构化的错误信息：
 
-- **非零退出码**：标准错误包含在输出中，因此代理可以看到完整的回溯信息
-- **超时**：脚本被终止，代理看到 `"Script timed out after 300s and was killed."`
-- **中断**：如果用户在执行期间发送了新消息，脚本会被终止，代理看到 `[execution interrupted — user sent a new message]`
+- **非零退出码**：标准错误包含在输出中，因此 Agent 可以看到完整的回溯信息
+- **超时**：脚本被终止，Agent 看到 `"Script timed out after 300s and was killed."`
+- **中断**：如果用户在执行期间发送了新消息，脚本会被终止，Agent 看到 `[execution interrupted — user sent a new message]`
 - **工具调用限制**：当达到 50 次调用限制时，后续的工具调用会返回错误消息
 
 响应始终包含 `status`（success/error/timeout/interrupted）、`output`、`tool_calls_made` 和 `duration_seconds`。
@@ -207,4 +207,4 @@ terminal:
 
 ## 平台支持
 
-代码执行需要 Unix 域套接字，仅在 **Linux 和 macOS** 上可用。在 Windows 上会自动禁用 —— 代理会回退到常规的顺序工具调用。
+代码执行需要 Unix 域套接字，仅在 **Linux 和 macOS** 上可用。在 Windows 上会自动禁用 —— Agent 会回退到常规的顺序工具调用。

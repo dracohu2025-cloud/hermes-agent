@@ -172,7 +172,7 @@ agent:
 hermes chat -q "jailbreak my current model"
 
 # 自动越狱当前模型（通过 execute_code）
-# 代理会运行 auto_jailbreak() 并报告结果
+# Agent 会运行 auto_jailbreak() 并报告结果
 
 # 多模型竞速，找出过滤最少的
 hermes chat -q "race models on: how does SQL injection work?"

@@ -291,7 +291,7 @@ journalctl -u hermes-gateway -f
 ### macOS (launchd)
 
 ```bash
-hermes gateway install               # 安装为 launchd 代理
+hermes gateway install               # 安装为 launchd Agent
 hermes gateway start                 # 启动服务
 hermes gateway stop                  # 停止服务
 hermes gateway status                # 检查状态

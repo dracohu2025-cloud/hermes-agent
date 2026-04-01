@@ -66,7 +66,7 @@ description: "Hermes Agent 使用的所有环境变量的完整参考"
 | `HERMES_INFERENCE_PROVIDER` | 覆盖提供商选择：`auto`、`openrouter`、`nous`、`openai-codex`、`copilot`、`copilot-acp`、`anthropic`、`huggingface`、`zai`、`kimi-coding`、`minimax`、`minimax-cn`、`kilocode`、`alibaba`（默认：`auto`） |
 | `HERMES_PORTAL_BASE_URL` | 覆盖 Nous Portal URL（用于开发/测试） |
 | `NOUS_INFERENCE_BASE_URL` | 覆盖 Nous 推理 API URL |
-| `HERMES_NOUS_MIN_KEY_TTL_SECONDS` | 重新签发前代理密钥的最小生存时间（默认：1800 = 30分钟） |
+| `HERMES_NOUS_MIN_KEY_TTL_SECONDS` | 重新签发前 Agent 密钥的最小生存时间（默认：1800 = 30分钟） |
 | `HERMES_NOUS_TIMEOUT_SECONDS` | Nous 凭证/令牌流程的 HTTP 超时时间 |
 | `HERMES_DUMP_REQUESTS` | 将 API 请求负载转储到日志文件（`true`/`false`） |
 | `HERMES_PREFILL_MESSAGES_FILE` | 一个 JSON 文件的路径，该文件包含在 API 调用时注入的临时预填充消息 |
@@ -236,7 +236,7 @@ description: "Hermes Agent 使用的所有环境变量的完整参考"
 | `MESSAGING_CWD` | 消息传递模式下终端命令的工作目录（默认：`~`） |
 | `GATEWAY_ALLOWED_USERS` | 允许跨所有平台的用户 ID 列表，用逗号分隔 |
 | `GATEWAY_ALLOW_ALL_USERS` | 允许所有用户，无需允许列表（`true`/`false`，默认：`false`） |
-## 代理行为
+## Agent 行为
 
 | 变量 | 描述 |
 |----------|-------------|

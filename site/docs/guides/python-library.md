@@ -54,7 +54,7 @@ print(response)
 `chat()` 在内部处理完整的对话循环——工具调用、重试等所有步骤——并只返回最终的文本响应。
 
 :::warning
-将 Hermes 嵌入到自己的代码中时，务必设置 `quiet_mode=True`。如果不设置，代理会打印 CLI 旋转器、进度指示器和其他终端输出，这会干扰你应用程序的输出。
+将 Hermes 嵌入到自己的代码中时，务必设置 `quiet_mode=True`。如果不设置，Agent 会打印 CLI 旋转器、进度指示器和其他终端输出，这会干扰你应用程序的输出。
 :::
 
 ---
@@ -79,7 +79,7 @@ print(f"Messages exchanged: {len(result['messages'])}")
 ```
 
 返回的字典包含：
-- **`final_response`** — 代理的最终文本回复
+- **`final_response`** — Agent 的最终文本回复
 - **`messages`** — 完整的消息历史记录（系统、用户、助手、工具调用）
 - **`task_id`** — 用于虚拟机隔离的任务标识符
 
@@ -96,7 +96,7 @@ result = agent.run_conversation(
 
 ## 配置工具
 
-使用 `enabled_toolsets` 或 `disabled_toolsets` 来控制代理可以访问哪些工具集：
+使用 `enabled_toolsets` 或 `disabled_toolsets` 来控制 Agent 可以访问哪些工具集：
 
 ```python
 # 仅启用网络工具（浏览、搜索）
@@ -115,7 +115,7 @@ agent = AIAgent(
 ```
 
 :::tip
-当你需要一个最小化、受限制的代理时（例如，研究机器人只使用网络搜索），使用 `enabled_toolsets`。当你需要大部分功能但需要限制特定功能时（例如，在共享环境中禁止终端访问），使用 `disabled_toolsets`。
+当你需要一个最小化、受限制的 Agent 时（例如，研究机器人只使用网络搜索），使用 `enabled_toolsets`。当你需要大部分功能但需要限制特定功能时（例如，在共享环境中禁止终端访问），使用 `disabled_toolsets`。
 :::
 
 ---
@@ -134,7 +134,7 @@ agent = AIAgent(
 result1 = agent.run_conversation("My name is Alice")
 history = result1["messages"]
 
-# 第二轮——代理记得上下文
+# 第二轮——Agent 记得上下文
 result2 = agent.run_conversation(
     "What's my name?",
     conversation_history=history,
@@ -142,7 +142,7 @@ result2 = agent.run_conversation(
 print(result2["final_response"])  # "Your name is Alice."
 ```
 
-`conversation_history` 参数接受之前结果中的 `messages` 列表。代理会在内部复制它，因此你的原始列表永远不会被修改。
+`conversation_history` 参数接受之前结果中的 `messages` 列表。Agent 会在内部复制它，因此你的原始列表永远不会被修改。
 
 ---
 
@@ -167,7 +167,7 @@ agent.chat("Write a Python function to sort a list")
 
 ## 自定义系统提示
 
-使用 `ephemeral_system_prompt` 来设置自定义系统提示，以指导代理的行为，但**不会**保存到轨迹文件中（保持训练数据干净）：
+使用 `ephemeral_system_prompt` 来设置自定义系统提示，以指导 Agent 的行为，但**不会**保存到轨迹文件中（保持训练数据干净）：
 
 ```python
 agent = AIgent(
@@ -180,7 +180,7 @@ response = agent.chat("How do I write a JOIN query?")
 print(response)
 ```
 
-这对于构建专用代理非常理想——代码审查员、文档编写器、SQL 助手——所有这些都使用相同的基础工具。
+这对于构建专用 Agent 非常理想——代码审查员、文档编写器、SQL 助手——所有这些都使用相同的基础工具。
 
 ---
 
@@ -205,7 +205,7 @@ prompts = [
 ]
 
 def process_prompt(prompt):
-    # 为每个任务创建一个新的代理以确保线程安全
+    # 为每个任务创建一个新的 Agent 以确保线程安全
     agent = AIAgent(
         model="anthropic/claude-sonnet-4",
         quiet_mode=True,
@@ -221,7 +221,7 @@ for prompt, result in zip(prompts, results):
 ```
 
 :::warning
-始终为每个线程或任务创建**一个新的 `AIAgent` 实例**。代理维护的内部状态（对话历史、工具会话、迭代计数器）不是线程安全的，不能共享。
+始终为每个线程或任务创建**一个新的 `AIAgent` 实例**。Agent 维护的内部状态（对话历史、工具会话、迭代计数器）不是线程安全的，不能共享。
 :::
 
 ---
@@ -329,12 +329,12 @@ print(review)
 
 :::tip
 - 如果你不希望从工作目录加载 `AGENTS.md` 文件到系统提示中，请设置 **`skip_context_files=True`**。
-- 设置 **`skip_memory=True`** 可以防止代理读取或写入持久化内存——推荐用于无状态的 API 端点。
-- `platform` 参数（例如 `"discord"`、`"telegram"`）会注入特定于平台的格式化提示，以便代理调整其输出样式。
+- 设置 **`skip_memory=True`** 可以防止 Agent 读取或写入持久化内存——推荐用于无状态的 API 端点。
+- `platform` 参数（例如 `"discord"`、`"telegram"`）会注入特定于平台的格式化提示，以便 Agent 调整其输出样式。
 :::
 
 :::warning
 - **线程安全**：为每个线程或任务创建一个 `AIAgent`。切勿在并发调用之间共享实例。
-- **资源清理**：当对话结束时，代理会自动清理资源（终端会话、浏览器实例）。如果你在长时间运行的进程中运行，请确保每个对话正常完成。
+- **资源清理**：当对话结束时，Agent 会自动清理资源（终端会话、浏览器实例）。如果你在长时间运行的进程中运行，请确保每个对话正常完成。
 - **迭代限制**：默认的 `max_iterations=90` 很宽松。对于简单的问答用例，考虑降低它（例如 `max_iterations=10`），以防止失控的工具调用循环并控制成本。
 :::

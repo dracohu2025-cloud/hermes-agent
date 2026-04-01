@@ -129,7 +129,7 @@ fallback_model:
 |---------|-------------------|
 | CLI 会话 | ✔ |
 | 消息网关 (Telegram, Discord 等) | ✔ |
-| 子代理委派 | ✘ (子代理不继承后备配置) |
+| 子 Agent 委派 | ✘ (子 Agent 不继承后备配置) |
 | 定时任务 | ✘ (使用固定的提供商运行) |
 | 辅助任务 (视觉、压缩) | ✘ (使用它们自己的提供商链 — 见下文) |
 
@@ -277,17 +277,17 @@ compression:
 
 ## 委派提供商覆盖
 
-由 `delegate_task` 生成的子代理**不**使用主后备模型。但是，为了成本优化，可以将它们路由到不同的提供商:模型组合：
+由 `delegate_task` 生成的子 Agent**不**使用主后备模型。但是，为了成本优化，可以将它们路由到不同的提供商:模型组合：
 
 ```yaml
 delegation:
-  provider: "openrouter"                      # 覆盖所有子代理的提供商
+  provider: "openrouter"                      # 覆盖所有子 Agent 的提供商
   model: "google/gemini-3-flash-preview"      # 覆盖模型
   # base_url: "http://localhost:1234/v1"      # 或使用直接端点
   # api_key: "local-key"
 ```
 
-完整配置细节请参阅[子代理委派](/user-guide/features/delegation)。
+完整配置细节请参阅[子 Agent 委派](/user-guide/features/delegation)。
 
 ---
 

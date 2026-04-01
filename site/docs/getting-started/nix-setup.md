@@ -357,11 +357,11 @@ hermes-env: |
 
 ## 文档
 
-`documents` 选项将文件安装到代理的工作目录（即 `workingDirectory`，代理将其视为工作空间）。Hermes 会按照约定查找特定的文件名：
+`documents` 选项将文件安装到 Agent 的工作目录（即 `workingDirectory`，Agent 将其视为工作空间）。Hermes 会按照约定查找特定的文件名：
 
-- **`SOUL.md`** — 代理的系统提示词 / 个性设定。Hermes 在启动时读取此文件，并将其用作持久性指令，以塑造其在所有对话中的行为。
-- **`USER.md`** — 关于代理交互用户的信息。
-- 你放在这里的任何其他文件，代理都可以作为工作空间文件看到。
+- **`SOUL.md`** — Agent 的系统提示词 / 个性设定。Hermes 在启动时读取此文件，并将其用作持久性指令，以塑造其在所有对话中的行为。
+- **`USER.md`** — 关于 Agent 交互用户的信息。
+- 你放在这里的任何其他文件，Agent 都可以作为工作空间文件看到。
 
 ```nix
 {
@@ -464,7 +464,7 @@ scp ~/.hermes/mcp-tokens/my-oauth-server{,.client}.json \
 
 ### 采样（服务器发起的 LLM 请求）
 
-一些 MCP 服务器可以向代理请求 LLM 补全：
+一些 MCP 服务器可以向 Agent 请求 LLM 补全：
 
 ```nix
 {
@@ -530,7 +530,7 @@ scp ~/.hermes/mcp-tokens/my-oauth-server{,.client}.json \
   ├── home/                                ──►  /home/hermes    (rw)
   └── workspace/                           (MESSAGING_CWD)
       ├── SOUL.md                          (来自 documents 选项)
-      └── (代理创建的文件)
+      └── (Agent 创建的文件)
 
 容器可写层 (apt/pip/npm):   /usr, /usr/local, /tmp
 ```
@@ -554,7 +554,7 @@ Nix 构建的二进制文件可以在 Ubuntu 容器内工作，因为 `/nix/stor
 :::warning 可写层丢失
 当身份哈希发生变化时（镜像升级、新增卷、新增容器选项），容器会被销毁，并从 `container.image` 的新拉取中重新创建。可写层中的任何 `apt install`、`pip install` 或 `npm install` 包都会丢失。`/data` 和 `/home/hermes` 中的状态会被保留（这些是绑定挂载）。
 
-如果代理依赖特定的包，请考虑将它们烘焙到自定义镜像中（`container.image = "my-registry/hermes-base:latest"`），或者在代理的 SOUL.md 中编写安装脚本。
+如果 Agent 依赖特定的包，请考虑将它们烘焙到自定义镜像中（`container.image = "my-registry/hermes-base:latest"`），或者在 Agent 的 SOUL.md 中编写安装脚本。
 :::
 
 ### GC 根保护

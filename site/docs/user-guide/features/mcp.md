@@ -490,7 +490,7 @@ hermes mcp serve --verbose    # 在 stderr 上输出调试日志
 
 ### 工作原理
 
-MCP 服务器直接从 Hermes 的会话存储（`~/.hermes/sessions/sessions.json` 和 SQLite 数据库）读取对话数据。一个后台线程轮询数据库以获取新消息，并维护一个内存中的事件队列。对于发送消息，它使用与 Hermes 代理本身相同的 `send_message` 基础设施。
+MCP 服务器直接从 Hermes 的会话存储（`~/.hermes/sessions/sessions.json` 和 SQLite 数据库）读取对话数据。一个后台线程轮询数据库以获取新消息，并维护一个内存中的事件队列。对于发送消息，它使用与 Hermes Agent 本身相同的 `send_message` 基础设施。
 
 对于读取操作（列出对话、读取历史记录、轮询事件），网关**不需要**运行。对于发送操作，网关**需要**运行，因为平台适配器需要活跃的连接。
 

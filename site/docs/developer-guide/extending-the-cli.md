@@ -184,7 +184,7 @@ def _build_tui_layout_children(self, *, sudo_widget, secret_widget,
 ## 提示
 
 - **状态变更后使显示失效**：调用 `self._invalidate()` 以触发 prompt_toolkit 重绘。
-- **访问代理状态**：`self.agent`、`self.model`、`self.conversation_history` 都可用。
+- **访问 Agent 状态**：`self.agent`、`self.model`、`self.conversation_history` 都可用。
 - **自定义样式**：覆盖 `_build_tui_style_dict()` 并为你的自定义样式类添加条目。
 - **斜杠命令**：覆盖 `process_command()`，处理你的命令，对于其他命令调用 `super().process_command(cmd)`。
 - **不要覆盖 `run()`**，除非绝对必要——扩展钩子的存在正是为了避免这种耦合。

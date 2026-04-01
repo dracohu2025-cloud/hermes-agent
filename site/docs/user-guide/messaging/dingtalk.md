@@ -176,7 +176,7 @@ pip install dingtalk-stream httpx
 ## 安全
 
 :::warning
-务必设置 `DINGTALK_ALLOWED_USERS` 以限制谁可以与机器人交互。如果没有设置，作为安全措施，网关默认会拒绝所有用户。只添加你信任的用户 ID——授权用户可以完全访问代理的能力，包括工具使用和系统访问。
+务必设置 `DINGTALK_ALLOWED_USERS` 以限制谁可以与机器人交互。如果没有设置，作为安全措施，网关默认会拒绝所有用户。只添加你信任的用户 ID——授权用户可以完全访问 Agent 的能力，包括工具使用和系统访问。
 :::
 
 有关保护 Hermes Agent 部署的更多信息，请参阅 [安全指南](../security.md)。

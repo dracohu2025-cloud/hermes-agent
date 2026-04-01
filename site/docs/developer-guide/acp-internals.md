@@ -36,7 +36,7 @@ hermes acp / hermes-acp / python -m acp_adapter
 
 ### `HermesACPAgent`
 
-`acp_adapter/server.py` 实现了 ACP 代理协议。
+`acp_adapter/server.py` 实现了 ACP Agent 协议。
 
 职责：
 
@@ -123,7 +123,7 @@ prompt(..., session_id)
   -> 安装回调 + 审批桥接
   -> 在 ThreadPoolExecutor 中运行 AIAgent
   -> 更新会话历史
-  -> 发出最终的代理消息块
+  -> 发出最终的 Agent 消息块
 ```
 
 ### 取消

@@ -298,7 +298,7 @@ kimi:model-name
 - 身份验证解析
 - CLI 菜单 / 提供商选择
 - 运行时提供商解析
-- 代理执行路径
+- Agent 执行路径
 - provider:model 解析
 - 任何适配器特定的消息转换
 

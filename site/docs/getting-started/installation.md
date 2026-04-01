@@ -107,7 +107,7 @@ export VIRTUAL_ENV="$(pwd)/venv"
 uv pip install -e ".[all]"
 ```
 
-如果您只想要核心代理（无 Telegram/Discord/cron 支持）：
+如果您只想要核心 Agent（无 Telegram/Discord/cron 支持）：
 ```bash
 uv pip install -e "."
 ```

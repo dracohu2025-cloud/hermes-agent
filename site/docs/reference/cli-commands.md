@@ -23,21 +23,21 @@ hermes [global-options] <command> [subcommand/options]
 | `--version`, `-V` | 显示版本信息并退出。 |
 | `--resume <session>`, `-r <session>` | 通过 ID 或标题恢复之前的会话。 |
 | `--continue [name]`, `-c [name]` | 恢复最近的会话，或恢复标题匹配的最近会话。 |
-| `--worktree`, `-w` | 在隔离的 git 工作树中启动，用于并行代理工作流。 |
+| `--worktree`, `-w` | 在隔离的 git 工作树中启动，用于并行 Agent 工作流。 |
 | `--yolo` | 绕过危险命令的确认提示。 |
-| `--pass-session-id` | 在代理的系统提示中包含会话 ID。 |
+| `--pass-session-id` | 在 Agent 的系统提示中包含会话 ID。 |
 
 ## 顶级命令
 
 | 命令 | 用途 |
 |---------|---------|
-| `hermes chat` | 与代理进行交互式或一次性聊天。 |
+| `hermes chat` | 与 Agent 进行交互式或一次性聊天。 |
 | `hermes model` | 交互式选择默认的提供商和模型。 |
 | `hermes gateway` | 运行或管理消息网关服务。 |
 | `hermes setup` | 针对全部或部分配置的交互式设置向导。 |
 | `hermes whatsapp` | 配置和配对 WhatsApp 桥接。 |
 | `hermes login` / `logout` | 使用 OAuth 支持的提供商进行身份验证。 |
-| `hermes status` | 显示代理、认证和平台状态。 |
+| `hermes status` | 显示 Agent、认证和平台状态。 |
 | `hermes cron` | 检查并触发 cron 调度器。 |
 | `hermes webhook` | 管理用于事件驱动激活的动态 webhook 订阅。 |
 | `hermes doctor` | 诊断配置和依赖项问题。 |
@@ -152,7 +152,7 @@ hermes setup [model|terminal|gateway|tools|agent] [--non-interactive] [--reset]
 | `terminal` | 终端后端和沙箱设置。 |
 | `gateway` | 消息平台设置。 |
 | `tools` | 按平台启用/禁用工具。 |
-| `agent` | 代理行为设置。 |
+| `agent` | Agent 行为设置。 |
 
 选项：
 
@@ -221,12 +221,12 @@ hermes cron <list|create|edit|pause|resume|run|remove|status|tick>
 hermes webhook <subscribe|list|remove|test>
 ```
 
-管理用于事件驱动代理激活的动态 webhook 订阅。需要在配置中启用 webhook 平台——如果未配置，则打印设置说明。
+管理用于事件驱动 Agent 激活的动态 webhook 订阅。需要在配置中启用 webhook 平台——如果未配置，则打印设置说明。
 
 | 子命令 | 描述 |
 |------------|-------------|
 | `subscribe` / `add` | 创建 webhook 路由。返回 URL 和 HMAC 密钥，以便在你的服务上配置。 |
-| `list` / `ls` | 显示所有代理创建的订阅。 |
+| `list` / `ls` | 显示所有 Agent 创建的订阅。 |
 | `remove` / `rm` | 删除动态订阅。来自 config.yaml 的静态路由不受影响。 |
 | `test` | 发送测试 POST 请求以验证订阅是否正常工作。 |
 
@@ -241,7 +241,7 @@ hermes webhook subscribe <name> [options]
 | `--prompt` | 提示模板，包含 `{dot.notation}` 负载引用。 |
 | `--events` | 要接受的逗号分隔的事件类型（例如 `issues,pull_request`）。空 = 全部。 |
 | `--description` | 人类可读的描述。 |
-| `--skills` | 为代理运行加载的逗号分隔的技能名称。 |
+| `--skills` | 为 Agent 运行加载的逗号分隔的技能名称。 |
 | `--deliver` | 交付目标：`log`（默认）、`telegram`、`discord`、`slack`、`github_comment`。 |
 | `--deliver-chat-id` | 跨平台交付的目标聊天/频道 ID。 |
 | `--secret` | 自定义 HMAC 密钥。如果省略则自动生成。 |

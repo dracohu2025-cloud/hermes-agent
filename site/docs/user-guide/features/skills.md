@@ -1,14 +1,14 @@
 ---
 sidebar_position: 2
 title: "技能系统"
-description: "按需知识文档——渐进式披露、代理管理的技能以及技能中心"
+description: "按需知识文档——渐进式披露、Agent 管理的技能以及技能中心"
 ---
 
 # 技能系统
 
-技能是代理在需要时可以加载的按需知识文档。它们遵循**渐进式披露**模式，以最小化令牌使用量，并且兼容 [agentskills.io](https://agentskills.io/specification) 开放标准。
+技能是 Agent 在需要时可以加载的按需知识文档。它们遵循**渐进式披露**模式，以最小化令牌使用量，并且兼容 [agentskills.io](https://agentskills.io/specification) 开放标准。
 
-所有技能都位于 **`~/.hermes/skills/`** —— 这是主目录和唯一可信源。在全新安装时，捆绑的技能会从代码仓库复制到此目录。从中心安装的以及代理创建的技能也会放在这里。代理可以修改或删除任何技能。
+所有技能都位于 **`~/.hermes/skills/`** —— 这是主目录和唯一可信源。在全新安装时，捆绑的技能会从代码仓库复制到此目录。从中心安装的以及 Agent 创建的技能也会放在这里。Agent 可以修改或删除任何技能。
 
 你也可以将 Hermes 指向**外部技能目录**——这些是除了本地目录外还会被扫描的额外文件夹。请参阅下面的[外部技能目录](#外部技能目录)。
 
@@ -28,7 +28,7 @@ description: "按需知识文档——渐进式披露、代理管理的技能以
 /github-pr-workflow create a PR for the auth refactor
 /plan design a rollout for migrating our auth provider
 
-# 仅输入技能名称会加载它，并让代理询问你的需求：
+# 仅输入技能名称会加载它，并让 Agent 询问你的需求：
 /excalidraw
 ```
 
@@ -51,7 +51,7 @@ Level 1: skill_view(name)        → 完整内容 + 元数据       (可变)
 Level 2: skill_view(name, path)  → 特定的参考文件         (可变)
 ```
 
-代理只在真正需要时才加载完整的技能内容。
+Agent 只在真正需要时才加载完整的技能内容。
 
 ## SKILL.md 格式
 
@@ -122,7 +122,7 @@ metadata:
 | `requires_toolsets` | 当列出的工具集不可用时，技能被**隐藏**。当它们存在时显示。 |
 | `requires_tools` | 同上，但检查的是单个工具。 |
 
-**示例：** 内置的 `duckduckgo-search` 技能使用了 `fallback_for_toolsets: [web]`。当你设置了 `FIRECRAWL_API_KEY` 时，web 工具集可用，代理会使用 `web_search` —— DuckDuckGo 技能保持隐藏。如果 API 密钥缺失，web 工具集不可用，DuckDuckGo 技能会自动作为备用方案出现。
+**示例：** 内置的 `duckduckgo-search` 技能使用了 `fallback_for_toolsets: [web]`。当你设置了 `FIRECRAWL_API_KEY` 时，web 工具集可用，Agent 会使用 `web_search` —— DuckDuckGo 技能保持隐藏。如果 API 密钥缺失，web 工具集不可用，DuckDuckGo 技能会自动作为备用方案出现。
 
 没有任何条件字段的技能行为与之前完全一样——它们总是显示。
 
@@ -156,7 +156,7 @@ required_environment_variables:
 │   └── vllm/
 │       └── SKILL.md
 ├── devops/
-│   └── deploy-k8s/                # 代理创建的技能
+│   └── deploy-k8s/                # Agent 创建的技能
 │       ├── SKILL.md
 │       └── references/
 ├── .hub/                          # 技能中心状态
@@ -184,7 +184,7 @@ skills:
 
 ### 工作原理
 
-- **只读**：外部目录仅用于技能发现扫描。当代理创建或编辑技能时，它总是写入 `~/.hermes/skills/`。
+- **只读**：外部目录仅用于技能发现扫描。当 Agent 创建或编辑技能时，它总是写入 `~/.hermes/skills/`。
 - **本地优先**：如果同一个技能名称同时存在于本地目录和外部目录中，则本地版本优先。
 - **完全集成**：外部技能会出现在系统提示索引、`skills_list`、`skill_view` 以及 `/skill-name` 斜杠命令中——与本地技能没有区别。
 - **不存在的路径会被静默跳过**：如果配置的目录不存在，Hermes 会忽略它而不报错。这对于可能并非每台机器上都存在的可选共享目录很有用。
@@ -207,11 +207,11 @@ skills:
 
 所有四个技能都会出现在你的技能索引中。如果你在本地创建一个名为 `my-custom-workflow` 的新技能，它会覆盖外部版本。
 
-## 代理管理的技能 (skill_manage 工具)
+## Agent 管理的技能 (skill_manage 工具)
 
-代理可以通过 `skill_manage` 工具创建、更新和删除自己的技能。这是代理的**程序性记忆**——当它弄清楚一个非平凡的工作流程时，它会将该方法保存为一个技能以供将来重用。
+Agent 可以通过 `skill_manage` 工具创建、更新和删除自己的技能。这是 Agent 的**程序性记忆**——当它弄清楚一个非平凡的工作流程时，它会将该方法保存为一个技能以供将来重用。
 
-### 代理何时创建技能
+### Agent 何时创建技能
 
 - 成功完成复杂任务（5 次以上工具调用）后
 - 当它遇到错误或死胡同并找到可行路径时

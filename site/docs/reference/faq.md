@@ -454,7 +454,7 @@ mcp_servers:
 **原因：** 服务器已启动但工具发现失败、工具被配置过滤掉，或者服务器不支持你期望的 MCP 能力。
 
 **解决方案：**
-- 检查网关/代理日志中的 MCP 连接错误
+- 检查网关/Agent 日志中的 MCP 连接错误
 - 确保服务器响应 `tools/list` RPC 方法
 - 检查该服务器配置下的任何 `tools.include`、`tools.exclude`、`tools.resources`、`tools.prompts` 或 `enabled` 设置
 - 请记住，资源/提示词工具仅在会话实际支持这些能力时才会被注册

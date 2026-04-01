@@ -124,7 +124,7 @@ $HERMES_HOME/SOUL.md
 - 提示词注入扫描
 - 如果太大则进行截断
 
-如果文件为空、仅包含空白字符或无法读取，Hermes 将回退到内置的默认身份（“你是 Hermes Agent，一个由 Nous Research 创建的智能 AI 助手……”）。当设置了 `skip_context_files` 时（例如，在子代理/委派上下文中），也会应用此回退。
+如果文件为空、仅包含空白字符或无法读取，Hermes 将回退到内置的默认身份（“你是 Hermes Agent，一个由 Nous Research 创建的智能 AI 助手……”）。当设置了 `skip_context_files` 时（例如，在子 Agent/委派上下文中），也会应用此回退。
 
 ## 安全扫描
 

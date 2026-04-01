@@ -188,7 +188,7 @@ platforms:
 
 ## 交付选项 {#delivery-options}
 
-`deliver` 字段控制代理处理 webhook 事件后，响应发送到哪里。
+`deliver` 字段控制 Agent 处理 webhook 事件后，响应发送到哪里。
 
 | 交付类型 | 描述 |
 |-------------|-------------|
@@ -206,7 +206,7 @@ platforms:
 
 ## 动态订阅（CLI）{#dynamic-subscriptions}
 
-除了在 `config.yaml` 中配置静态路由外，你还可以使用 `hermes webhook` CLI 命令动态创建 webhook 订阅。这在代理本身需要设置事件驱动触发器时特别有用。
+除了在 `config.yaml` 中配置静态路由外，你还可以使用 `hermes webhook` CLI 命令动态创建 webhook 订阅。这在 Agent 本身需要设置事件驱动触发器时特别有用。
 
 ### 创建订阅
 

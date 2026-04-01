@@ -514,6 +514,6 @@ environments/
 │
 └── benchmarks/                 # 评估基准测试
     ├── terminalbench_2/        # 89 个终端任务，Modal 沙盒
-    ├── tblite/                 # 100 个校准任务（快速的 TB2 代理）
+    ├── tblite/                 # 100 个校准任务（快速的 TB2 Agent）
     └── yc_bench/               # 长程战略基准测试
 ```

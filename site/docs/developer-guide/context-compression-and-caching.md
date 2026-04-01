@@ -69,4 +69,4 @@ Hermes 通过两种互补的机制来管理长对话：
 
 - [提示组装](./prompt-assembly.md)
 - [会话存储](./session-storage.md)
-- [代理循环内部原理](./agent-loop.md)
+- [Agent 循环内部原理](./agent-loop.md)

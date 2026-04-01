@@ -28,7 +28,7 @@ Hermes 有意将以下两者分离：
 
 缓存的系统提示词大致按以下顺序组装：
 
-1.  **代理身份** — 当可用时，从 `HERMES_HOME` 加载 `SOUL.md`，否则回退到 `prompt_builder.py` 中的 `DEFAULT_AGENT_IDENTITY`
+1.  **Agent 身份** — 当可用时，从 `HERMES_HOME` 加载 `SOUL.md`，否则回退到 `prompt_builder.py` 中的 `DEFAULT_AGENT_IDENTITY`
 2.  工具感知行为指导
 3.  Honcho 静态块（激活时）
 4.  可选的系统消息
@@ -39,7 +39,7 @@ Hermes 有意将以下两者分离：
 9.  时间戳 / 可选的会话 ID
 10. 平台提示
 
-当设置了 `skip_context_files` 时（例如，子代理委托），不会加载 `SOUL.md`，而是使用硬编码的 `DEFAULT_AGENT_IDENTITY`。
+当设置了 `skip_context_files` 时（例如，子 Agent 委托），不会加载 `SOUL.md`，而是使用硬编码的 `DEFAULT_AGENT_IDENTITY`。
 
 ## 仅限 API 调用时的层
 
