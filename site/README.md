@@ -18,6 +18,7 @@
 - [vercel.json](/Users/dracohu/REPO/hermes-agent/site/vercel.json)：Vercel 构建配置
 - [scripts/check_docs_parity.py](/Users/dracohu/REPO/hermes-agent/site/scripts/check_docs_parity.py)：检查中文站与英文源站的文档结构是否一致
 - [scripts/translate_docs.py](/Users/dracohu/REPO/hermes-agent/site/scripts/translate_docs.py)：批量翻译脚本
+- [scripts/sync_from_source.py](/Users/dracohu/REPO/hermes-agent/site/scripts/sync_from_source.py)：增量同步脚本，只处理 source site 新增或变更的文件
 
 ## 环境要求
 
@@ -99,7 +100,7 @@ npm run translate:docs -- --skip-translated
 如果只想重翻某几篇：
 
 ```bash
-npm run translate:docs -- --files "docs/getting-started/quickstart.md" "docs/reference/faq.md"
+npm run translate:docs -- --files "getting-started/quickstart.md" "reference/faq.md"
 ```
 
 注意：
@@ -108,16 +109,97 @@ npm run translate:docs -- --files "docs/getting-started/quickstart.md" "docs/ref
 - 文档内容会发送到你配置的模型服务
 - 不要把 API Key 写进仓库
 
+## 增量同步
+
+只要 `website/` 里的 source site 更新了，推荐按下面的顺序刷新中文站：
+
+1. 先把上游更新拉到本地仓库
+2. 先检查 source site 有没有新增、变更、删除
+3. 只同步变更的文档和静态资源
+4. 跑结构检查和构建
+5. 最后再部署
+
+先看有哪些变化：
+
+```bash
+git fetch upstream
+git pull --ff-only upstream main
+cd site
+npm run sync:docs:check
+```
+
+如果脚本提示有新增或变更，再执行：
+
+```bash
+npm run sync:docs
+```
+
+如果你想把“拉取 upstream + 同步中文站 + 校验 + 构建”串成一条命令，可以直接执行：
+
+```bash
+npm run sync:upstream
+```
+
+这个命令会做两件事：
+
+- 只翻译 `website/docs` 里新增或变更的 `.md` 和 `_category_.json`
+- 只复制 `website/static` 里新增或变更的静态资源
+
+同步完之后继续跑：
+
+```bash
+npm run check:docs-parity
+npm run build
+```
+
+## 这套机制能保证什么
+
+这套流程能比较稳地覆盖下面两类变化：
+
+- 文档正文更新
+- 文档引用的静态资源更新
+
+但有两类变化还是要人工复核：
+
+- [website/sidebars.ts](/Users/dracohu/REPO/hermes-agent/website/sidebars.ts) 变了
+- [website/docusaurus.config.ts](/Users/dracohu/REPO/hermes-agent/website/docusaurus.config.ts) 变了
+
+原因很简单：中文站的 [sidebars.ts](/Users/dracohu/REPO/hermes-agent/site/sidebars.ts) 和 [docusaurus.config.ts](/Users/dracohu/REPO/hermes-agent/site/docusaurus.config.ts) 不是英文文件的直接复制品，它们带着中文站自己的翻译和部署约定，所以不能盲目覆盖。
+
+增量同步脚本会自动提示你这两个文件有没有变化。你确认中文站已经跟着改好后，再执行一次：
+
+```bash
+npm run sync:docs -- --record-watch-state
+```
+
+这样脚本就会把这次人工复核记录成新的基线。
+
 ## 日常维护建议
 
-推荐按下面的顺序更新中文站：
+推荐固定按这条顺序更新：
 
-1. 先同步英文源站的变更到 `website/`
-2. 把对应文件复制或同步到 `site/`
-3. 运行结构检查
-4. 只翻译新增或变更的文档
-5. 跑一次 `npm run build`
-6. 确认没有 broken links / broken anchors 再部署
+1. 先同步英文源站到 `website/`
+2. 运行 `npm run sync:docs:check`
+3. 运行 `npm run sync:docs`
+4. 运行 `npm run check:docs-parity`
+5. 运行 `npm run build`
+6. 抽查首页、Quickstart、Developer Guide、Reference 几个关键页面
+7. 确认没问题后再部署
+
+## 远端提醒
+
+仓库里还加了一条 GitHub Actions：
+
+- [site-zh-upstream-watch.yml](/Users/dracohu/REPO/hermes-agent/.github/workflows/site-zh-upstream-watch.yml)
+
+它会每天定时检查 `upstream/main` 里的 source site 有没有变化，关注的范围包括：
+
+- `website/docs`
+- `website/static`
+- `website/sidebars.ts`
+- `website/docusaurus.config.ts`
+
+如果发现上游更新，这条 workflow 会失败，并在 GitHub Actions 的 Summary 里列出变更文件清单。这样即使本地没人主动去看，也能在远端先收到提醒。
 
 ## 当前维护约定
 

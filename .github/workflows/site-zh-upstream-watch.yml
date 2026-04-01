@@ -1,0 +1,72 @@
+name: Chinese Docs Upstream Watch
+
+on:
+  schedule:
+    - cron: '15 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-upstream-source-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream "https://github.com/NousResearch/hermes-agent.git" || true
+          git fetch upstream main
+
+      - name: Detect source site changes
+        id: diff
+        run: |
+          CHANGED="$(git diff --name-only HEAD..upstream/main -- \
+            website/docs \
+            website/static \
+            website/sidebars.ts \
+            website/docusaurus.config.ts)"
+
+          {
+            echo "changed<<EOF"
+            echo "${CHANGED}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+          if [ -n "${CHANGED}" ]; then
+            echo "has_changes=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "has_changes=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Write summary
+        run: |
+          if [ "${{ steps.diff.outputs.has_changes }}" = "true" ]; then
+            {
+              echo "## 上游 source site 有更新"
+              echo
+              echo "下面这些路径在 upstream/main 里发生了变化："
+              echo
+              printf '%s\n' "${{ steps.diff.outputs.changed }}" | while IFS= read -r line; do
+                [ -n "${line}" ] && echo "- \`${line}\`"
+              done
+              echo
+              echo "建议下一步："
+              echo
+              echo "1. 拉取 upstream/main"
+              echo "2. 在 \`site/\` 目录运行 \`npm run sync:docs\`"
+              echo "3. 再运行 \`npm run check:docs-parity\` 和 \`npm run build\`"
+            } >> "${GITHUB_STEP_SUMMARY}"
+          else
+            {
+              echo "## 上游 source site 无变化"
+              echo
+              echo "当前中文站对应的 source site 还没有发现新的文档、静态资源或导航配置更新。"
+            } >> "${GITHUB_STEP_SUMMARY}"
+          fi
+
+      - name: Fail when updates are available
+        if: steps.diff.outputs.has_changes == 'true'
+        run: |
+          echo "Detected upstream source site changes. See workflow summary for details."
+          exit 1

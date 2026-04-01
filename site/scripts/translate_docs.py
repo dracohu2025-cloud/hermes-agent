@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -10,16 +11,15 @@ from typing import Iterable
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DOCS_ROOT = REPO_ROOT / "site" / "docs"
+SOURCE_DOCS_ROOT = REPO_ROOT / "website" / "docs"
+TARGET_DOCS_ROOT = REPO_ROOT / "site" / "docs"
+TRANSLATABLE_SUFFIXES = {".md", ".json"}
 
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from agent.anthropic_adapter import build_anthropic_client  # noqa: E402
-from openai import OpenAI  # noqa: E402
 
-
-SYSTEM_PROMPT = """你是一名专业的软件文档翻译编辑。
+MARKDOWN_SYSTEM_PROMPT = """你是一名专业的软件文档翻译编辑。
 
 请把英文 Docusaurus Markdown/MDX 文档完整翻译成简体中文，并严格遵守下面规则：
 
@@ -34,7 +34,7 @@ SYSTEM_PROMPT = """你是一名专业的软件文档翻译编辑。
 """
 
 
-USER_TEMPLATE = """请翻译下面这篇 Hermes Agent 文档。
+MARKDOWN_USER_TEMPLATE = """请翻译下面这篇 Hermes Agent 文档。
 
 额外要求：
 - 保持所有 Markdown 结构、链接、锚点、代码块数量与原文一致。
@@ -50,7 +50,7 @@ USER_TEMPLATE = """请翻译下面这篇 Hermes Agent 文档。
 """
 
 
-CHUNK_TEMPLATE = """请翻译下面这篇 Hermes Agent 文档的其中一个片段。
+MARKDOWN_CHUNK_TEMPLATE = """请翻译下面这篇 Hermes Agent 文档的其中一个片段。
 
 额外要求：
 - 这是第 {chunk_index} / {chunk_total} 个片段，请只输出这个片段对应的中文内容。
@@ -64,6 +64,28 @@ CHUNK_TEMPLATE = """请翻译下面这篇 Hermes Agent 文档的其中一个片�
 --- BEGIN DOCUMENT CHUNK ---
 {content}
 --- END DOCUMENT CHUNK ---
+"""
+
+
+JSON_SYSTEM_PROMPT = """你是一名专业的软件文档本地化编辑。
+
+请把输入的 JSON 文档翻译成简体中文，并严格遵守下面规则：
+
+1. 输出必须是合法 JSON，不能添加任何解释性文本。
+2. JSON 的键名、层级结构、数组长度、数字、布尔值、null、对象顺序都必须保持不变。
+3. 只翻译用户可见的字符串值，比如 label、title、description、caption。
+4. 命令、路径、环境变量、URL、模型名、品牌名、API 名称默认保持英文。
+5. 中文要自然、好懂，不要端着，不要使用“落盘”“收口”等黑话，也不要频繁使用“不是……而是……”这种句式。
+"""
+
+
+JSON_USER_TEMPLATE = """请翻译下面这个 Hermes Agent 文档相关的 JSON 文件。
+
+文档路径：{path}
+
+--- BEGIN JSON ---
+{content}
+--- END JSON ---
 """
 
 
@@ -95,6 +117,30 @@ def find_base_url() -> str | None:
         if value and value.strip():
             return value.strip()
     return None
+
+
+def resolve_transport(base_url: str | None, explicit: str | None) -> str:
+    if explicit:
+        return explicit
+
+    lowered = (base_url or "").lower()
+    if "openrouter.ai" in lowered or "/api/v1" in lowered:
+        return "openai"
+    return "anthropic"
+
+
+def build_client(transport: str, api_key: str, base_url: str | None):
+    if transport == "anthropic":
+        from agent.anthropic_adapter import build_anthropic_client
+
+        return build_anthropic_client(api_key, base_url)
+
+    from openai import OpenAI
+
+    kwargs = {"api_key": api_key}
+    if base_url:
+        kwargs["base_url"] = base_url
+    return OpenAI(**kwargs)
 
 
 def count_headings(text: str) -> int:
@@ -161,7 +207,7 @@ def split_markdown_chunks(text: str, max_chars: int = 8000) -> list[str]:
     return chunks
 
 
-def validate_translation(source: str, translated: str) -> list[str]:
+def validate_markdown_translation(source: str, translated: str) -> list[str]:
     issues: list[str] = []
 
     if source.lstrip().startswith("---") and not translated.lstrip().startswith("---"):
@@ -176,6 +222,49 @@ def validate_translation(source: str, translated: str) -> list[str]:
     if count_admonitions(source) != count_admonitions(translated):
         issues.append("admonition count changed")
 
+    return issues
+
+
+def compare_json_shape(source, translated, path: str = "$") -> list[str]:
+    issues: list[str] = []
+
+    if type(source) is not type(translated):
+        return [f"type changed at {path}"]
+
+    if isinstance(source, dict):
+        if list(source.keys()) != list(translated.keys()):
+            return [f"keys changed at {path}"]
+        for key in source:
+            issues.extend(compare_json_shape(source[key], translated[key], f"{path}.{key}"))
+        return issues
+
+    if isinstance(source, list):
+        if len(source) != len(translated):
+            return [f"list length changed at {path}"]
+        for index, (src_item, tgt_item) in enumerate(zip(source, translated, strict=True)):
+            issues.extend(compare_json_shape(src_item, tgt_item, f"{path}[{index}]"))
+        return issues
+
+    if not isinstance(source, str) and source != translated:
+        issues.append(f"non-string value changed at {path}")
+
+    return issues
+
+
+def validate_json_translation(source: str, translated: str) -> list[str]:
+    issues: list[str] = []
+
+    try:
+        source_obj = json.loads(source)
+    except json.JSONDecodeError as exc:  # pragma: no cover - source is versioned data
+        return [f"source json invalid: {exc}"]
+
+    try:
+        translated_obj = json.loads(translated)
+    except json.JSONDecodeError as exc:
+        return [f"translated json invalid: {exc}"]
+
+    issues.extend(compare_json_shape(source_obj, translated_obj))
     return issues
 
 
@@ -208,11 +297,11 @@ def call_model(client, transport: str, model: str, system_prompt: str, prompt: s
     return (response.choices[0].message.content or "").strip()
 
 
-def translate_text(
+def translate_markdown_text(
     client,
     transport: str,
     model: str,
-    path: Path,
+    relative_path: Path,
     content: str,
     retries: int = 2,
     chunk_index: int | None = None,
@@ -220,23 +309,31 @@ def translate_text(
     validate: bool = True,
 ) -> str:
     if chunk_index is not None and chunk_total is not None:
-        prompt = CHUNK_TEMPLATE.format(
-            path=path.as_posix(),
+        prompt = MARKDOWN_CHUNK_TEMPLATE.format(
+            path=relative_path.as_posix(),
             content=content,
             chunk_index=chunk_index,
             chunk_total=chunk_total,
         )
     else:
-        prompt = USER_TEMPLATE.format(path=path.as_posix(), content=content)
+        prompt = MARKDOWN_USER_TEMPLATE.format(path=relative_path.as_posix(), content=content)
 
     extra_hint = ""
     issues: list[str] = []
 
     for _ in range(retries + 1):
-        translated = call_model(client, transport, model, SYSTEM_PROMPT + extra_hint, prompt)
-        issues = validate_translation(content, translated) if validate else []
+        translated = call_model(
+            client,
+            transport,
+            model,
+            MARKDOWN_SYSTEM_PROMPT + extra_hint,
+            prompt,
+        )
+        issues = validate_markdown_translation(content, translated) if validate else []
         if not issues:
-            return translated + ("\n" if content.endswith("\n") and not translated.endswith("\n") else "")
+            if content.endswith("\n") and not translated.endswith("\n"):
+                translated += "\n"
+            return translated
 
         extra_hint = (
             "\n\n上一次输出有问题："
@@ -244,30 +341,66 @@ def translate_text(
             + "。请严格保持原文结构与标记数量不变，重新输出完整文档。"
         )
 
-    raise RuntimeError(f"Translation validation failed for {path}: {issues}")
+    raise RuntimeError(f"Markdown translation validation failed for {relative_path}: {issues}")
 
 
-def translate_file(
+def translate_json_text(
     client,
     transport: str,
     model: str,
-    path: Path,
+    relative_path: Path,
+    content: str,
+    retries: int = 2,
+    validate: bool = True,
+) -> str:
+    prompt = JSON_USER_TEMPLATE.format(path=relative_path.as_posix(), content=content)
+    extra_hint = ""
+    issues: list[str] = []
+
+    for _ in range(retries + 1):
+        translated = call_model(client, transport, model, JSON_SYSTEM_PROMPT + extra_hint, prompt)
+        issues = validate_json_translation(content, translated) if validate else []
+        if not issues:
+            if content.endswith("\n") and not translated.endswith("\n"):
+                translated += "\n"
+            return translated
+
+        extra_hint = (
+            "\n\n上一次输出有问题："
+            + "、".join(issues)
+            + "。请重新输出完整 JSON，保持键名、层级和非字符串值完全不变。"
+        )
+
+    raise RuntimeError(f"JSON translation validation failed for {relative_path}: {issues}")
+
+
+def ensure_parent(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+
+def translate_markdown_file(
+    client,
+    transport: str,
+    model: str,
+    source_path: Path,
+    target_path: Path,
     dry_run: bool = False,
     chunk_size: int = 8000,
     validate: bool = True,
 ) -> None:
-    original = path.read_text(encoding="utf-8")
+    original = source_path.read_text(encoding="utf-8")
     frontmatter, body = split_frontmatter(original)
     chunks = split_markdown_chunks(body, max_chars=chunk_size)
+    relative_path = source_path.relative_to(SOURCE_DOCS_ROOT)
 
     translated_chunks: list[str] = []
     for idx, chunk in enumerate(chunks, start=1):
         payload = frontmatter + chunk if idx == 1 else chunk
-        translated_chunk = translate_text(
+        translated_chunk = translate_markdown_text(
             client,
             transport,
             model,
-            path.relative_to(DOCS_ROOT),
+            relative_path,
             payload,
             chunk_index=idx if len(chunks) > 1 else None,
             chunk_total=len(chunks) if len(chunks) > 1 else None,
@@ -276,86 +409,175 @@ def translate_file(
         translated_chunks.append(translated_chunk)
 
     translated = "".join(translated_chunks)
-    issues = validate_translation(original, translated) if validate else []
+    issues = validate_markdown_translation(original, translated) if validate else []
     if issues:
-        raise RuntimeError(f"Final translation validation failed for {path}: {issues}")
+        raise RuntimeError(f"Final markdown validation failed for {relative_path}: {issues}")
 
     if dry_run:
-        print(f"[dry-run] translated {path.relative_to(REPO_ROOT)}")
+        print(f"[dry-run] translated {target_path.relative_to(REPO_ROOT)}")
         return
 
-    path.write_text(translated, encoding="utf-8")
-    print(f"[ok] {path.relative_to(REPO_ROOT)}")
+    ensure_parent(target_path)
+    target_path.write_text(translated, encoding="utf-8")
+    print(f"[ok] {target_path.relative_to(REPO_ROOT)}")
+
+
+def translate_json_file(
+    client,
+    transport: str,
+    model: str,
+    source_path: Path,
+    target_path: Path,
+    dry_run: bool = False,
+    validate: bool = True,
+) -> None:
+    original = source_path.read_text(encoding="utf-8")
+    translated = translate_json_text(
+        client,
+        transport,
+        model,
+        source_path.relative_to(SOURCE_DOCS_ROOT),
+        original,
+        validate=validate,
+    )
+
+    issues = validate_json_translation(original, translated) if validate else []
+    if issues:
+        raise RuntimeError(
+            f"Final json validation failed for {source_path.relative_to(SOURCE_DOCS_ROOT)}: {issues}"
+        )
+
+    if dry_run:
+        print(f"[dry-run] translated {target_path.relative_to(REPO_ROOT)}")
+        return
+
+    ensure_parent(target_path)
+    target_path.write_text(translated, encoding="utf-8")
+    print(f"[ok] {target_path.relative_to(REPO_ROOT)}")
+
+
+def translate_path(
+    client,
+    transport: str,
+    model: str,
+    source_path: Path,
+    target_path: Path,
+    dry_run: bool = False,
+    chunk_size: int = 8000,
+    validate: bool = True,
+) -> None:
+    if source_path.suffix == ".md":
+        translate_markdown_file(
+            client,
+            transport,
+            model,
+            source_path,
+            target_path,
+            dry_run=dry_run,
+            chunk_size=chunk_size,
+            validate=validate,
+        )
+        return
+
+    if source_path.suffix == ".json":
+        translate_json_file(
+            client,
+            transport,
+            model,
+            source_path,
+            target_path,
+            dry_run=dry_run,
+            validate=validate,
+        )
+        return
+
+    raise ValueError(f"Unsupported file type: {source_path}")
 
 
 def looks_translated(path: Path) -> bool:
+    if not path.exists():
+        return False
+
     text = path.read_text(encoding="utf-8")
+
+    if path.suffix == ".json":
+        return bool(re.search(r"[\u4e00-\u9fff]", text))
+
     lines = text.splitlines()[:20]
     sample = "\n".join(lines)
     return bool(re.search(r"(?m)^(title:\s*\"?.*[\u4e00-\u9fff].*\"?|#\s+.*[\u4e00-\u9fff])", sample))
 
 
-def iter_markdown_files(limit: int | None = None, selected: Iterable[str] | None = None) -> list[Path]:
+def iter_doc_files(
+    root: Path,
+    limit: int | None = None,
+    selected: Iterable[str] | None = None,
+) -> list[Path]:
     if selected:
-        files = [DOCS_ROOT / item for item in selected]
+        files = [root / item for item in selected]
     else:
-        files = sorted(DOCS_ROOT.rglob("*.md"))
+        files = sorted(
+            path for path in root.rglob("*") if path.is_file() and path.suffix in TRANSLATABLE_SUFFIXES
+        )
 
     if limit is not None:
         return files[:limit]
     return files
 
 
-def resolve_transport(base_url: str | None, explicit: str | None) -> str:
-    if explicit:
-        return explicit
-
-    lowered = (base_url or "").lower()
-    if "openrouter.ai" in lowered or "/api/v1" in lowered:
-        return "openai"
-    return "anthropic"
-
-
-def build_client(transport: str, api_key: str, base_url: str | None):
-    if transport == "anthropic":
-        return build_anthropic_client(api_key, base_url)
-
-    kwargs = {"api_key": api_key}
-    if base_url:
-        kwargs["base_url"] = base_url
-    return OpenAI(**kwargs)
-
-
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Translate Hermes docs in site/docs to Simplified Chinese.")
-    parser.add_argument("--model", default=os.getenv("HERMES_DOCS_TRANSLATION_MODEL", "kimi-k2-turbo-preview"))
-    parser.add_argument("--transport", choices=["anthropic", "openai"], default=os.getenv("HERMES_DOCS_TRANSLATION_TRANSPORT"))
+    parser = argparse.ArgumentParser(description="Translate Hermes docs from website/docs into site/docs.")
+    parser.add_argument(
+        "--model",
+        default=os.getenv("HERMES_DOCS_TRANSLATION_MODEL", "kimi-k2-turbo-preview"),
+    )
+    parser.add_argument(
+        "--transport",
+        choices=["anthropic", "openai"],
+        default=os.getenv("HERMES_DOCS_TRANSLATION_TRANSPORT"),
+    )
     parser.add_argument("--limit", type=int, default=None, help="Translate only the first N files for testing.")
-    parser.add_argument("--files", nargs="*", default=None, help="Translate only these site/docs relative paths.")
+    parser.add_argument("--files", nargs="*", default=None, help="Translate only these website/docs relative paths.")
     parser.add_argument("--chunk-size", type=int, default=8000, help="Maximum characters per translation chunk.")
     parser.add_argument("--no-validate", action="store_true", help="Skip structural validation for difficult pages.")
-    parser.add_argument("--skip-translated", action="store_true", help="Skip files that already look translated.")
+    parser.add_argument(
+        "--skip-translated",
+        action="store_true",
+        help="Skip target files that already look translated.",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Call the model but do not write files.")
     parser.add_argument("--sleep", type=float, default=0.2, help="Delay between files in seconds.")
+    parser.add_argument("--source-root", default=str(SOURCE_DOCS_ROOT), help="Source docs root directory.")
+    parser.add_argument("--target-root", default=str(TARGET_DOCS_ROOT), help="Target docs root directory.")
     args = parser.parse_args()
+
+    source_root = Path(args.source_root).resolve()
+    target_root = Path(args.target_root).resolve()
 
     api_key = find_api_key()
     base_url = find_base_url()
     transport = resolve_transport(base_url, args.transport)
     client = build_client(transport, api_key, base_url)
 
-    files = iter_markdown_files(limit=args.limit, selected=args.files)
+    files = iter_doc_files(source_root, limit=args.limit, selected=args.files)
     if args.skip_translated:
-        files = [path for path in files if not looks_translated(path)]
+        files = [
+            path
+            for path in files
+            if not looks_translated(target_root / path.relative_to(source_root))
+        ]
+
     print(f"Translating {len(files)} files with model: {args.model} via {transport}")
 
-    for index, path in enumerate(files, start=1):
-        print(f"[{index}/{len(files)}] {path.relative_to(REPO_ROOT)}")
-        translate_file(
+    for index, source_path in enumerate(files, start=1):
+        target_path = target_root / source_path.relative_to(source_root)
+        print(f"[{index}/{len(files)}] {source_path.relative_to(REPO_ROOT)} -> {target_path.relative_to(REPO_ROOT)}")
+        translate_path(
             client,
             transport=transport,
             model=args.model,
-            path=path,
+            source_path=source_path,
+            target_path=target_path,
             dry_run=args.dry_run,
             chunk_size=args.chunk_size,
             validate=not args.no_validate,
