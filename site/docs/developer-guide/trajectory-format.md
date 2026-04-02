@@ -1,56 +1,209 @@
----
-sidebar_position: 10
-title: "轨迹与训练格式"
-description: "Hermes 如何保存对话轨迹、规范化工具调用，并生成适用于训练的输出"
----
+# 轨迹格式
 
-# 轨迹与训练格式
+Hermes Agent 将对话轨迹以 ShareGPT 兼容的 JSONL 格式保存，用作训练数据、调试工件和强化学习数据集。
 
-Hermes 可以保存对话轨迹，用于训练、评估和批量数据生成工作流。
+源文件：`agent/trajectory.py`、`run_agent.py`（第 1788-1975 行）、`batch_runner.py`
 
-主要文件：
 
-- `agent/trajectory.py`
-- `run_agent.py`
-- `batch_runner.py`
-- `trajectory_compressor.py`
+## 文件命名约定
 
-## 轨迹的用途
+轨迹文件写入当前工作目录：
 
-轨迹输出用于：
+| 文件 | 何时写入 |
+|------|------|
+| `trajectory_samples.jsonl` | 成功完成的对话 (`completed=True`) |
+| `failed_trajectories.jsonl` | 失败或中断的对话 (`completed=False`) |
 
-- 监督微调（SFT）数据生成
-- 调试智能体行为
-- 基准测试/评估工件捕获
-- 后处理和压缩流水线
+批处理运行器 (`batch_runner.py`) 会为每个批次写入一个自定义输出文件（例如 `batch_001_output.jsonl`），并包含额外的元数据字段。
 
-## 规范化策略
+你可以通过 `save_trajectory()` 中的 `filename` 参数覆盖文件名。
 
-Hermes 将实时对话结构转换为适用于训练的格式。
 
-重要的行为包括：
+## JSONL 条目格式
 
-- 在显式标记中表示推理过程
-- 将工具调用转换为结构化的类 XML 区域，以确保数据集兼容性
-- 适当地分组工具输出
-- 分离成功和失败的轨迹
+文件中的每一行都是一个独立的 JSON 对象。有两种变体：
 
-## 持久化边界
+### CLI/交互式格式（来自 `_save_trajectory`）
 
-轨迹文件**不会**盲目地镜像所有运行时的提示状态。
+```json
+{
+  "conversations": [ ... ],
+  "timestamp": "2026-03-30T14:22:31.456789",
+  "model": "anthropic/claude-sonnet-4.6",
+  "completed": true
+}
+```
 
-一些仅在提示时存在的层被有意地从持久化的轨迹内容中排除，以使数据集更干净且更少依赖特定环境。
+### 批处理运行器格式（来自 `batch_runner.py`）
 
-## 批量运行器
+```json
+{
+  "prompt_index": 42,
+  "conversations": [ ... ],
+  "metadata": { "prompt_source": "gsm8k", "difficulty": "hard" },
+  "completed": true,
+  "partial": false,
+  "api_calls": -1,
+  "toolsets_used": ["code_tools", "file_tools"],
+  "tool_stats": {
+    "terminal": {"count": 3, "success": 3, "failure": 0},
+    "read_file": {"count": 2, "success": 2, "failure": 0},
+    "write_file": {"count": 0, "success": 0, "failure": 0}
+  },
+  "tool_error_counts": {
+    "terminal": 0,
+    "read_file": 0,
+    "write_file": 0
+  }
+}
+```
 
-`batch_runner.py` 比单次会话的轨迹保存会输出更丰富的元数据，包括：
+`tool_stats` 和 `tool_error_counts` 字典经过规范化，包含所有可能的工具（来自 `model_tools.TOOL_TO_TOOLSET_MAP`），并设为零默认值，确保条目间模式一致，以便 HuggingFace 数据集加载。
 
-- 模型/提供商元数据
-- 工具集信息
-- 部分完成/失败标记
-- 工具统计信息
 
-## 相关文档
+## 对话数组（ShareGPT 格式）
 
-- [环境、基准测试与数据生成](./environments.md)
-- [智能体循环内部机制](./agent-loop.md)
+`conversations` 数组使用 ShareGPT 的角色约定：
+
+| API 角色 | ShareGPT `from` |
+|----------|-----------------|
+| system | `"system"` |
+| user | `"human"` |
+| assistant | `"gpt"` |
+| tool | `"tool"` |
+
+### 完整示例
+
+```json
+{
+  "conversations": [
+    {
+      "from": "system",
+      "value": "You are a function calling AI model. You are provided with function signatures within <tools> </tools> XML tags. You may call one or more functions to assist with the user query. If available tools are not relevant in assisting with user query, just respond in natural conversational language. Don't make assumptions about what values to plug into functions. After calling & executing the functions, you will be provided with function results within <tool_response> </tool_response> XML tags. Here are the available tools:\n<tools>\n[{\"name\": \"terminal\", \"description\": \"Execute shell commands\", \"parameters\": {\"type\": \"object\", \"properties\": {\"command\": {\"type\": \"string\"}}}, \"required\": null}]\n</tools>\nFor each function call return a JSON object, with the following pydantic model json schema for each:\n{'title': 'FunctionCall', 'type': 'object', 'properties': {'name': {'title': 'Name', 'type': 'string'}, 'arguments': {'title': 'Arguments', 'type': 'object'}}, 'required': ['name', 'arguments']}\nEach function call should be enclosed within <tool_call> </tool_call> XML tags.\nExample:\n<tool_call>\n{'name': <function-name>,'arguments': <args-dict>}\n</tool_call>"
+    },
+    {
+      "from": "human",
+      "value": "What Python version is installed?"
+    },
+    {
+      "from": "gpt",
+      "value": "\nThe user wants to know the Python version. I should run python3 --version.\n\n<tool_call>\n{\"name\": \"terminal\", \"arguments\": {\"command\": \"python3 --version\"}}\n</tool_call>"
+    },
+    {
+      "from": "tool",
+      "value": "<tool_response>\n{\"tool_call_id\": \"call_abc123\", \"name\": \"terminal\", \"content\": \"Python 3.11.6\"}\n</tool_response>"
+    },
+    {
+      "from": "gpt",
+      "value": "\nGot the version. I can now answer the user.\n\nPython 3.11.6 is installed on this system."
+    }
+  ],
+  "timestamp": "2026 03-30T14:22:31.456789",
+  "model": "anthropic/claude-sonnet-4.6",
+  "completed": true
+}
+```
+
+
+## 规范化规则
+
+### 推理内容标记
+
+轨迹转换器将所有推理内容规范化为 `` 标签，无论模型最初如何生成：
+
+1.  **原生思考令牌**（来自 Anthropic、OpenAI o-series 等提供商的 `msg["reasoning"]` 字段）：包装为 `\n{reasoning}\n\n` 并前置到内容之前。
+
+2.  **REASONING_SCRATCHPAD XML**（当原生思考被禁用，模型通过系统提示指令的 XML 进行推理时）：`<REASONING_SCRATCHPAD>` 标签通过 `convert_scratchpad_to_think()` 转换为 ``。
+
+3.  **空思考块**：每个 `gpt` 回合都保证有一个 `` 块。如果没有生成推理，则插入一个空块：`\n\n` —— 这确保了训练数据格式的一致性。
+
+### 工具调用规范化
+
+来自 API 格式的工具调用（包含 `tool_call_id`、函数名、参数作为 JSON 字符串）被转换为 XML 包装的 JSON：
+
+```
+<tool_call>
+{"name": "terminal", "arguments": {"command": "ls -la"}}
+</tool_call>
+```
+
+- 参数从 JSON 字符串解析回对象（不进行双重编码）
+- 如果 JSON 解析失败（不应该发生 —— 在对话期间已验证），则使用空 `{}` 并记录警告
+- 一个助手回合中的多个工具调用会在单个 `gpt` 消息中产生多个 `<tool_call>` 块
+
+### 工具响应规范化
+
+助手消息之后的所有工具结果都被分组到一个 `tool` 回合中，并带有 XML 包装的 JSON 响应：
+
+```
+<tool_response>
+{"tool_call_id": "call_abc123", "name": "terminal", "content": "output here"}
+</tool_response>
+```
+
+- 如果工具内容看起来像 JSON（以 `{` 或 `[` 开头），则进行解析，使 content 字段包含 JSON 对象/数组而不是字符串
+- 多个工具结果在一个消息中用换行符连接
+- 工具名称通过位置与父助手的 `tool_calls` 数组匹配
+
+### 系统消息
+
+系统消息在保存时生成（不从对话中获取）。它遵循 Hermes 函数调用提示模板，包含：
+
+- 解释函数调用协议的前言
+- 包含 JSON 工具定义的 `<tools>` XML 块
+- `FunctionCall` 对象的模式引用
+- `<tool_call>` 示例
+
+工具定义包括 `name`、`description`、`parameters` 和 `required`（设置为 `null` 以匹配规范格式）。
+
+
+## 加载轨迹
+
+轨迹是标准的 JSONL —— 可以使用任何 JSON 行读取器加载：
+
+```python
+import json
+
+def load_trajectories(path: str):
+    """从 JSONL 文件加载轨迹条目。"""
+    entries = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                entries.append(json.loads(line))
+    return entries
+
+# 仅筛选成功完成的条目
+successful = [e for e in load_trajectories("trajectory_samples.jsonl")
+              if e.get("completed")]
+
+# 仅提取对话用于训练
+training_data = [e["conversations"] for e in successful]
+```
+
+### 为 HuggingFace 数据集加载
+
+```python
+from datasets import load_dataset
+
+ds = load_dataset("json", data_files="trajectory_samples.jsonl")
+```
+
+规范化的 `tool_stats` 模式确保所有条目具有相同的列，防止数据集加载期间出现 Arrow 模式不匹配错误。
+
+
+## 控制轨迹保存
+
+在 CLI 中，轨迹保存由以下方式控制：
+
+```yaml
+# config.yaml
+agent:
+  save_trajectories: true  # 默认: false
+```
+
+或通过 `--save-trajectories` 标志。当 Agent 以 `save_trajectories=True` 初始化时，`_save_trajectory()` 方法会在每个对话回合结束时被调用。
+批处理运行器总是会保存轨迹（这是它的主要目的）。
+
+所有轮次中都没有推理的样本会被批处理运行器自动丢弃，以避免非推理示例污染训练数据。

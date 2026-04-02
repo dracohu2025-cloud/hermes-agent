@@ -6,11 +6,11 @@ description: "与 Hermes Agent 的初次对话 —— 从安装到聊天只需 2
 
 # 快速开始
 
-本指南将引导你完成安装 Hermes Agent、设置提供商并进行首次对话。结束时，你将了解其主要功能以及如何进一步探索。
+本指南将带你完成安装 Hermes Agent、设置提供商并进行第一次对话。完成后，你将了解其主要功能以及如何进一步探索。
 
 ## 1. 安装 Hermes Agent
 
-运行一行式安装命令：
+运行一行式安装脚本：
 
 ```bash
 # Linux / macOS / WSL2
@@ -44,21 +44,24 @@ hermes setup       # 或者一次性配置所有内容
 | **Nous Portal** | 基于订阅，零配置 | 通过 `hermes model` 进行 OAuth 登录 |
 | **OpenAI Codex** | ChatGPT OAuth，使用 Codex 模型 | 通过 `hermes model` 进行设备代码认证 |
 | **Anthropic** | 直接使用 Claude 模型 (Pro/Max 或 API 密钥) | 通过 `hermes model` 使用 Claude Code 认证，或提供 Anthropic API 密钥 |
-| **OpenRouter** | 跨多个模型的多提供商路由 | 输入你的 API 密钥 |
+| **OpenRouter** | 跨多种模型的多提供商路由 | 输入你的 API 密钥 |
 | **Z.AI** | GLM / 智谱托管模型 | 设置 `GLM_API_KEY` / `ZAI_API_KEY` |
-| **Kimi / Moonshot** | Moonshot 托管的代码和聊天模型 | 设置 `KIMI_API_KEY` |
+| **Kimi / Moonshot** | 月之暗面托管的代码和聊天模型 | 设置 `KIMI_API_KEY` |
 | **MiniMax** | 国际版 MiniMax 端点 | 设置 `MINIMAX_API_KEY` |
 | **MiniMax China** | 中国区 MiniMax 端点 | 设置 `MINIMAX_CN_API_KEY` |
 | **Alibaba Cloud** | 通过 DashScope 使用通义千问模型 | 设置 `DASHSCOPE_API_KEY` |
-| **Hugging Face** | 通过统一路由使用 20+ 开源模型 (Qwen, DeepSeek, Kimi 等) | 设置 `HF_TOKEN` |
+| **Hugging Face** | 通过统一路由器访问 20+ 开源模型 (Qwen, DeepSeek, Kimi 等) | 设置 `HF_TOKEN` |
 | **Kilo Code** | KiloCode 托管模型 | 设置 `KILOCODE_API_KEY` |
 | **OpenCode Zen** | 按需付费访问精选模型 | 设置 `OPENCODE_ZEN_API_KEY` |
 | **OpenCode Go** | 每月 10 美元订阅开源模型 | 设置 `OPENCODE_GO_API_KEY` |
+| **DeepSeek** | 直接访问 DeepSeek API | 设置 `DEEPSEEK_API_KEY` |
+| **GitHub Copilot** | GitHub Copilot 订阅 (GPT-5.x, Claude, Gemini 等) | 通过 `hermes model` 进行 OAuth，或设置 `COPILOT_GITHUB_TOKEN` / `GH_TOKEN` |
+| **GitHub Copilot ACP** | Copilot ACP Agent 后端 (会启动本地的 `copilot` CLI) | `hermes model` (需要 `copilot` CLI + `copilot login`) |
 | **Vercel AI Gateway** | Vercel AI Gateway 路由 | 设置 `AI_GATEWAY_API_KEY` |
 | **自定义端点** | VLLM, SGLang, Ollama 或任何 OpenAI 兼容的 API | 设置基础 URL + API 密钥 |
 
 :::tip
-你可以随时使用 `hermes model` 切换提供商 —— 无需更改代码，没有锁定。配置自定义端点时，Hermes 会提示输入上下文窗口大小，并在可能时自动检测。详情请参阅[上下文长度检测](../user-guide/configuration.md#context-length-detection)。
+你可以随时使用 `hermes model` 切换提供商 —— 无需更改代码，没有锁定。配置自定义端点时，Hermes 会提示输入上下文窗口大小，并在可能时自动检测。详情请参阅[上下文长度检测](../integrations/providers.md#context-length-detection)。
 :::
 
 ## 3. 开始聊天
@@ -73,9 +76,9 @@ hermes
 ❯ 你能帮我做什么？
 ```
 
-智能体可以访问用于网络搜索、文件操作、终端命令等工具 —— 所有这些都开箱即用。
+这个 Agent 可以访问用于网络搜索、文件操作、终端命令等工具 —— 开箱即用。
 
-## 4. 尝试关键功能
+## 4. 尝试主要功能
 
 ### 让它使用终端
 
@@ -83,7 +86,7 @@ hermes
 ❯ 我的磁盘使用情况如何？显示前 5 个最大的目录。
 ```
 
-智能体会代表你运行终端命令并显示结果。
+Agent 将代表你运行终端命令并显示结果。
 
 ### 使用斜杠命令
 
@@ -101,13 +104,13 @@ hermes
 
 按 `Alt+Enter` 或 `Ctrl+J` 添加新行。非常适合粘贴代码或编写详细的提示。
 
-### 中断智能体
+### 中断 Agent
 
-如果智能体耗时过长，只需输入新消息并按回车键 —— 它会中断当前任务并切换到你的新指令。`Ctrl+C` 也有效。
+如果 Agent 耗时过长，只需输入新消息并按回车键 —— 它会中断当前任务并切换到你的新指令。`Ctrl+C` 也有效。
 
 ### 恢复会话
 
-当你退出时，hermes 会打印一个恢复命令：
+退出时，hermes 会打印一个恢复命令：
 
 ```bash
 hermes --continue    # 恢复最近的会话
@@ -120,7 +123,7 @@ hermes -c            # 简写形式
 
 ### 设置沙盒化终端
 
-为了安全起见，可以在 Docker 容器或远程服务器上运行智能体：
+为了安全，可以在 Docker 容器或远程服务器上运行 Agent：
 
 ```bash
 hermes config set terminal.backend docker    # Docker 隔离
@@ -129,7 +132,7 @@ hermes config set terminal.backend ssh       # 远程服务器
 
 ### 连接消息平台
 
-通过 Telegram、Discord、Slack、WhatsApp、Signal、Email 或 Home Assistant 从手机或其他界面与 Hermes 聊天：
+通过 Telegram、Discord、Slack、WhatsApp、Signal、Email 或 Home Assistant 从手机或其他平台与 Hermes 聊天：
 
 ```bash
 hermes gateway setup    # 交互式平台配置
@@ -137,16 +140,16 @@ hermes gateway setup    # 交互式平台配置
 
 ### 添加语音模式
 
-想在 CLI 中使用麦克风输入或在消息平台中听到语音回复吗？
+想在 CLI 中使用麦克风输入或在消息平台中获得语音回复吗？
 
 ```bash
 pip install "hermes-agent[voice]"
 
-# 可选但推荐用于免费的本地语音转文本
+# 可选，但推荐用于免费的本地语音转文字
 pip install faster-whisper
 ```
 
-然后在 CLI 中启动 Hermes 并启用它：
+然后启动 Hermes 并在 CLI 中启用它：
 
 ```text
 /voice on
@@ -160,7 +163,7 @@ pip install faster-whisper
 ❯ 每天早上 9 点，检查 Hacker News 上的 AI 新闻，并通过 Telegram 发送摘要给我。
 ```
 
-智能体会通过网关设置一个自动运行的 cron 任务。
+Agent 将通过网关设置一个自动运行的 cron 任务。
 
 ### 浏览和安装技能
 

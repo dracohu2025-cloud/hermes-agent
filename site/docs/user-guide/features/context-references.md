@@ -1,5 +1,6 @@
 ---
 sidebar_position: 9
+sidebar_label: "上下文引用"
 title: "上下文引用"
 description: "使用内联的 @ 语法，将文件、文件夹、git diff 和 URL 直接附加到你的消息中"
 ---
@@ -8,7 +9,7 @@ description: "使用内联的 @ 语法，将文件、文件夹、git diff 和 UR
 
 输入 `@` 后跟一个引用，即可将内容直接注入到你的消息中。Hermes 会内联展开该引用，并将内容附加在 `--- 附加上下文 ---` 部分下。
 
-## 支持的引用类型
+## 支持的引用
 
 | 语法 | 描述 |
 |--------|-------------|
@@ -40,7 +41,7 @@ Summarize this article @url:https://arxiv.org/abs/2301.00001
 Check @file:main.py, and also @file:test.py.
 ```
 
-引用值末尾的标点符号（`,`, `.`, `;`, `!`, `?`）会被自动移除。
+引用值末尾的标点符号（`,`, `.`, `;`, `!`, `?`）会被自动去除。
 
 ## CLI 标签补全
 
@@ -56,7 +57,7 @@ Check @file:main.py, and also @file:test.py.
 
 ```text
 @file:src/main.py:42        # 仅第 42 行
-@file:src/main.py:10-25     # 第 10 行到第 25 行（包含首尾）
+@file:src/main.py:10-25     # 第 10 行到第 25 行（包含）
 ```
 
 行号从 1 开始计数。无效的范围会被静默忽略（返回整个文件）。
@@ -68,7 +69,7 @@ Check @file:main.py, and also @file:test.py.
 | 阈值 | 值 | 行为 |
 |-----------|-------|----------|
 | 软限制 | 上下文长度的 25% | 附加警告，继续展开 |
-| 硬限制 | 上下文长度的 50% | 拒绝展开，返回未修改的原始消息 |
+| 硬限制 | 上下文长度的 50% | 拒绝展开，返回未更改的原始消息 |
 | 文件夹条目 | 最多 200 个文件 | 超出条目替换为 `- ...` |
 | Git 提交 | 最多 10 个 | `@git:N` 被限制在 [1, 10] 范围内 |
 
@@ -88,7 +89,7 @@ Check @file:main.py, and also @file:test.py.
 
 ### 路径遍历保护
 
-所有路径都相对于工作目录进行解析。解析后位于允许的工作空间根目录之外的引用将被拒绝。
+所有路径都相对于工作目录进行解析。解析后超出允许的工作空间根目录的引用将被拒绝。
 
 ### 二进制文件检测
 
@@ -96,7 +97,7 @@ Check @file:main.py, and also @file:test.py.
 
 ## 错误处理
 
-无效的引用会产生内联警告，而不是导致整个操作失败：
+无效的引用会产生内联警告，而不是导致失败：
 
 | 条件 | 行为 |
 |-----------|----------|
@@ -104,6 +105,6 @@ Check @file:main.py, and also @file:test.py.
 | 二进制文件 | 警告："binary files are not supported" |
 | 文件夹未找到 | 警告："folder not found" |
 | Git 命令失败 | 警告并附带 git stderr 输出 |
-| URL 未返回内容 | 警告："no content extracted" |
+| URL 无内容返回 | 警告："no content extracted" |
 | 敏感路径 | 警告："path is a sensitive credential file" |
-| 路径在工作空间外 | 警告："path is outside the allowed workspace" |
+| 路径超出工作空间 | 警告："path is outside the allowed workspace" |

@@ -325,14 +325,22 @@ def translate_markdown_text(
     extra_hint = ""
     issues: list[str] = []
 
+    last_exception: Exception | None = None
+
     for _ in range(retries + 1):
-        translated = call_model(
-            client,
-            transport,
-            model,
-            MARKDOWN_SYSTEM_PROMPT + extra_hint,
-            prompt,
-        )
+        try:
+            translated = call_model(
+                client,
+                transport,
+                model,
+                MARKDOWN_SYSTEM_PROMPT + extra_hint,
+                prompt,
+            )
+        except Exception as exc:
+            last_exception = exc
+            extra_hint = "\n\n上一次调用失败，请重新输出完整文档，并严格保持结构不变。"
+            time.sleep(1)
+            continue
         issues = validate_markdown_translation(content, translated) if validate else []
         if not issues:
             if content.endswith("\n") and not translated.endswith("\n"):
@@ -344,6 +352,9 @@ def translate_markdown_text(
             + "、".join(issues)
             + "。请严格保持原文结构与标记数量不变，重新输出完整文档。"
         )
+
+    if last_exception is not None and not issues:
+        raise RuntimeError(f"Markdown translation failed for {relative_path}: {last_exception}") from last_exception
 
     raise RuntimeError(f"Markdown translation validation failed for {relative_path}: {issues}")
 
@@ -360,9 +371,16 @@ def translate_json_text(
     prompt = JSON_USER_TEMPLATE.format(path=relative_path.as_posix(), content=content)
     extra_hint = ""
     issues: list[str] = []
+    last_exception: Exception | None = None
 
     for _ in range(retries + 1):
-        translated = call_model(client, transport, model, JSON_SYSTEM_PROMPT + extra_hint, prompt)
+        try:
+            translated = call_model(client, transport, model, JSON_SYSTEM_PROMPT + extra_hint, prompt)
+        except Exception as exc:
+            last_exception = exc
+            extra_hint = "\n\n上一次调用失败，请重新输出完整 JSON，并保持原有结构完全不变。"
+            time.sleep(1)
+            continue
         issues = validate_json_translation(content, translated) if validate else []
         if not issues:
             if content.endswith("\n") and not translated.endswith("\n"):
@@ -374,6 +392,9 @@ def translate_json_text(
             + "、".join(issues)
             + "。请重新输出完整 JSON，保持键名、层级和非字符串值完全不变。"
         )
+
+    if last_exception is not None and not issues:
+        raise RuntimeError(f"JSON translation failed for {relative_path}: {last_exception}") from last_exception
 
     raise RuntimeError(f"JSON translation validation failed for {relative_path}: {issues}")
 
@@ -388,6 +409,7 @@ def translate_markdown_file(
     model: str,
     source_path: Path,
     target_path: Path,
+    source_root: Path = SOURCE_DOCS_ROOT,
     dry_run: bool = False,
     chunk_size: int = 8000,
     validate: bool = True,
@@ -395,7 +417,7 @@ def translate_markdown_file(
     original = source_path.read_text(encoding="utf-8")
     frontmatter, body = split_frontmatter(original)
     chunks = split_markdown_chunks(body, max_chars=chunk_size)
-    relative_path = source_path.relative_to(SOURCE_DOCS_ROOT)
+    relative_path = source_path.relative_to(source_root)
 
     translated_chunks: list[str] = []
     for idx, chunk in enumerate(chunks, start=1):
@@ -432,6 +454,7 @@ def translate_json_file(
     model: str,
     source_path: Path,
     target_path: Path,
+    source_root: Path = SOURCE_DOCS_ROOT,
     dry_run: bool = False,
     validate: bool = True,
 ) -> None:
@@ -440,7 +463,7 @@ def translate_json_file(
         client,
         transport,
         model,
-        source_path.relative_to(SOURCE_DOCS_ROOT),
+        source_path.relative_to(source_root),
         original,
         validate=validate,
     )
@@ -448,7 +471,7 @@ def translate_json_file(
     issues = validate_json_translation(original, translated) if validate else []
     if issues:
         raise RuntimeError(
-            f"Final json validation failed for {source_path.relative_to(SOURCE_DOCS_ROOT)}: {issues}"
+            f"Final json validation failed for {source_path.relative_to(source_root)}: {issues}"
         )
 
     if dry_run:
@@ -466,6 +489,7 @@ def translate_path(
     model: str,
     source_path: Path,
     target_path: Path,
+    source_root: Path = SOURCE_DOCS_ROOT,
     dry_run: bool = False,
     chunk_size: int = 8000,
     validate: bool = True,
@@ -477,6 +501,7 @@ def translate_path(
             model,
             source_path,
             target_path,
+            source_root=source_root,
             dry_run=dry_run,
             chunk_size=chunk_size,
             validate=validate,
@@ -490,6 +515,7 @@ def translate_path(
             model,
             source_path,
             target_path,
+            source_root=source_root,
             dry_run=dry_run,
             validate=validate,
         )
@@ -582,6 +608,7 @@ def main() -> int:
             model=args.model,
             source_path=source_path,
             target_path=target_path,
+            source_root=source_root,
             dry_run=args.dry_run,
             chunk_size=args.chunk_size,
             validate=not args.no_validate,
