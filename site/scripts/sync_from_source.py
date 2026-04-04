@@ -272,7 +272,10 @@ def main() -> int:
     if files_to_translate:
         api_key = find_api_key()
         base_url = find_base_url()
-        transport = resolve_transport(base_url, args.transport)
+        transport = resolve_transport(
+            base_url,
+            args.transport or os.getenv("HERMES_DOCS_TRANSLATION_TRANSPORT"),
+        )
         model_name = args.model or os.getenv("HERMES_DOCS_TRANSLATION_MODEL", "kimi-k2-turbo-preview")
         client = build_client(transport, api_key, base_url)
         print(f"\n开始翻译 {len(files_to_translate)} 个文档，模型：{model_name}，通道：{transport}")

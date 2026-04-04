@@ -19,6 +19,7 @@
 - [scripts/check_docs_parity.py](/Users/dracohu/REPO/hermes-agent/site/scripts/check_docs_parity.py)：检查中文站与英文源站的文档结构是否一致
 - [scripts/translate_docs.py](/Users/dracohu/REPO/hermes-agent/site/scripts/translate_docs.py)：批量翻译脚本
 - [scripts/sync_from_source.py](/Users/dracohu/REPO/hermes-agent/site/scripts/sync_from_source.py)：增量同步脚本，只处理 source site 新增或变更的文件
+- [scripts/sync_localized_site_config.py](/Users/dracohu/REPO/hermes-agent/site/scripts/sync_localized_site_config.py)：根据最新英文 source site 自动生成中文站的 `sidebars.ts`、`docusaurus.config.ts` 和 `custom.css`
 
 ## 环境要求
 
@@ -131,7 +132,8 @@ npm run sync:docs:check
 如果脚本提示有新增或变更，再执行：
 
 ```bash
-npm run sync:docs
+npm run sync:site-config
+npm run sync:docs -- --prune --record-watch-state
 ```
 
 如果你想把“拉取 upstream + 同步中文站 + 校验 + 构建”串成一条命令，可以直接执行：
@@ -140,8 +142,9 @@ npm run sync:docs
 npm run sync:upstream
 ```
 
-这个命令会做两件事：
+这个命令会做三件事：
 
+- 自动同步中文站结构文件
 - 只翻译 `website/docs` 里新增或变更的 `.md` 和 `_category_.json`
 - 只复制 `website/static` 里新增或变更的静态资源
 
@@ -154,25 +157,19 @@ npm run build
 
 ## 这套机制能保证什么
 
-这套流程能比较稳地覆盖下面两类变化：
+这套流程能比较稳地覆盖下面三类变化：
 
 - 文档正文更新
 - 文档引用的静态资源更新
+- 导航与站点结构文件更新
 
-但有两类变化还是要人工复核：
+其中第三类变化会自动跟进这些 source site 文件：
 
-- [website/sidebars.ts](/Users/dracohu/REPO/hermes-agent/website/sidebars.ts) 变了
-- [website/docusaurus.config.ts](/Users/dracohu/REPO/hermes-agent/website/docusaurus.config.ts) 变了
+- [website/sidebars.ts](/Users/dracohu/REPO/hermes-agent/website/sidebars.ts)
+- [website/docusaurus.config.ts](/Users/dracohu/REPO/hermes-agent/website/docusaurus.config.ts)
+- [website/src/css/custom.css](/Users/dracohu/REPO/hermes-agent/website/src/css/custom.css)
 
-原因很简单：中文站的 [sidebars.ts](/Users/dracohu/REPO/hermes-agent/site/sidebars.ts) 和 [docusaurus.config.ts](/Users/dracohu/REPO/hermes-agent/site/docusaurus.config.ts) 不是英文文件的直接复制品，它们带着中文站自己的翻译和部署约定，所以不能盲目覆盖。
-
-增量同步脚本会自动提示你这两个文件有没有变化。你确认中文站已经跟着改好后，再执行一次：
-
-```bash
-npm run sync:docs -- --record-watch-state
-```
-
-这样脚本就会把这次人工复核记录成新的基线。
+中文站不会直接照抄英文文件，而是先拿最新 source site 做基线，再自动套上一层中文标签和 Vercel 根路径部署约定。
 
 ## 日常维护建议
 
@@ -180,26 +177,54 @@ npm run sync:docs -- --record-watch-state
 
 1. 先同步英文源站到 `website/`
 2. 运行 `npm run sync:docs:check`
-3. 运行 `npm run sync:docs`
-4. 运行 `npm run check:docs-parity`
-5. 运行 `npm run build`
-6. 抽查首页、Quickstart、Developer Guide、Reference 几个关键页面
-7. 确认没问题后再部署
+3. 运行 `npm run sync:site-config`
+4. 运行 `npm run sync:docs -- --prune --record-watch-state`
+5. 运行 `npm run check:docs-parity`
+6. 运行 `npm run build`
+7. 抽查首页、Quickstart、Developer Guide、Reference 几个关键页面
+8. 确认没问题后再部署
 
 ## 远端提醒
 
-仓库里还加了一条 GitHub Actions：
+仓库里有两条和中文站同步相关的 GitHub Actions：
 
+- [site-zh-auto-sync.yml](/Users/dracohu/REPO/hermes-agent/.github/workflows/site-zh-auto-sync.yml)
 - [site-zh-upstream-watch.yml](/Users/dracohu/REPO/hermes-agent/.github/workflows/site-zh-upstream-watch.yml)
 
-它会每天定时检查 `upstream/main` 里的 source site 有没有变化，关注的范围包括：
+`site-zh-auto-sync.yml` 会：
 
-- `website/docs`
-- `website/static`
-- `website/sidebars.ts`
-- `website/docusaurus.config.ts`
+- 定时检查 `upstream/main`
+- 自动拉取最新 source site
+- 自动同步中文站结构文件
+- 自动翻译新增和变更文档
+- 自动执行 `npm run check:docs-parity` 和 `npm run build`
+- 全部通过后，直接提交并推送到 `main`
 
-如果发现上游更新，这条 workflow 会失败，并在 GitHub Actions 的 Summary 里列出变更文件清单。这样即使本地没人主动去看，也能在远端先收到提醒。
+`site-zh-upstream-watch.yml` 现在默认只保留手动触发，用来查看上游变更清单，不再每天定时失败提醒。
+
+要让自动同步 workflow 真正跑起来，需要在 GitHub 仓库里配置翻译凭证：
+
+- `OPENROUTER_API_KEY`，或
+- `HERMES_DOCS_TRANSLATION_API_KEY`
+
+可选变量：
+
+- `OPENROUTER_BASE_URL`
+- `HERMES_DOCS_TRANSLATION_BASE_URL`
+- `HERMES_DOCS_TRANSLATION_MODEL`
+- `HERMES_DOCS_TRANSLATION_TRANSPORT`
+
+如果没额外指定模型，这条 workflow 默认会使用：
+
+```text
+openai/gpt-4.1-mini
+```
+
+如果使用 OpenRouter，但没有单独配置 Base URL，它会自动回退到：
+
+```text
+https://openrouter.ai/api/v1
+```
 
 ## 当前维护约定
 

@@ -1,0 +1,172 @@
+name: Auto Sync Chinese Docs Site
+
+on:
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-zh-auto-sync
+  cancel-in-progress: false
+
+jobs:
+  auto-sync-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
+      HERMES_DOCS_TRANSLATION_API_KEY: ${{ secrets.HERMES_DOCS_TRANSLATION_API_KEY }}
+      HERMES_DOCS_TRANSLATION_BASE_URL: ${{ vars.HERMES_DOCS_TRANSLATION_BASE_URL }}
+      HERMES_DOCS_TRANSLATION_MODEL: ${{ vars.HERMES_DOCS_TRANSLATION_MODEL }}
+      HERMES_DOCS_TRANSLATION_TRANSPORT: ${{ vars.HERMES_DOCS_TRANSLATION_TRANSPORT }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'site/package-lock.json'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream "https://github.com/NousResearch/hermes-agent.git" || true
+          git fetch upstream main
+
+      - name: Detect source site changes
+        id: diff
+        run: |
+          CHANGED="$(git diff --name-only HEAD..upstream/main -- \
+            website/docs \
+            website/static \
+            website/sidebars.ts \
+            website/docusaurus.config.ts \
+            website/src/css/custom.css)"
+
+          {
+            echo "changed<<EOF"
+            echo "${CHANGED}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+          if [ -n "${CHANGED}" ]; then
+            echo "has_changes=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "has_changes=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Write no-op summary
+        if: steps.diff.outputs.has_changes != 'true'
+        run: |
+          {
+            echo "## 无需同步"
+            echo
+            echo "当前中文站已经跟上最新的官方 source site。"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Prepare translation environment
+        if: steps.diff.outputs.has_changes == 'true'
+        run: |
+          if [ -z "${HERMES_DOCS_TRANSLATION_API_KEY:-}" ] && [ -z "${OPENROUTER_API_KEY:-}" ]; then
+            echo "缺少翻译 API Key，请配置 HERMES_DOCS_TRANSLATION_API_KEY 或 OPENROUTER_API_KEY。" >> "${GITHUB_STEP_SUMMARY}"
+            exit 1
+          fi
+
+          if [ -n "${OPENROUTER_API_KEY:-}" ] && [ -z "${OPENROUTER_BASE_URL:-}" ] && [ -z "${HERMES_DOCS_TRANSLATION_BASE_URL:-}" ]; then
+            echo "OPENROUTER_BASE_URL=https://openrouter.ai/api/v1" >> "${GITHUB_ENV}"
+          fi
+
+          if [ -z "${HERMES_DOCS_TRANSLATION_MODEL:-}" ]; then
+            echo "HERMES_DOCS_TRANSLATION_MODEL=openai/gpt-4.1-mini" >> "${GITHUB_ENV}"
+          fi
+
+      - name: Refresh source site snapshot from upstream
+        if: steps.diff.outputs.has_changes == 'true'
+        run: |
+          git checkout upstream/main -- \
+            website/docs \
+            website/static \
+            website/sidebars.ts \
+            website/docusaurus.config.ts \
+            website/src/css/custom.css
+
+      - name: Install site dependencies
+        if: steps.diff.outputs.has_changes == 'true'
+        working-directory: site
+        run: npm ci --no-audit --no-fund
+
+      - name: Sync localized site config
+        if: steps.diff.outputs.has_changes == 'true'
+        run: python site/scripts/sync_localized_site_config.py
+
+      - name: Sync translated docs
+        if: steps.diff.outputs.has_changes == 'true'
+        run: python site/scripts/sync_from_source.py --prune --record-watch-state
+
+      - name: Verify docs parity
+        if: steps.diff.outputs.has_changes == 'true'
+        run: python site/scripts/check_docs_parity.py
+
+      - name: Build localized site
+        if: steps.diff.outputs.has_changes == 'true'
+        working-directory: site
+        run: npm run build
+
+      - name: Detect resulting changes
+        id: final
+        if: steps.diff.outputs.has_changes == 'true'
+        run: |
+          CHANGED="$(git status --porcelain -- website site)"
+          {
+            echo "changed<<EOF"
+            echo "${CHANGED}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+          if [ -n "${CHANGED}" ]; then
+            echo "has_changes=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "has_changes=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Commit and push
+        if: steps.final.outputs.has_changes == 'true'
+        run: |
+          git add website site
+          UPSTREAM_SHA="$(git rev-parse --short upstream/main)"
+          git commit -m "Auto-sync Chinese docs site from upstream (${UPSTREAM_SHA})"
+          git push origin HEAD:main
+
+      - name: Write summary
+        if: steps.diff.outputs.has_changes == 'true'
+        run: |
+          {
+            echo "## 中文站自动同步完成"
+            echo
+            echo "本次同步检测到这些 source site 变化："
+            echo
+            printf '%s\n' "${{ steps.diff.outputs.changed }}" | while IFS= read -r line; do
+              [ -n "${line}" ] && echo "- \`${line}\`"
+            done
+            echo
+            if [ "${{ steps.final.outputs.has_changes }}" = "true" ]; then
+              echo "已完成自动翻译、校验、构建，并直推 \`main\`。"
+            else
+              echo "检测到上游变更，但同步后没有生成新的提交内容。"
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"

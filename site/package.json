@@ -10,6 +10,7 @@
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
+    "sync:site-config": "python scripts/sync_localized_site_config.py",
     "translate:docs": "python scripts/translate_docs.py",
     "sync:docs": "python scripts/sync_from_source.py",
     "sync:docs:check": "python scripts/sync_from_source.py --check",

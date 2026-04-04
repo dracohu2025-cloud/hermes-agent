@@ -15,26 +15,29 @@ if ! git remote get-url upstream >/dev/null 2>&1; then
   git remote add upstream "https://github.com/NousResearch/hermes-agent.git"
 fi
 
-echo "[1/5] 获取官方 source site 最新代码"
+echo "[1/6] 获取官方 source site 最新代码"
 git fetch upstream main
 git merge --ff-only "upstream/main"
 
 cd "${REPO_ROOT}/site"
 
+echo "[2/6] 同步中文站结构文件"
+python scripts/sync_localized_site_config.py
+
 if [ ! -d "${REPO_ROOT}/site/node_modules" ]; then
-  echo "[2/5] 安装站点依赖"
+  echo "[3/6] 安装站点依赖"
   npm ci
 else
-  echo "[2/5] 站点依赖已存在，跳过安装"
+  echo "[3/6] 站点依赖已存在，跳过安装"
 fi
 
-echo "[3/5] 增量同步中文站"
-npm run sync:docs
+echo "[4/6] 增量同步中文站"
+npm run sync:docs -- --prune --record-watch-state
 
-echo "[4/5] 结构校验"
+echo "[5/6] 结构校验"
 npm run check:docs-parity
 
-echo "[5/5] 构建中文站"
+echo "[6/6] 构建中文站"
 npm run build
 
 echo

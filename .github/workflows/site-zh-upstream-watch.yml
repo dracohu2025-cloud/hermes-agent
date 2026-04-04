@@ -1,8 +1,6 @@
 name: Chinese Docs Upstream Watch
 
 on:
-  schedule:
-    - cron: '15 2 * * *'
   workflow_dispatch:
 
 jobs:
@@ -25,7 +23,8 @@ jobs:
             website/docs \
             website/static \
             website/sidebars.ts \
-            website/docusaurus.config.ts)"
+            website/docusaurus.config.ts \
+            website/src/css/custom.css)"
 
           {
             echo "changed<<EOF"
@@ -54,8 +53,9 @@ jobs:
               echo "建议下一步："
               echo
               echo "1. 拉取 upstream/main"
-              echo "2. 在 \`site/\` 目录运行 \`npm run sync:docs\`"
-              echo "3. 再运行 \`npm run check:docs-parity\` 和 \`npm run build\`"
+              echo "2. 在 \`site/\` 目录运行 \`npm run sync:site-config\`"
+              echo "3. 再运行 \`npm run sync:docs -- --prune --record-watch-state\`"
+              echo "4. 再运行 \`npm run check:docs-parity\` 和 \`npm run build\`"
             } >> "${GITHUB_STEP_SUMMARY}"
           else
             {
