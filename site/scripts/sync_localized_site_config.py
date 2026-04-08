@@ -70,6 +70,41 @@ DEPLOYMENT_BLOCK = """const deploymentUrl =
 
 """
 
+CUSTOM_CSS_IMPORT_TARGET = (
+    "@import url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@latest/style.css');"
+)
+CUSTOM_CSS_OVERRIDE_BLOCK = """
+
+/* Chinese site font override: use LXGW WenKai everywhere */
+:root {
+  --ifm-font-family-base: 'LXGW WenKai', 'STKaiti', 'KaiTi', serif;
+  --ifm-font-family-monospace: 'LXGW WenKai Mono', 'LXGW WenKai', 'SFMono-Regular', monospace;
+}
+
+body,
+.navbar,
+.footer,
+.menu,
+.table-of-contents,
+.pagination-nav,
+.theme-doc-markdown {
+  font-family: var(--ifm-font-family-base);
+}
+
+code,
+kbd,
+samp,
+pre,
+pre.prism-code,
+pre.prism-code.language-text,
+pre.prism-code.language-plaintext,
+pre.prism-code.language-txt,
+pre.prism-code.language-ascii,
+pre.prism-code code {
+  font-family: var(--ifm-font-family-monospace);
+}
+"""
+
 
 def replace_all(text: str, replacements: tuple[tuple[str, str], ...]) -> str:
     for source, target in replacements:
@@ -108,6 +143,18 @@ def sync_custom_css(source_root: Path, target_root: Path) -> Path:
     source_path = source_root / "src" / "css" / "custom.css"
     target_path = target_root / "src" / "css" / "custom.css"
     text = source_path.read_text(encoding="utf-8")
+
+    text, replaced = re.subn(
+        r"@import url\('https://fonts\.googleapis\.com/css2\?[^']+'\);",
+        CUSTOM_CSS_IMPORT_TARGET,
+        text,
+        count=1,
+    )
+    if not replaced and CUSTOM_CSS_IMPORT_TARGET not in text:
+        text = CUSTOM_CSS_IMPORT_TARGET + "\n\n" + text
+
+    if CUSTOM_CSS_OVERRIDE_BLOCK.strip() not in text:
+        text = text.rstrip() + CUSTOM_CSS_OVERRIDE_BLOCK + "\n"
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(text, encoding="utf-8")
     return target_path

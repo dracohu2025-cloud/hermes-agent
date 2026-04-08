@@ -5,7 +5,7 @@
  */
 
 /* Import fonts to match landing page */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@latest/style.css');
 
 :root {
   /* Gold/Amber palette from landing page */
@@ -252,3 +252,33 @@ pre.prism-code.language-ascii code {
   background: linear-gradient(135deg, #07070d 0%, #0f0f18 100%);
   padding: 4rem 0;
 }
+
+/* Chinese site font override: use LXGW WenKai everywhere */
+:root {
+  --ifm-font-family-base: 'LXGW WenKai', 'STKaiti', 'KaiTi', serif;
+  --ifm-font-family-monospace: 'LXGW WenKai Mono', 'LXGW WenKai', 'SFMono-Regular', monospace;
+}
+
+body,
+.navbar,
+.footer,
+.menu,
+.table-of-contents,
+.pagination-nav,
+.theme-doc-markdown {
+  font-family: var(--ifm-font-family-base);
+}
+
+code,
+kbd,
+samp,
+pre,
+pre.prism-code,
+pre.prism-code.language-text,
+pre.prism-code.language-plaintext,
+pre.prism-code.language-txt,
+pre.prism-code.language-ascii,
+pre.prism-code code {
+  font-family: var(--ifm-font-family-monospace);
+}
+
