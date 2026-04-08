@@ -40,12 +40,12 @@ const config: Config = {
     [
       require.resolve('@easyops-cn/docusaurus-search-local'),
       /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
-        ({
-          hashed: true,
-          language: ['zh'],
-          indexBlog: false,
-          docsRouteBasePath: '/',
-          highlightSearchTermsOnTargetPage: true,
+      ({
+        hashed: true,
+        language: ['zh'],
+        indexBlog: false,
+        docsRouteBasePath: '/',
+        highlightSearchTermsOnTargetPage: true,
       }),
     ],
   ],
@@ -72,12 +72,6 @@ const config: Config = {
     colorMode: {
       defaultMode: 'dark',
       respectPrefersColorScheme: true,
-    },
-    docs: {
-      sidebar: {
-        hideable: true,
-        autoCollapseCategories: true,
-      },
     },
     navbar: {
       title: 'Hermes Agent',

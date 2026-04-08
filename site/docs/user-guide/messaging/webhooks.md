@@ -1,28 +1,28 @@
 ---
 sidebar_position: 13
-title: "Webhook 事件接入"
-description: "接收来自 GitHub、GitLab 及其他服务的事件，自动触发 Hermes agent 运行"
+title: "Webhooks"
+description: "接收来自 GitHub、GitLab 和其他服务的事件，以触发 Hermes Agent 运行"
 ---
 
 # Webhooks
 
-接收来自外部服务（GitHub、GitLab、JIRA、Stripe 等）的事件，自动触发 Hermes agent 运行。Webhook 适配器运行一个 HTTP 服务器，接受 POST 请求，验证 HMAC 签名，将负载转换为 agent 提示，并将响应路由回源头或其他配置的平台。
+接收来自外部服务（GitHub、GitLab、JIRA、Stripe 等）的事件并自动触发 Hermes Agent 运行。Webhook 适配器运行一个 HTTP 服务器，负责接收 POST 请求、验证 HMAC 签名、将 Payload 转换为 Agent 提示词（Prompt），并将响应路由回源端或其他配置好的平台。
 
-Agent 处理事件后，可以通过在 PR 上发表评论、发送消息到 Telegram/Discord，或记录结果来响应。
+Agent 处理事件后，可以通过在 PR 上发表评论、向 Telegram/Discord 发送消息或记录日志来进行响应。
 
 ---
 
 ## 快速开始
 
 1. 通过 `hermes gateway setup` 或环境变量启用
-2. 在 `config.yaml` 中定义路由 **或** 使用 `hermes webhook subscribe` 动态创建路由
-3. 将你的服务指向 `http://your-server:8644/webhooks/<route-name>`
+2. 在 `config.yaml` 中定义路由，**或者**使用 `hermes webhook subscribe` 动态创建路由
+3. 将您的服务指向 `http://your-server:8644/webhooks/<route-name>`
 
 ---
 
-## 设置
+## 安装设置
 
-启用 webhook 适配器有两种方式。
+有两种方式可以启用 Webhook 适配器。
 
 ### 通过设置向导
 
@@ -30,7 +30,7 @@ Agent 处理事件后，可以通过在 PR 上发表评论、发送消息到 Tel
 hermes gateway setup
 ```
 
-按照提示启用 webhooks，设置端口和全局 HMAC 密钥。
+按照提示启用 Webhook，设置端口，并设置全局 HMAC 密钥（Secret）。
 
 ### 通过环境变量
 
@@ -38,13 +38,13 @@ hermes gateway setup
 
 ```bash
 WEBHOOK_ENABLED=true
-WEBHOOK_PORT=8644        # 默认端口
+WEBHOOK_PORT=8644        # 默认值
 WEBHOOK_SECRET=your-global-secret
 ```
 
 ### 验证服务器
 
-网关启动后：
+Gateway 运行后：
 
 ```bash
 curl http://localhost:8644/health
@@ -60,18 +60,18 @@ curl http://localhost:8644/health
 
 ## 配置路由 {#configuring-routes}
 
-路由定义了如何处理不同的 webhook 来源。每个路由是 `config.yaml` 中 `platforms.webhook.extra.routes` 下的一个命名条目。
+路由定义了如何处理不同的 Webhook 源。每个路由都是 `config.yaml` 中 `platforms.webhook.extra.routes` 下的一个命名条目。
 
 ### 路由属性
 
-| 属性 | 是否必需 | 说明 |
+| 属性 | 必填 | 描述 |
 |----------|----------|-------------|
-| `events` | 否 | 接受的事件类型列表（例如 `["pull_request"]`）。为空时接受所有事件。事件类型从 `X-GitHub-Event`、`X-GitLab-Event` 或负载中的 `event_type` 读取。 |
-| `secret` | **是** | 用于签名验证的 HMAC 密钥。如果路由未设置，则回退使用全局 `secret`。仅测试时可设置为 `"INSECURE_NO_AUTH"`（跳过验证）。 |
-| `prompt` | 否 | 使用点符号访问负载字段的模板字符串（例如 `{pull_request.title}`）。省略时，整个 JSON 负载会被放入提示中。 |
-| `skills` | 否 | 运行 agent 时加载的技能名称列表。 |
-| `deliver` | 否 | 响应发送目标：`github_comment`、`telegram`、`discord`、`slack`、`signal`、`sms` 或 `log`（默认）。 |
-| `deliver_extra` | 否 | 额外的发送配置——键根据 `deliver` 类型不同（例如 `repo`、`pr_number`、`chat_id`）。值支持与 `prompt` 相同的 `{dot.notation}` 模板。 |
+| `events` | 否 | 允许接收的事件类型列表（例如 `["pull_request"]`）。如果为空，则接收所有事件。事件类型从 Payload 中的 `X-GitHub-Event`、`X-GitLab-Event` 或 `event_type` 读取。 |
+| `secret` | **是** | 用于签名验证的 HMAC 密钥。如果路由未设置，则回退到全局 `secret`。仅用于测试时可设置为 `"INSECURE_NO_AUTH"`（跳过验证）。 |
+| `prompt` | 否 | 使用点分隔符访问 Payload 的模板字符串（例如 `{pull_request.title}`）。如果省略，完整的 JSON Payload 将被直接放入提示词中。 |
+| `skills` | 否 | 为该 Agent 运行加载的技能名称列表。 |
+| `deliver` | 否 | 响应发送目的地：`github_comment`、`telegram`、`discord`、`slack`、`signal`、`matrix`、`mattermost`、`email`、`sms`、`dingtalk`、`feishu`、`wecom` 或 `log`（默认）。 |
+| `deliver_extra` | 否 | 额外的投递配置 —— 键名取决于 `deliver` 类型（例如 `repo`、`pr_number`、`chat_id`）。值支持与 `prompt` 相同的 `{dot.notation}` 模板。 |
 
 ### 完整示例
 
@@ -106,40 +106,66 @@ platforms:
           deliver: "telegram"
 ```
 
-### 提示模板
+### 提示词模板
 
-提示使用点符号访问 webhook 负载中的嵌套字段：
+提示词使用点分隔符（dot-notation）来访问 Webhook Payload 中的嵌套字段：
 
 - `{pull_request.title}` 解析为 `payload["pull_request"]["title"]`
 - `{repository.full_name}` 解析为 `payload["repository"]["full_name"]`
-- 缺失的键会保留为字面量 `{key}` 字符串（不会报错）
-- 嵌套的字典和列表会被 JSON 序列化，并截断到 2000 字符
+- `{__raw__}` —— 特殊标记，将**整个 Payload** 导出为带缩进的 JSON（截断至 4000 字符）。适用于监控告警或 Agent 需要完整上下文的通用 Webhook。
+- 缺失的键将保留为原始的 `{key}` 字符串（不会报错）
+- 嵌套的字典和列表将被 JSON 序列化并截断至 2000 字符
 
-如果路由未配置 `prompt` 模板，则整个负载会以缩进的 JSON 格式输出（截断到 4000 字符）。
+您可以将 `{__raw__}` 与常规模板变量混合使用：
 
-相同的点符号模板也适用于 `deliver_extra` 的值。
+```yaml
+prompt: "PR #{pull_request.number} by {pull_request.user.login}: {__raw__}"
+```
+
+如果路由未配置 `prompt` 模板，整个 Payload 将作为带缩进的 JSON 导出（截断至 4000 字符）。
+
+同样的点分隔符模板也适用于 `deliver_extra` 的值。
+
+### 论坛话题投递
+
+当向 Telegram 投递 Webhook 响应时，您可以通过在 `deliver_extra` 中包含 `message_thread_id`（或 `thread_id`）来指定特定的论坛话题（Topic）：
+
+```yaml
+webhooks:
+  routes:
+    alerts:
+      events: ["alert"]
+      prompt: "Alert: {__raw__}"
+      deliver: "telegram"
+      deliver_extra:
+        chat_id: "-1001234567890"
+        message_thread_id: "42"
+```
+
+如果 `deliver_extra` 中未提供 `chat_id`，投递将回退到目标平台配置的主频道。
+
 ---
 
-## GitHub PR 审查（逐步指导）{#github-pr-review}
+## GitHub PR 评审（分步指南） {#github-pr-review}
 
-本教程演示如何在每个拉取请求上设置自动代码审查。
+本教程将设置在每个 Pull Request 上自动进行代码评审。
 
-### 1. 在 GitHub 创建 webhook
+### 1. 在 GitHub 中创建 Webhook
 
-1. 进入你的仓库 → **Settings** → **Webhooks** → **Add webhook**
+1. 进入您的仓库 → **Settings** → **Webhooks** → **Add webhook**
 2. 将 **Payload URL** 设置为 `http://your-server:8644/webhooks/github-pr`
 3. 将 **Content type** 设置为 `application/json`
-4. 将 **Secret** 设置为与你的路由配置匹配（例如 `github-webhook-secret`）
-5. 在 **Which events?** 中选择 **Let me select individual events**，并勾选 **Pull requests**
+4. 设置 **Secret** 以匹配您的路由配置（例如 `github-webhook-secret`）
+5. 在 **Which events?** 下，选择 **Let me select individual events** 并勾选 **Pull requests**
 6. 点击 **Add webhook**
 
 ### 2. 添加路由配置
 
-将 `github-pr` 路由添加到你的 `~/.hermes/config.yaml`，参考上面的示例。
+按照上面的示例，将 `github-pr` 路由添加到您的 `~/.hermes/config.yaml` 中。
 
 ### 3. 确保 `gh` CLI 已认证
 
-`github_comment` 交付类型使用 GitHub CLI 来发布评论：
+`github_comment` 投递类型使用 GitHub CLI 来发布评论：
 
 ```bash
 gh auth login
@@ -147,20 +173,20 @@ gh auth login
 
 ### 4. 测试
 
-在仓库中打开一个拉取请求。webhook 会触发，Hermes 处理事件，并在 PR 上发布审查评论。
+在仓库中开启一个 Pull Request。Webhook 会触发，Hermes 处理该事件，并在 PR 上发布评审评论。
 
 ---
 
 ## GitLab Webhook 设置 {#gitlab-webhook-setup}
 
-GitLab webhook 工作方式类似，但使用不同的认证机制。GitLab 通过普通的 `X-Gitlab-Token` 头部发送 secret（精确字符串匹配，不是 HMAC）。
+GitLab Webhook 的工作方式类似，但使用不同的认证机制。GitLab 将密钥作为纯文本的 `X-Gitlab-Token` 请求头发送（精确字符串匹配，而非 HMAC）。
 
-### 1. 在 GitLab 创建 webhook
+### 1. 在 GitLab 中创建 Webhook
 
-1. 进入你的项目 → **Settings** → **Webhooks**
+1. 进入您的项目 → **Settings** → **Webhooks**
 2. 将 **URL** 设置为 `http://your-server:8644/webhooks/gitlab-mr`
-3. 输入你的 **Secret token**
-4. 选择 **Merge request events**（以及你需要的其他事件）
+3. 输入您的 **Secret token**
+4. 选择 **Merge request events**（以及任何您想要的其他事件）
 5. 点击 **Add webhook**
 
 ### 2. 添加路由配置
@@ -186,27 +212,26 @@ platforms:
 
 ---
 
-## 交付选项 {#delivery-options}
+## 投递选项 {#delivery-options}
 
-`deliver` 字段控制 Agent 处理 webhook 事件后，响应发送到哪里。
+`deliver` 字段控制 Agent 在处理完 Webhook 事件后将响应发送到何处。
 
-| 交付类型 | 描述 |
+| 投递类型 | 描述 |
 |-------------|-------------|
-| `log` | 将响应记录到网关日志输出。这是默认选项，适合测试使用。 |
-| `github_comment` | 通过 `gh` CLI 以 PR/issue 评论形式发布响应。需要 `deliver_extra.repo` 和 `deliver_extra.pr_number`。`gh` CLI 必须安装并在网关主机上认证（`gh auth login`）。 |
-| `telegram` | 将响应发送到 Telegram。使用默认频道，或在 `deliver_extra` 中指定 `chat_id`。 |
-| `discord` | 将响应发送到 Discord。使用默认频道，或在 `deliver_extra` 中指定 `chat_id`。 |
-| `slack` | 将响应发送到 Slack。使用默认频道，或在 `deliver_extra` 中指定 `chat_id`。 |
-| `signal` | 将响应发送到 Signal。使用默认频道，或在 `deliver_extra` 中指定 `chat_id`。 |
-| `sms` | 通过 Twilio 将响应发送为短信。使用默认频道，或在 `deliver_extra` 中指定 `chat_id`。 |
-
-对于跨平台交付（telegram、discord、slack、signal、sms），目标平台必须在网关中启用并连接。如果 `deliver_extra` 中未提供 `chat_id`，响应将发送到该平台配置的默认频道。
+| `log` | 将响应记录到 Gateway 日志输出中。这是默认值，对测试很有用。 |
+| `github_comment` | 通过 `gh` CLI 将响应发布为 PR/Issue 评论。需要 `deliver_extra.repo` 和 `deliver_extra.pr_number`。必须在 Gateway 主机上安装并认证 `gh` CLI (`gh auth login`)。 |
+| `telegram` | 将响应路由到 Telegram。使用主频道，或在 `deliver_extra` 中指定 `chat_id`。 |
+| `discord` | 将响应路由到 Discord。使用主频道，或在 `deliver_extra` 中指定 `chat_id`。 |
+| `slack` | 将响应路由到 Slack。使用主频道，或在 `deliver_extra` 中指定 `chat_id`。 |
+| `signal` | 将响应路由到 Signal。使用主频道，或在 `deliver_extra` 中指定 `chat_id`。 |
+| `sms` | 通过 Twilio 将响应路由到短信。使用主频道，或在 `deliver_extra` 中指定 `chat_id`。 |
+对于跨平台推送（telegram、discord、slack、signal、sms），目标平台必须已在 gateway 中启用并连接。如果在 `deliver_extra` 中没有提供 `chat_id`，响应将发送到该平台配置的主频道（home channel）。
 
 ---
 
-## 动态订阅（CLI）{#dynamic-subscriptions}
+## 动态订阅 (CLI) {#dynamic-subscriptions}
 
-除了在 `config.yaml` 中配置静态路由外，你还可以使用 `hermes webhook` CLI 命令动态创建 webhook 订阅。这在 Agent 本身需要设置事件驱动触发器时特别有用。
+除了在 `config.yaml` 中配置静态路由外，你还可以使用 `hermes webhook` CLI 命令动态创建 webhook 订阅。当 Agent 自身需要设置事件驱动的触发器时，这非常有用。
 
 ### 创建订阅
 
@@ -219,9 +244,8 @@ hermes webhook subscribe github-issues \
   --description "Triage new GitHub issues"
 ```
 
-该命令会返回 webhook URL 和自动生成的 HMAC secret。将你的服务配置为向该 URL 发送 POST 请求。
+执行后会返回 webhook URL 和一个自动生成的 HMAC 密钥。请将你的服务配置为向该 URL 发送 POST 请求。
 
----
 ### 列出订阅
 
 ```bash
@@ -243,39 +267,39 @@ hermes webhook test github-issues --payload '{"issue": {"number": 42, "title": "
 
 ### 动态订阅的工作原理
 
-- 订阅信息存储在 `~/.hermes/webhook_subscriptions.json`
-- webhook 适配器会在每次收到请求时热加载该文件（基于修改时间，开销极小）
-- 来自 `config.yaml` 的静态路由总是优先于同名的动态路由
-- 动态订阅使用与静态路由相同的格式和功能（事件、提示模板、技能、投递）
-- 无需重启网关——订阅后立即生效
+- 订阅信息存储在 `~/.hermes/webhook_subscriptions.json` 中。
+- Webhook 适配器在每次收到请求时都会热加载此文件（基于修改时间 mtime 判定，开销极小）。
+- `config.yaml` 中的静态路由优先级始终高于同名的动态路由。
+- 动态订阅使用与静态路由相同的路由格式和功能（事件、Prompt 模板、技能、推送）。
+- 无需重启 gateway —— 订阅后立即生效。
 
-### 由 Agent 驱动的订阅
+### Agent 驱动的订阅
 
-当通过 `webhook-subscriptions` 技能引导时，Agent 可以通过终端工具创建订阅。你可以让 Agent “为 GitHub issues 设置一个 webhook”，它会自动执行相应的 `hermes webhook subscribe` 命令。
+在 `webhook-subscriptions` 技能的引导下，Agent 可以通过终端工具创建订阅。你可以要求 Agent “为 GitHub issues 设置一个 webhook”，它将运行相应的 `hermes webhook subscribe` 命令。
 
 ---
 
-## 安全 {#security}
+## 安全性 {#security}
 
-webhook 适配器包含多层安全机制：
+Webhook 适配器包含多层安全防护：
 
 ### HMAC 签名验证
 
-适配器会根据不同来源使用相应方式验证传入的 webhook 签名：
+适配器会根据每个来源的相应方法验证传入的 webhook 签名：
 
-- **GitHub**：`X-Hub-Signature-256` 头 — HMAC-SHA256 十六进制摘要，前缀为 `sha256=`
-- **GitLab**：`X-Gitlab-Token` 头 — 纯文本密钥匹配
-- **通用**：`X-Webhook-Signature` 头 — 原始 HMAC-SHA256 十六进制摘要
+- **GitHub**: `X-Hub-Signature-256` 请求头 —— 以 `sha256=` 为前缀的 HMAC-SHA256 十六进制摘要。
+- **GitLab**: `X-Gitlab-Token` 请求头 —— 纯文本密钥匹配。
+- **通用**: `X-Webhook-Signature` 请求头 —— 原始 HMAC-SHA256 十六进制摘要。
 
-如果配置了密钥但没有检测到认可的签名头，请求会被拒绝。
+如果配置了密钥但没有识别到签名请求头，请求将被拒绝。
 
-### 必须设置密钥
+### 必须配置密钥
 
-每条路由都必须有密钥——要么直接在路由上设置，要么继承全局的 `secret`。没有密钥的路由会导致适配器启动失败并报错。仅在开发/测试时，可以将密钥设置为 `"INSECURE_NO_AUTH"` 来跳过验证。
+每个路由都必须有一个密钥 —— 可以直接在路由上设置，也可以继承自全局 `secret`。没有密钥的路由会导致适配器在启动时报错失败。仅在开发/测试时，你可以将密钥设置为 `"INSECURE_NO_AUTH"` 以完全跳过验证。
 
 ### 速率限制
 
-每条路由默认限制为**每分钟 30 次请求**（固定时间窗口）。可全局配置：
+默认情况下，每个路由的速率限制为 **每分钟 30 次请求**（固定窗口）。可以进行全局配置：
 
 ```yaml
 platforms:
@@ -284,15 +308,15 @@ platforms:
       rate_limit: 60  # 每分钟请求数
 ```
 
-超过限制的请求会返回 `429 Too Many Requests`。
+超过限制的请求将收到 `429 Too Many Requests` 响应。
 
 ### 幂等性
 
-投递 ID（来自 `X-GitHub-Delivery`、`X-Request-ID`，或时间戳备选）会缓存 **1 小时**。重复投递（如 webhook 重试）会被静默跳过，返回 `200`，避免重复触发 Agent。
+推送 ID（来自 `X-GitHub-Delivery`、`X-Request-ID` 或时间戳备选项）会被缓存 **1 小时**。重复的推送（例如 webhook 重试）将被静默跳过并返回 `200` 响应，从而防止 Agent 重复运行。
 
-### 请求体大小限制
+### Body 大小限制
 
-超过 **1 MB** 的负载会在读取请求体前被拒绝。可配置：
+超过 **1 MB** 的 Payload 会在读取正文前被拒绝。可以这样配置：
 
 ```yaml
 platforms:
@@ -301,61 +325,60 @@ platforms:
       max_body_bytes: 2097152  # 2 MB
 ```
 
-### 提示注入风险
+### Prompt 注入风险
 
 :::warning
-Webhook 负载包含攻击者可控的数据——PR 标题、提交信息、问题描述等都可能包含恶意指令。暴露在互联网时，请在沙箱环境（Docker、虚拟机）中运行网关。建议使用 Docker 或 SSH 终端后端进行隔离。
+Webhook Payload 包含攻击者可控的数据 —— PR 标题、提交信息、issue 描述等都可能包含恶意指令。当暴露在互联网上时，请在沙箱环境（Docker、VM）中运行 gateway。考虑使用 Docker 或 SSH 终端后端进行隔离。
 :::
 
 ---
 
-## 故障排查 {#troubleshooting}
+## 故障排除 {#troubleshooting}
 
-### Webhook 没有到达
+### Webhook 未送达
 
-- 确认端口已开放且可从 webhook 源访问
-- 检查防火墙规则——端口 `8644`（或你配置的端口）必须开放
-- 确认 URL 路径正确：`http://your-server:8644/webhooks/<route-name>`
-- 使用 `/health` 端点确认服务器正在运行
+- 确认端口已暴露且可从 webhook 源访问。
+- 检查防火墙规则 —— 端口 `8644`（或你配置的端口）必须开放。
+- 确认 URL 路径匹配：`http://your-server:8644/webhooks/<route-name>`。
+- 使用 `/health` 端点确认服务器正在运行。
 
 ### 签名验证失败
 
-- 确保路由配置中的密钥与 webhook 源配置的密钥完全一致
-- GitHub 使用基于 HMAC 的密钥——检查 `X-Hub-Signature-256`
-- GitLab 使用纯文本令牌匹配——检查 `X-Gitlab-Token`
-- 查看网关日志中的 `Invalid signature` 警告
+- 确保路由配置中的密钥与 webhook 源中配置的密钥完全一致。
+- 对于 GitHub，密钥是基于 HMAC 的 —— 检查 `X-Hub-Signature-256`。
+- 对于 GitLab，密钥是纯令牌匹配 —— 检查 `X-Gitlab-Token`。
+- 检查 gateway 日志中的 `Invalid signature` 警告。
 
 ### 事件被忽略
 
-- 确认事件类型包含在路由的 `events` 列表中
-- GitHub 事件示例：`pull_request`、`push`、`issues`（对应 `X-GitHub-Event` 头）
-- GitLab 事件示例：`merge_request`、`push`（对应 `X-GitLab-Event` 头）
-- 如果 `events` 为空或未设置，则接受所有事件
+- 检查事件类型是否在路由的 `events` 列表中。
+- GitHub 事件使用类似 `pull_request`、`push`、`issues` 的值（即 `X-GitHub-Event` 请求头的值）。
+- GitLab 事件使用类似 `merge_request`、`push` 的值（即 `X-GitLab-Event` 请求头的值）。
+- 如果 `events` 为空或未设置，则接受所有事件。
 
----
-### Agent 无响应
+### Agent 没有响应
 
-- 在前台运行 gateway 以查看日志：`hermes gateway run`
-- 检查提示模板是否正确渲染
-- 确认投递目标已配置且已连接
+- 在前台运行 gateway 以查看日志：`hermes gateway run`。
+- 检查 Prompt 模板是否正确渲染。
+- 验证推送目标已配置并连接。
 
 ### 重复响应
 
-- 幂等缓存应能防止此类情况——检查 webhook 源是否发送了投递 ID 头（`X-GitHub-Delivery` 或 `X-Request-ID`）
-- 投递 ID 会缓存 1 小时
+- 幂等性缓存应该能防止这种情况 —— 检查 webhook 源是否发送了推送 ID 请求头（`X-GitHub-Delivery` 或 `X-Request-ID`）。
+- 推送 ID 会被缓存 1 小时。
 
-### `gh` CLI 错误（GitHub 评论投递）
+### `gh` CLI 错误（GitHub 评论推送）
 
-- 在 gateway 主机上运行 `gh auth login`
-- 确保认证的 GitHub 用户对仓库有写权限
-- 检查是否已安装 `gh` 并且在 PATH 中
+- 在 gateway 宿主机上运行 `gh auth login`。
+- 确保经过身份验证的 GitHub 用户对该仓库具有写权限。
+- 检查 `gh` 是否已安装并包含在 PATH 中。
 
 ---
 
 ## 环境变量 {#environment-variables}
 
-| 变量 | 说明 | 默认值 |
+| 变量 | 描述 | 默认值 |
 |----------|-------------|---------|
 | `WEBHOOK_ENABLED` | 启用 webhook 平台适配器 | `false` |
-| `WEBHOOK_PORT` | 用于接收 webhook 的 HTTP 服务器端口 | `8644` |
-| `WEBHOOK_SECRET` | 全局 HMAC 密钥（当路由未指定时作为备用） | _(无)_ |
+| `WEBHOOK_PORT` | 接收 webhook 的 HTTP 服务器端口 | `8644` |
+| `WEBHOOK_SECRET` | 全局 HMAC 密钥（当路由未指定自己的密钥时作为备选） | _(无)_ |

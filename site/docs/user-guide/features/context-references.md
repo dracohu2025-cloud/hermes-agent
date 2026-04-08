@@ -2,23 +2,23 @@
 sidebar_position: 9
 sidebar_label: "上下文引用"
 title: "上下文引用"
-description: "使用内联的 @ 语法，将文件、文件夹、git diff 和 URL 直接附加到你的消息中"
+description: "使用行内 @ 语法直接在消息中附加文件、文件夹、git diff 和 URL"
 ---
 
 # 上下文引用
 
-输入 `@` 后跟一个引用，即可将内容直接注入到你的消息中。Hermes 会内联展开该引用，并将内容附加在 `--- 附加上下文 ---` 部分下。
+输入 `@` 后跟引用内容，即可将内容直接注入到消息中。Hermes 会在行内展开引用，并将具体内容附加在消息末尾的 `--- Attached Context ---` 部分。
 
-## 支持的引用
+## 支持的引用类型
 
 | 语法 | 描述 |
 |--------|-------------|
 | `@file:path/to/file.py` | 注入文件内容 |
-| `@file:path/to/file.py:10-25` | 注入指定行范围（从1开始计数，包含首尾行） |
-| `@folder:path/to/dir` | 注入目录树列表及文件元数据 |
-| `@diff` | 注入 `git diff`（未暂存的工作区变更） |
-| `@staged` | 注入 `git diff --staged`（已暂存的变更） |
-| `@git:5` | 注入最近 N 次提交及其补丁（最多 10 次） |
+| `@file:path/to/file.py:10-25` | 注入特定行范围（从 1 开始计数，包含首尾） |
+| `@folder:path/to/dir` | 注入包含文件元数据的目录树列表 |
+| `@diff` | 注入 `git diff`（未暂存的工作区更改） |
+| `@staged` | 注入 `git diff --staged`（已暂存的更改） |
+| `@git:5` | 注入最近 N 条提交及其补丁（最多 10 条） |
 | `@url:https://example.com` | 获取并注入网页内容 |
 
 ## 使用示例
@@ -35,76 +35,108 @@ What's in @folder:src/components?
 Summarize this article @url:https://arxiv.org/abs/2301.00001
 ```
 
-单个消息中可以使用多个引用：
+单条消息中支持多个引用：
 
 ```text
 Check @file:main.py, and also @file:test.py.
 ```
 
-引用值末尾的标点符号（`,`, `.`, `;`, `!`, `?`）会被自动去除。
+引用值末尾的标点符号（`,`、`.`、`;`、`!`、`?`）会被自动剔除。
 
-## CLI 标签补全
+## CLI Tab 补全
 
 在交互式 CLI 中，输入 `@` 会触发自动补全：
 
-- `@` 显示所有引用类型（`@diff`, `@staged`, `@file:`, `@folder:`, `@git:`, `@url:`）
+- `@` 显示所有引用类型（`@diff`、`@staged`、`@file:`、`@folder:`、`@git:`、`@url:`）
 - `@file:` 和 `@folder:` 触发文件系统路径补全，并显示文件大小元数据
-- 单独的 `@` 后跟部分文本，会显示当前目录下匹配的文件和文件夹
+- 仅输入 `@` 后跟部分文本，会显示当前目录下匹配的文件和文件夹
 
 ## 行范围
 
-`@file:` 引用支持行范围，用于精确注入内容：
+`@file:` 引用支持行范围，以便精确注入内容：
 
 ```text
 @file:src/main.py:42        # 仅第 42 行
-@file:src/main.py:10-25     # 第 10 行到第 25 行（包含）
+@file:src/main.py:10-25     # 第 10 到 25 行（包含首尾）
 ```
 
-行号从 1 开始计数。无效的范围会被静默忽略（返回整个文件）。
+行号从 1 开始。无效的范围会被静默忽略（返回完整文件）。
 
 ## 大小限制
 
-上下文引用有大小限制，以防止超出模型的上下文窗口：
+上下文引用设有上限，以防止超出模型的上下文窗口：
 
-| 阈值 | 值 | 行为 |
+| 阈值类型 | 数值 | 行为 |
 |-----------|-------|----------|
 | 软限制 | 上下文长度的 25% | 附加警告，继续展开 |
-| 硬限制 | 上下文长度的 50% | 拒绝展开，返回未更改的原始消息 |
-| 文件夹条目 | 最多 200 个文件 | 超出条目替换为 `- ...` |
-| Git 提交 | 最多 10 个 | `@git:N` 被限制在 [1, 10] 范围内 |
+| 硬限制 | 上下文长度的 50% | 拒绝展开，原样返回原始消息 |
+| 文件夹条目 | 最多 200 个文件 | 超出部分被替换为 `- ...` |
+| Git 提交 | 最多 10 条 | `@git:N` 被限制在 [1, 10] 范围内 |
 
 ## 安全性
 
-### 敏感路径拦截
+### 敏感路径阻断
 
-以下路径在 `@file:` 引用中始终被拦截，以防止凭证泄露：
+为了防止凭据泄露，以下路径始终禁止通过 `@file:` 引用：
 
-- SSH 密钥和配置：`~/.ssh/id_rsa`, `~/.ssh/id_ed25519`, `~/.ssh/authorized_keys`, `~/.ssh/config`
-- Shell 配置文件：`~/.bashrc`, `~/.zshrc`, `~/.profile`, `~/.bash_profile`, `~/.zprofile`
-- 凭证文件：`~/.netrc`, `~/.pgpass`, `~/.npmrc`, `~/.pypirc`
+- SSH 密钥与配置：`~/.ssh/id_rsa`、`~/.ssh/id_ed25519`、`~/.ssh/authorized_keys`、`~/.ssh/config`
+- Shell 配置文件：`~/.bashrc`、`~/.zshrc`、`~/.profile`、`~/.bash_profile`、`~/.zprofile`
+- 凭据文件：`~/.netrc`、`~/.pgpass`、`~/.npmrc`、`~/.pypirc`
 - Hermes 环境文件：`$HERMES_HOME/.env`
 
-以下目录被完全拦截（其中的任何文件）：
-- `~/.ssh/`, `~/.aws/`, `~/.gnupg/`, `~/.kube/`, `$HERMES_HOME/skills/.hub/`
+以下目录被完全阻断（其中的任何文件都无法访问）：
+- `~/.ssh/`、`~/.aws/`、`~/.gnupg/`、`~/.kube/`、`$HERMES_HOME/skills/.hub/`
 
-### 路径遍历保护
+### 路径穿越保护
 
-所有路径都相对于工作目录进行解析。解析后超出允许的工作空间根目录的引用将被拒绝。
+所有路径都相对于工作目录进行解析。解析到允许的工作区根目录之外的引用将被拒绝。
 
 ### 二进制文件检测
 
-通过 MIME 类型和空字节扫描来检测二进制文件。已知的文本扩展名（`.py`, `.md`, `.json`, `.yaml`, `.toml`, `.js`, `.ts` 等）会绕过基于 MIME 的检测。二进制文件会被拒绝并显示警告。
+通过 MIME 类型和空字节（null-byte）扫描来检测二进制文件。已知的文本扩展名（`.py`、`.md`、`.json`、`.yaml`、`.toml`、`.js`、`.ts` 等）会绕过基于 MIME 的检测。二进制文件将被拒绝并发出警告。
+
+## 平台可用性
+
+上下文引用主要是一项 **CLI 功能**。它们在交互式 CLI 中工作，其中 `@` 会触发 Tab 补全，并且在消息发送给 Agent 之前会先展开引用。
+
+在 **即时通讯平台**（Telegram、Discord 等）中，网关不会展开 `@` 语法 —— 消息会原样传递。Agent 本身仍然可以通过 `read_file`、`search_files` 和 `web_extract` 工具来引用文件。
+
+## 与上下文压缩的交互
+
+当对话上下文被压缩时，展开的引用内容会被包含在压缩摘要中。这意味着：
+
+- 通过 `@file:` 注入的大型文件内容会占用上下文额度
+- 如果对话稍后被压缩，文件内容会被总结（而不是逐字保留）
+- 对于非常大的文件，建议使用行范围（如 `@file:main.py:100-200`）仅注入相关的部分
+
+## 常见模式
+
+```text
+# 代码审查工作流
+Review @diff and check for security issues
+
+# 带有上下文的调试
+This test is failing. Here's the test @file:tests/test_auth.py
+and the implementation @file:src/auth.py:50-80
+
+# 项目探索
+What does this project do? @folder:src @file:README.md
+
+# 研究
+Compare the approaches in @url:https://arxiv.org/abs/2301.00001
+and @url:https://arxiv.org/abs/2301.00002
+```
 
 ## 错误处理
 
-无效的引用会产生内联警告，而不是导致失败：
+无效的引用会产生行内警告，而不是导致失败：
 
-| 条件 | 行为 |
+| 情况 | 行为 |
 |-----------|----------|
 | 文件未找到 | 警告："file not found" |
 | 二进制文件 | 警告："binary files are not supported" |
 | 文件夹未找到 | 警告："folder not found" |
-| Git 命令失败 | 警告并附带 git stderr 输出 |
-| URL 无内容返回 | 警告："no content extracted" |
+| Git 命令失败 | 显示带有 git stderr 的警告 |
+| URL 未返回内容 | 警告："no content extracted" |
 | 敏感路径 | 警告："path is a sensitive credential file" |
-| 路径超出工作空间 | 警告："path is outside the allowed workspace" |
+| 路径在工作区外 | 警告："path is outside the allowed workspace" |
