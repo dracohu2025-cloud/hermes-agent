@@ -134,6 +134,13 @@ def sync_docusaurus_config(source_root: Path, target_root: Path) -> Path:
         count=1,
     )
     text = replace_all(text, CONFIG_REPLACEMENTS)
+    text = re.sub(
+        r"\{\s*to:\s*'/skills',\s*label:\s*'Skills',\s*position:\s*'left',\s*\},\s*",
+        "",
+        text,
+        count=1,
+        flags=re.S,
+    )
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(text, encoding="utf-8")
     return target_path

@@ -93,11 +93,6 @@ const config: Config = {
           label: '文档',
         },
         {
-          to: '/skills',
-          label: 'Skills',
-          position: 'left',
-        },
-        {
           href: 'https://hermes-agent.nousresearch.com',
           label: '官网',
           position: 'right',
