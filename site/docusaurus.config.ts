@@ -8,7 +8,9 @@ const deploymentUrl =
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : undefined)
   ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
-  ?? 'https://hermes-agent.nousresearch.com';
+  ?? 'https://hermes-doc.aigc.green';
+
+const pdfDownloadUrl = `${deploymentUrl}/downloads/hermes-agent-zh-docs.pdf`;
 
 const config: Config = {
   title: 'Hermes Agent 中文文档',
@@ -93,6 +95,11 @@ const config: Config = {
           label: '文档',
         },
         {
+          href: pdfDownloadUrl,
+          label: 'PDF',
+          position: 'left',
+        },
+        {
           href: 'https://hermes-agent.nousresearch.com',
           label: '官网',
           position: 'right',
@@ -119,6 +126,7 @@ const config: Config = {
             { label: '使用指南', to: '/user-guide/cli' },
             { label: '开发者指南', to: '/developer-guide/architecture' },
             { label: '参考资料', to: '/reference/cli-commands' },
+            { label: 'PDF 下载', href: pdfDownloadUrl },
           ],
         },
         {
