@@ -309,7 +309,7 @@ FEISHU_BOT_NAME=MyBot
 - **Body 读取超时：** 30 秒
 - **Content-Type 强制：** 仅接受 `application/json`
 
-## WebSocket 调优
+## WebSocket 调优 {#websocket-tuning}
 
 使用 `websocket` 模式时，你可以自定义重连和 ping 行为：
 
@@ -326,7 +326,7 @@ platforms:
 | 重连间隔 | `ws_reconnect_interval` | 120s | 两次重连尝试之间等待的时间 |
 | Ping 间隔 | `ws_ping_interval` | _(SDK 默认)_ | WebSocket 保活 ping 的频率 |
 
-## 逐群组访问控制
+## 逐群组访问控制 {#per-group-access-control}
 
 除了全局的 `FEISHU_GROUP_POLICY` 之外，你还可以使用 `config.yaml` 中的 `group_rules` 为每个群聊设置精细的规则：
 

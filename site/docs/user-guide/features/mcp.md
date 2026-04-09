@@ -275,7 +275,7 @@ mcp_servers:
 
 Hermes 在启动时发现 MCP 服务器，并将其工具注册到正常的工具注册表中。
 
-### 动态工具发现
+### 动态工具发现 {#dynamic-tool-discovery}
 
 MCP 服务器可以通过发送 `notifications/tools/list_changed` 通知，在运行时其可用工具发生变化时告知 Hermes。当 Hermes 收到此通知时，它会自动重新获取服务器的工具列表并更新注册表——无需手动执行 `/reload-mcp`。
 
@@ -441,7 +441,7 @@ mcp_servers:
       enabled: false
 ```
 
-## 将 Hermes 作为 MCP 服务器运行
+## 将 Hermes 作为 MCP 服务器运行 {#running-hermes-as-an-mcp-server}
 
 除了连接**到** MCP 服务器外，Hermes 也可以**作为**一个 MCP 服务器。这让其他具备 MCP 能力的 Agent（如 Claude Code、Cursor、Codex 或任何 MCP 客户端）能够使用 Hermes 的消息传递能力 —— 列出对话、读取消息历史，并在你所有已连接的平台上发送消息。
 

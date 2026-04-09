@@ -144,7 +144,7 @@ The following project context files have been loaded and should be followed:
 
 请注意，SOUL 内容是直接插入的，没有额外的包装文本。
 
-## 安全：提示词注入保护
+## 安全：提示词注入保护 {#security-prompt-injection-protection}
 
 所有上下文文件在包含之前都会经过潜在提示词注入扫描。扫描器检查以下内容：
 

@@ -135,7 +135,7 @@ plugins:
 
 在运行中的会话中，`/plugins` 命令会显示当前已加载的插件。
 
-## 注入消息
+## 注入消息 {#injecting-messages}
 
 插件可以使用 `ctx.inject_message()` 向当前对话注入消息：
 

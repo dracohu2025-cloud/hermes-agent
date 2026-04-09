@@ -229,6 +229,134 @@ def validate_markdown_translation(source: str, translated: str) -> list[str]:
     return issues
 
 
+def normalize_translated_markdown_links(text: str) -> str:
+    """Rewrite source-site /docs links for the Chinese site deployed at root."""
+    replacements = (
+        (r"\]\(/docs/", "](/"),
+        (r'href="/docs/', 'href="/'),
+        (r'src="/docs/', 'src="/'),
+        (r"/user-guide/features/hooks#pre_api_request", "/user-guide/features/hooks#plugin-hooks"),
+        (r"/user-guide/features/hooks#post_api_request", "/user-guide/features/hooks#plugin-hooks"),
+    )
+    normalized = text
+    for pattern, replacement in replacements:
+        normalized = re.sub(pattern, replacement, normalized)
+    return normalized
+
+
+STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
+    "developer-guide/creating-skills.md": {
+        "### 配置设置 (config.yaml)": "config-settings-configyaml",
+    },
+    "developer-guide/memory-provider-plugin.md": {
+        "## 添加 CLI 命令": "adding-cli-commands",
+    },
+    "guides/build-a-hermes-plugin.md": {
+        "### `pre_llm_call` 上下文注入": "pre_llm_call-context-injection",
+    },
+    "guides/migrate-from-openclaw.md": {
+        "## API Key 解析": "api-key-resolution",
+        "## SecretRef 处理": "secretref-handling",
+    },
+    "integrations/providers.md": {
+        "### WSL2 网络（Windows 用户）": "wsl2-networking-windows-users",
+        "### 上下文长度检测": "context-length-detection",
+        "## 回退模型 (Fallback Model)": "fallback-model",
+    },
+    "reference/faq.md": {
+        "## Profile (配置文件)": "profiles",
+    },
+    "reference/slash-commands.md": {
+        "## 注意事项": "notes",
+    },
+    "user-guide/cli.md": {
+        "## 后台会话": "background-sessions",
+    },
+    "user-guide/configuration.md": {
+        "## 技能设置": "skill-settings",
+        "## 上下文压缩": "context-compression",
+        "## 辅助模型": "auxiliary-models",
+        "## 显示设置": "display-settings",
+        "## 快捷命令": "quick-commands",
+        "## 网站黑名单": "website-blocklist",
+    },
+    "user-guide/features/context-files.md": {
+        "## 安全：提示词注入保护": "security-prompt-injection-protection",
+    },
+    "user-guide/features/hooks.md": {
+        "## Gateway 事件钩子": "gateway-event-hooks",
+        "## Plugin 钩子": "plugin-hooks",
+    },
+    "user-guide/features/mcp.md": {
+        "### 动态工具发现": "dynamic-tool-discovery",
+        "## 将 Hermes 作为 MCP 服务器运行": "running-hermes-as-an-mcp-server",
+    },
+    "user-guide/features/plugins.md": {
+        "## 注入消息": "injecting-messages",
+    },
+    "user-guide/features/skills.md": {
+        "## 外部技能目录": "external-skill-directories",
+    },
+    "user-guide/messaging/discord.md": {
+        "### Discord 中的会话模型": "session-model-in-discord",
+    },
+    "user-guide/messaging/feishu.md": {
+        "## WebSocket 调优": "websocket-tuning",
+        "## 逐群组访问控制": "per-group-access-control",
+    },
+    "user-guide/messaging/index.md": {
+        "### 私信 (DM) 配对（白名单的替代方案）": "dm-pairing-alternative-to-allowlists",
+        "## 后台会话": "background-sessions",
+    },
+    "user-guide/messaging/telegram.md": {
+        "## 第 3 步：隐私模式（群组关键设置）": "step-3-privacy-mode-critical-for-groups",
+        "## 私聊话题 (Bot API 9.4)": "private-chat-topics-bot-api-94",
+    },
+    "user-guide/security.md": {
+        "### DM 配对系统": "dm-pairing-system",
+    },
+    "user-guide/sessions.md": {
+        "### 恢复时的对话回顾": "conversation-recap-on-resume",
+        "## 会话命名": "session-naming",
+    },
+}
+
+
+STABLE_ALIAS_INSERTIONS: dict[str, list[tuple[str, str]]] = {
+    "user-guide/features/hooks.md": [
+        ("## Plugin 钩子", '<a id="pre_api_request"></a>\n<a id="post_api_request"></a>'),
+    ],
+}
+
+
+def apply_stable_heading_ids(relative_path: Path, text: str) -> str:
+    rel = relative_path.as_posix()
+    updated = text
+
+    for heading, anchor_id in STABLE_HEADING_IDS.get(rel, {}).items():
+        anchored_heading = f"{heading} {{#{anchor_id}}}"
+        if anchored_heading in updated:
+            continue
+        updated = updated.replace(heading, anchored_heading, 1)
+
+    for marker, alias_block in STABLE_ALIAS_INSERTIONS.get(rel, []):
+        if alias_block in updated:
+            continue
+        marker_with_id = marker
+        if marker in STABLE_HEADING_IDS.get(rel, {}):
+            marker_with_id = f"{marker} {{#{STABLE_HEADING_IDS[rel][marker]}}}"
+
+        exact_line = re.compile(rf"^{re.escape(marker_with_id)}$", re.MULTILINE)
+        if exact_line.search(updated):
+            updated = exact_line.sub(f"{marker_with_id}\n{alias_block}", updated, count=1)
+            continue
+
+        plain_line = re.compile(rf"^{re.escape(marker)}$", re.MULTILINE)
+        updated = plain_line.sub(f"{marker}\n{alias_block}", updated, count=1)
+
+    return updated
+
+
 def compare_json_shape(source, translated, path: str = "$") -> list[str]:
     issues: list[str] = []
 
@@ -432,6 +560,8 @@ def translate_markdown_file(
             chunk_total=len(chunks) if len(chunks) > 1 else None,
             validate=validate,
         )
+        translated_chunk = normalize_translated_markdown_links(translated_chunk)
+        translated_chunk = apply_stable_heading_ids(relative_path, translated_chunk)
         translated_chunks.append(translated_chunk)
 
     translated = "".join(translated_chunks)

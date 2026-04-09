@@ -189,7 +189,7 @@ metadata:
 └── .bundled_manifest              # 跟踪预装的内置技能
 ```
 
-## 外部技能目录
+## 外部技能目录 {#external-skill-directories}
 
 如果你在 Hermes 之外维护技能 —— 例如，多个 AI 工具共用的 `~/.agents/skills/` 目录 —— 你可以告诉 Hermes 也扫描这些目录。
 

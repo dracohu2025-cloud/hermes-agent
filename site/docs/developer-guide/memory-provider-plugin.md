@@ -196,7 +196,7 @@ mgr.on_session_end([])
 mgr.shutdown_all()
 ```
 
-## 添加 CLI 命令
+## 添加 CLI 命令 {#adding-cli-commands}
 
 Memory Provider 插件可以注册自己的 CLI 子命令树（例如 `hermes my-provider status`，`hermes my-provider config`）。这使用基于约定的发现系统——无需修改核心文件。
 

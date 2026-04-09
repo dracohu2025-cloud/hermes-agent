@@ -175,7 +175,7 @@ TTS 设置会从 OpenClaw 配置的**两个**位置读取，优先级如下：
 | 频道绑定 | `archive/bindings.json` | 针对每个平台手动设置 |
 | 复杂频道配置 | `archive/channels-deep-config.json` | 手动进行平台配置 |
 
-## API Key 解析
+## API Key 解析 {#api-key-resolution}
 
 当启用 `--migrate-secrets` 时，API Key 会按优先级从以下**三个来源**收集：
 
@@ -191,7 +191,7 @@ TTS 设置会从 OpenClaw 配置的**两个**位置读取，优先级如下：
 
 不在该白名单中的密钥绝不会被复制。
 
-## SecretRef 处理
+## SecretRef 处理 {#secretref-handling}
 
 OpenClaw 中用于 token 和 API Key 的配置值可以有三种格式：
 

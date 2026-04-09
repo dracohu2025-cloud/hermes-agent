@@ -488,7 +488,7 @@ hermes chat
 
 ---
 
-## Profile (配置文件)
+## Profile (配置文件) {#profiles}
 
 ### Profile 与直接设置 HERMES_HOME 有什么区别？
 

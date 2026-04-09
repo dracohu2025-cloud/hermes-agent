@@ -404,14 +404,14 @@ def register(ctx):
 | [`post_llm_call`](/user-guide/features/hooks#post_llm_call) | 每轮对话一次，在工具调用循环之后（仅限成功的轮次） | `session_id: str, user_message: str, assistant_response: str, conversation_history: list, model: str, platform: str` | 忽略 |
 | [`on_session_start`](/user-guide/features/hooks#on_session_start) | 创建新会话（仅限首轮） | `session_id: str, model: str, platform: str` | 忽略 |
 | [`on_session_end`](/user-guide/features/hooks#on_session_end) | 每次 `run_conversation` 调用结束 + CLI 退出 | `session_id: str, completed: bool, interrupted: bool, model: str, platform: str` | 忽略 |
-| [`pre_api_request`](/user-guide/features/hooks#pre_api_request) | 每次向 LLM 提供商发送 HTTP 请求前 | `method: str, url: str, headers: dict, body: dict` | 忽略 |
-| [`post_api_request`](/user-guide/features/hooks#post_api_request) | 每次收到 LLM 提供商的 HTTP 响应后 | `method: str, url: str, status_code: int, response: dict` | 忽略 |
+| [`pre_api_request`](/user-guide/features/hooks#plugin-hooks) | 每次向 LLM 提供商发送 HTTP 请求前 | `method: str, url: str, headers: dict, body: dict` | 忽略 |
+| [`post_api_request`](/user-guide/features/hooks#plugin-hooks) | 每次收到 LLM 提供商的 HTTP 响应后 | `method: str, url: str, status_code: int, response: dict` | 忽略 |
 
 大多数钩子都是“触发即忘”的观察者 —— 它们的返回值会被忽略。唯一的例外是 `pre_llm_call`，它可以向对话中注入上下文。
 
 为了向前兼容，所有回调都应接受 `**kwargs`。如果钩子回调崩溃，系统会记录日志并跳过它。其他钩子和 Agent 将继续正常运行。
 
-### `pre_llm_call` 上下文注入
+### `pre_llm_call` 上下文注入 {#pre_llm_call-context-injection}
 
 这是唯一一个返回值有意义的钩子。当 `pre_llm_call` 回调返回一个带有 `"context"` 键的字典（或一个纯字符串）时，Hermes 会将该文本注入到**当前轮次的用户消息**中。这是内存插件、RAG 集成、护栏（guardrails）以及任何需要为模型提供额外上下文的插件的实现机制。
 

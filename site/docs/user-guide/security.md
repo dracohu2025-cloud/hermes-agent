@@ -209,7 +209,7 @@ Set GATEWAY_ALLOW_ALL_USERS=true in ~/.hermes/.env to allow open access,
 or configure platform allowlists (e.g., TELEGRAM_ALLOWED_USERS=your_id).
 ```
 :::
-### DM 配对系统
+### DM 配对系统 {#dm-pairing-system}
 
 为了提供更灵活的授权方式，Hermes 包含了一个基于代码的配对系统。无需预先要求用户 ID，未知用户会收到一个一次性配对码，Bot 所有者可以通过 CLI 批准该代码。
 

@@ -141,7 +141,7 @@ quick_commands:
 | `/update` | 将 Hermes Agent 更新到最新版本。 |
 | `/help` | 显示消息平台帮助。 |
 | `/<skill-name>` | 通过名称调用任何已安装的技能。 |
-## 注意事项
+## 注意事项 {#notes}
 
 - `/skin`、`/tools`、`/toolsets`、`/browser`、`/config`、`/prompt`、`/cron`、`/skills`、`/platforms`、`/paste`、`/statusbar` 以及 `/plugins` 是 **仅限 CLI** 的命令。
 - `/verbose` **默认仅限 CLI**，但可以通过在 `config.yaml` 中设置 `display.tool_progress_command: true` 来为即时通讯平台启用。启用后，它会循环切换 `display.tool_progress` 模式并保存到配置中。

@@ -178,7 +178,7 @@ required_environment_variables:
 
 旧版的 `prerequisites.env_vars` 仍作为向后兼容的别名受支持。
 
-### 配置设置 (config.yaml)
+### 配置设置 (config.yaml) {#config-settings-configyaml}
 
 Skill 可以声明非机密设置，这些设置存储在 `config.yaml` 的 `skills.config` 命名空间下。与环境变量（存储在 `.env` 中的机密信息）不同，配置设置用于路径、偏好和其他非敏感值。
 
