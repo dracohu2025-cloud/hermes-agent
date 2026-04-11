@@ -170,6 +170,76 @@ def split_frontmatter(text: str) -> tuple[str, str]:
     return match.group(0), text[match.end():]
 
 
+def extract_frontmatter_lines(frontmatter: str) -> list[str]:
+    if not frontmatter:
+        return []
+    lines = frontmatter.splitlines()
+    if len(lines) < 3 or lines[0] != "---" or lines[-1] != "---":
+        return []
+    return lines[1:-1]
+
+
+def extract_frontmatter_keys(frontmatter: str) -> list[str]:
+    keys: list[str] = []
+    for line in extract_frontmatter_lines(frontmatter):
+        match = re.match(r"^([A-Za-z0-9_-]+):\s*.*$", line)
+        if match:
+            keys.append(match.group(1))
+    return keys
+
+
+def repair_translated_frontmatter(source_frontmatter: str, translated: str) -> str:
+    if not source_frontmatter:
+        return translated
+
+    translated_frontmatter, _ = split_frontmatter(translated)
+    if translated_frontmatter:
+        return translated
+
+    if not translated.startswith("---\n"):
+        return translated
+
+    source_lines = extract_frontmatter_lines(source_frontmatter)
+    if not source_lines:
+        return translated
+
+    after_open = translated[len("---\n") :]
+    lines = after_open.splitlines()
+    translated_line_map: dict[str, str] = {}
+    consumed = 0
+
+    for line in lines:
+        if not line.strip():
+            consumed += 1
+            break
+        match = re.match(r"^([A-Za-z0-9_-]+):\s*.*$", line)
+        if not match:
+            break
+        translated_line_map[match.group(1)] = line
+        consumed += 1
+
+    if not translated_line_map:
+        return translated
+
+    rebuilt_lines: list[str] = []
+    for source_line in source_lines:
+        match = re.match(r"^([A-Za-z0-9_-]+):\s*.*$", source_line)
+        if not match:
+            rebuilt_lines.append(source_line)
+            continue
+        key = match.group(1)
+        rebuilt_lines.append(translated_line_map.get(key, source_line))
+
+    body_lines = lines[consumed:]
+    body = "\n".join(body_lines).lstrip("\n")
+    repaired = "---\n" + "\n".join(rebuilt_lines) + "\n---\n"
+    if body:
+        repaired += body
+        if translated.endswith("\n") and not repaired.endswith("\n"):
+            repaired += "\n"
+    return repaired
+
+
 def split_markdown_chunks(text: str, max_chars: int = 8000) -> list[str]:
     if len(text) <= max_chars:
         return [text]
@@ -214,8 +284,14 @@ def split_markdown_chunks(text: str, max_chars: int = 8000) -> list[str]:
 def validate_markdown_translation(source: str, translated: str) -> list[str]:
     issues: list[str] = []
 
-    if source.lstrip().startswith("---") and not translated.lstrip().startswith("---"):
-        issues.append("frontmatter missing")
+    source_frontmatter, _ = split_frontmatter(source)
+    translated_frontmatter, _ = split_frontmatter(translated)
+
+    if source_frontmatter and not translated_frontmatter:
+        issues.append("frontmatter malformed")
+    elif source_frontmatter and translated_frontmatter:
+        if extract_frontmatter_keys(source_frontmatter) != extract_frontmatter_keys(translated_frontmatter):
+            issues.append("frontmatter keys changed")
 
     if count_headings(source) != count_headings(translated):
         issues.append("heading count changed")
@@ -560,6 +636,7 @@ def translate_markdown_file(
             chunk_total=len(chunks) if len(chunks) > 1 else None,
             validate=validate,
         )
+        translated_chunk = repair_translated_frontmatter(frontmatter, translated_chunk)
         translated_chunk = normalize_translated_markdown_links(translated_chunk)
         translated_chunk = apply_stable_heading_ids(relative_path, translated_chunk)
         translated_chunks.append(translated_chunk)
