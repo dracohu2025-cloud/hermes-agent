@@ -24,17 +24,17 @@ jobs:
       HERMES_DOCS_TRANSLATION_MODEL: ${{ vars.HERMES_DOCS_TRANSLATION_MODEL }}
       HERMES_DOCS_TRANSLATION_TRANSPORT: ${{ vars.HERMES_DOCS_TRANSLATION_TRANSPORT }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'site/package-lock.json'
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
