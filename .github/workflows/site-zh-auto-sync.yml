@@ -95,6 +95,11 @@ jobs:
             echo "HERMES_DOCS_TRANSLATION_MODEL=openai/gpt-4.1-mini" >> "${GITHUB_ENV}"
           fi
 
+      - name: Install Python deps for docs sync
+        if: steps.diff.outputs.has_changes == 'true'
+        run: |
+          python -m pip install --disable-pip-version-check openai anthropic
+
       - name: Refresh source site snapshot from upstream
         if: steps.diff.outputs.has_changes == 'true'
         run: |
