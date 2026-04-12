@@ -320,6 +320,16 @@ def normalize_translated_markdown_links(text: str) -> str:
     return normalized
 
 
+def escape_angle_placeholders_in_inline_code(text: str) -> str:
+    """Prevent MDX from treating CLI placeholders like <name> as JSX tags."""
+
+    def replace_code_span(match: re.Match[str]) -> str:
+        code = match.group(0)
+        return re.sub(r"<([A-Za-z][^<>`\n]*)>", r"&lt;\1&gt;", code)
+
+    return re.sub(r"`[^`\n]+`", replace_code_span, text)
+
+
 STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
     "developer-guide/creating-skills.md": {
         "### 配置设置 (config.yaml)": "config-settings-configyaml",
@@ -638,6 +648,7 @@ def translate_markdown_file(
         )
         translated_chunk = repair_translated_frontmatter(frontmatter, translated_chunk)
         translated_chunk = normalize_translated_markdown_links(translated_chunk)
+        translated_chunk = escape_angle_placeholders_in_inline_code(translated_chunk)
         translated_chunk = apply_stable_heading_ids(relative_path, translated_chunk)
         translated_chunks.append(translated_chunk)
 
