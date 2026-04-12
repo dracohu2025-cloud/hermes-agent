@@ -1,12 +1,12 @@
 ---
 sidebar_position: 8
 title: "代码执行"
-description: "通过 RPC 工具访问的沙盒化 Python 执行 —— 将多步骤工作流压缩为单轮交互"
+description: "通过 RPC 工具访问的沙盒化 Python 执行 —— 将多步骤工作流压缩为单次交互"
 ---
 
 # 代码执行（编程式工具调用）
 
-`execute_code` 工具允许 Agent 编写能够以编程方式调用 Hermes 工具的 Python 脚本，从而将多步骤工作流压缩为一次 LLM 轮次。脚本在 Agent 主机上的沙盒子进程中运行，通过 Unix 域套接字 RPC 进行通信。
+`execute_code` 工具允许 Agent 编写 Python 脚本来编程式地调用 Hermes 工具，从而将多步骤工作流压缩为一次 LLM 交互。脚本在 Agent 主机上的沙盒化子进程中运行，通过 Unix 域套接字 RPC 进行通信。
 
 ## 工作原理
 
@@ -33,9 +33,9 @@ print(summary)
 
 当出现以下情况时，Agent 会使用 `execute_code`：
 
-- **3 次以上工具调用**，且调用之间存在处理逻辑
-- 批量数据过滤或条件分支
-- 对结果进行循环处理
+-   **3 次以上工具调用**，且调用之间存在处理逻辑
+-   批量数据过滤或条件分支
+-   对结果进行循环处理
 
 关键优势：中间工具结果永远不会进入上下文窗口 —— 只有最终的 `print()` 输出会返回，从而显著减少令牌使用量。
 
@@ -63,8 +63,8 @@ print(json.dumps(configs, indent=2))
 from hermes_tools import web_search, web_extract
 import json
 
-# 在一次轮次中完成搜索、提取和总结
-results = web_search("2025年 Rust 异步运行时比较", limit=5)
+# 在一次交互中完成搜索、提取和总结
+results = web_search("2025 年 Rust 异步运行时比较", limit=5)
 summaries = []
 for r in results["data"]["web"]:
     page = web_extract([r["url"]])
@@ -97,7 +97,7 @@ for match in matches.get("matches", []):
     if "error" not in str(result):
         fixed += 1
 
-print(f"修复了 {fixed} 个文件，共匹配到 {len(matches.get('matches', []))} 个")
+print(f"在 {len(matches.get('matches', []))} 个匹配项中修复了 {fixed} 个文件")
 ```
 
 ### 构建和测试流水线
@@ -130,12 +130,12 @@ print(json.dumps(report, indent=2))
 
 | 资源 | 限制 | 说明 |
 |------|------|------|
-| **超时** | 5 分钟 (300秒) | 脚本先收到 SIGTERM，5秒宽限期后收到 SIGKILL |
-| **标准输出** | 50 KB | 输出会被截断，并添加 `[output truncated at 50KB]` 提示 |
+| **超时** | 5 分钟 (300 秒) | 脚本先收到 SIGTERM，5 秒宽限期后收到 SIGKILL |
+| **标准输出** | 50 KB | 输出会被截断，并附加 `[output truncated at 50KB]` 提示 |
 | **标准错误** | 10 KB | 在非零退出时包含在输出中，用于调试 |
 | **工具调用** | 每次执行 50 次 | 达到限制时返回错误 |
 
-所有限制都可以通过 `config.yaml` 配置：
+所有限制都可通过 `config.yaml` 配置：
 
 ```yaml
 # 在 ~/.hermes/config.yaml 中
@@ -148,21 +148,21 @@ code_execution:
 
 当你的脚本调用像 `web_search("query")` 这样的函数时：
 
-1.  调用被序列化为 JSON 并通过 Unix 域套接字发送到父进程
-2.  父进程通过标准的 `handle_function_call` 处理程序进行分发
+1.  调用被序列化为 JSON，并通过 Unix 域套接字发送到父进程
+2.  父进程通过标准的 `handle_function_call` 处理程序进行分派
 3.  结果通过套接字发送回来
 4.  函数返回解析后的结果
 
-这意味着脚本内部的工具调用行为与普通工具调用完全相同 —— 相同的速率限制、相同的错误处理、相同的能力。唯一的限制是 `terminal()` 仅限前台模式（没有 `background`、`pty` 或 `check_interval` 参数）。
+这意味着脚本内部的工具调用行为与普通工具调用完全相同 —— 相同的速率限制、相同的错误处理、相同的能力。唯一的限制是 `terminal()` 仅支持前台模式（没有 `background` 或 `pty` 参数）。
 
 ## 错误处理
 
 当脚本失败时，Agent 会收到结构化的错误信息：
 
-- **非零退出码**：标准错误包含在输出中，因此 Agent 可以看到完整的回溯信息
-- **超时**：脚本被终止，Agent 看到 `"Script timed out after 300s and was killed."`
-- **中断**：如果用户在执行期间发送了新消息，脚本会被终止，Agent 看到 `[execution interrupted — user sent a new message]`
-- **工具调用限制**：当达到 50 次调用限制时，后续的工具调用会返回错误消息
+-   **非零退出码**：标准错误包含在输出中，因此 Agent 可以看到完整的回溯信息
+-   **超时**：脚本被终止，Agent 看到 `"Script timed out after 300s and was killed."`
+-   **中断**：如果用户在执行期间发送了新消息，脚本会被终止，Agent 看到 `[execution interrupted — user sent a new message]`
+-   **工具调用限制**：当达到 50 次调用限制时，后续的工具调用会返回错误消息
 
 响应始终包含 `status`（success/error/timeout/interrupted）、`output`、`tool_calls_made` 和 `duration_seconds`。
 
@@ -178,7 +178,7 @@ code_execution:
 
 当技能在其 frontmatter 中声明了 `required_environment_variables` 时，这些变量在技能加载后**会自动透传**到 `execute_code` 和 `terminal` 沙盒中。这使得技能可以使用其声明的 API 密钥，而不会削弱任意代码的安全性。
 
-对于非技能用例，你可以在 `config.yaml` 中明确地将变量加入允许列表：
+对于非技能用例，你可以在 `config.yaml` 中明确设置允许列表：
 
 ```yaml
 terminal:
@@ -195,15 +195,15 @@ terminal:
 
 | 用例 | execute_code | terminal |
 |------|-------------|----------|
-| 在工具调用之间进行多步骤工作流 | ✅ | ❌ |
+| 工具调用之间存在多步骤工作流 | ✅ | ❌ |
 | 简单的 shell 命令 | ❌ | ✅ |
 | 过滤/处理大量工具输出 | ✅ | ❌ |
 | 运行构建或测试套件 | ❌ | ✅ |
 | 循环处理搜索结果 | ✅ | ❌ |
 | 交互式/后台进程 | ❌ | ✅ |
-| 需要在环境中使用 API 密钥 | ⚠️ 仅通过[透传](/user-guide/security#environment-variable-passthrough) | ✅（大多数会透传） |
+| 需要环境变量中的 API 密钥 | ⚠️ 仅通过[透传](/user-guide/security#environment-variable-passthrough) | ✅（大多数会透传） |
 
-**经验法则：** 当你需要以编程方式调用 Hermes 工具，并在调用之间加入逻辑时，使用 `execute_code`。对于运行 shell 命令、构建和进程，使用 `terminal`。
+**经验法则：** 当你需要以编程方式调用 Hermes 工具，并且在调用之间存在逻辑时，使用 `execute_code`。对于运行 shell 命令、构建和进程，使用 `terminal`。
 
 ## 平台支持
 
