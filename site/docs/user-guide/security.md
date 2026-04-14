@@ -445,7 +445,7 @@ mcp_servers:
 - Bearer 令牌
 - `token=`, `key=`, `API_KEY=`, `password=`, `secret=` 等参数
 
-### 网站访问策略
+### 网站访问策略 {#website-blocklist}
 
 你可以限制 Agent 通过其 Web 和浏览器工具访问哪些网站。这对于防止 Agent 访问内部服务、管理面板或其他敏感 URL 非常有用。
 

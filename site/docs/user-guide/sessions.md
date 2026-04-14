@@ -100,7 +100,7 @@ hermes chat --resume 20250305_091523_a1b2c3d4
 
 会话 ID 会在你退出 CLI 会话时显示，也可以通过 `hermes sessions list` 找到。
 
-### 恢复时的对话摘要
+### 恢复时的对话摘要 {#conversation-recap-on-resume}
 
 当你恢复一个会话时，Hermes 会在输入提示符之前，在一个样式化的面板中显示之前对话的紧凑摘要：
 

@@ -122,7 +122,9 @@ services.hermes-agent.environmentFiles = [ "/var/lib/hermes/env" ];
 设置 `addToSystemPackages = true` 会做两件事：将 `hermes` CLI 放到你的系统 PATH 中，**并且** 系统范围内设置 `HERMES_HOME`，以便交互式 CLI 与网关服务共享状态（会话、技能、cron）。如果不设置，在 shell 中运行 `hermes` 会创建一个单独的 `~/.hermes/` 目录。
 :::
 
-:::info 容器感知的 CLI
+### 容器感知的 CLI {#container-aware-cli}
+
+:::info
 当 `container.enable = true` 且 `addToSystemPackages = true` 时，主机上的 **每一个** `hermes` 命令都会自动路由到受管理的容器中。这意味着你的交互式 CLI 会话运行在与网关服务相同的环境中 —— 可以访问所有容器内安装的包和工具。
 
 - 路由是透明的：`hermes chat`、`hermes sessions list`、`hermes version` 等命令都会在底层执行到容器中
@@ -329,7 +331,7 @@ Nix 用户最常自定义内容的快速参考：
 
 ---
 
-## 密钥管理
+## 密钥管理 {#secrets-management}
 
 :::danger 切勿将 API 密钥放入 `settings` 或 `environment`
 Nix 表达式中的值最终会进入 `/nix/store`，这是全局可读的。始终使用带有密钥管理器的 `environmentFiles`。
@@ -415,7 +417,7 @@ hermes-env: |
 
 ---
 
-## MCP 服务器
+## MCP 服务器 {#mcp-servers}
 
 `mcpServers` 选项用于声明式配置 [MCP（模型上下文协议）](https://modelcontextprotocol.io) 服务器。每个服务器使用 **stdio**（本地命令）或 **HTTP**（远程 URL）传输方式。
 

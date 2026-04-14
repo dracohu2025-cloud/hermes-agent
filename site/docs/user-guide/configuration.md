@@ -13,14 +13,14 @@ description: "配置 Hermes Agent — config.yaml、提供方、模型、API 密
 ```text
 ~/.hermes/
 ├── config.yaml     # 设置（模型、终端、TTS、压缩等）
-├── .env            # API 密钥和密钥
+├── .env            # API 密钥和机密信息
 ├── auth.json       # OAuth 提供方凭据（Nous Portal 等）
-├── SOUL.md         # 主要 Agent 身份（系统提示词中的槽位 #1）
+├── SOUL.md         # 主要 Agent 身份（系统提示中的槽位 #1）
 ├── memories/       # 持久化记忆（MEMORY.md, USER.md）
 ├── skills/         # Agent 创建的技能（通过 skill_manage 工具管理）
 ├── cron/           # 计划任务
-├── sessions/       # Gateway 会话
-└── logs/           # 日志（errors.log, gateway.log — 密钥自动脱敏）
+├── sessions/       # 网关会话
+└── logs/           # 日志（errors.log, gateway.log — 机密信息自动脱敏）
 ```
 
 ## 管理配置
@@ -46,13 +46,13 @@ hermes config set OPENROUTER_API_KEY sk-or-...  # 保存到 .env
 
 设置按以下顺序解析（优先级从高到低）：
 
-1.  **CLI 参数** — 例如，`hermes chat --model anthropic/claude-sonnet-4`（每次调用覆盖）
-2.  **`~/.hermes/config.yaml`** — 所有非密钥设置的主要配置文件
-3.  **`~/.hermes/.env`** — 环境变量的后备；**必需**用于密钥（API 密钥、令牌、密码）
-4.  **内置默认值** — 当没有其他设置时，硬编码的安全默认值
+1.  **CLI 参数** — 例如 `hermes chat --model anthropic/claude-sonnet-4`（每次调用覆盖）
+2.  **`~/.hermes/config.yaml`** — 所有非机密设置的主要配置文件
+3.  **`~/.hermes/.env`** — 环境变量的后备；**必需**用于机密信息（API 密钥、令牌、密码）
+4.  **内置默认值** — 当没有其他设置时的硬编码安全默认值
 
 :::info 经验法则
-密钥（API 密钥、机器人令牌、密码）放在 `.env` 中。其他所有内容（模型、终端后端、压缩设置、内存限制、工具集）放在 `config.yaml` 中。当两者都设置时，对于非密钥设置，`config.yaml` 优先。
+机密信息（API 密钥、机器人令牌、密码）放在 `.env` 中。其他所有内容（模型、终端后端、压缩设置、内存限制、工具集）放在 `config.yaml` 中。当两者都设置时，对于非机密设置，`config.yaml` 优先。
 :::
 
 ## 环境变量替换
@@ -75,7 +75,7 @@ delegation:
 
 ## 终端后端配置
 
-Hermes 支持六种终端后端。每种决定了 Agent 的 shell 命令实际执行的位置 — 你的本地机器、Docker 容器、通过 SSH 连接的远程服务器、Modal 云沙箱、Daytona 工作区或 Singularity/Apptainer 容器。
+Hermes 支持六种终端后端。每种决定了 Agent 的 shell 命令实际执行的位置 — 你的本地机器、Docker 容器、通过 SSH 的远程服务器、Modal 云沙箱、Daytona 工作区或 Singularity/Apptainer 容器。
 
 ```yaml
 terminal:
@@ -96,12 +96,12 @@ terminal:
 |---------|-------------------|-----------|----------|
 | **local** | 你的机器直接运行 | 无 | 开发、个人使用 |
 | **docker** | Docker 容器 | 完全（命名空间、cap-drop） | 安全沙箱化、CI/CD |
-| **ssh** | 通过 SSH 连接的远程服务器 | 网络边界 | 远程开发、强大硬件 |
+| **ssh** | 通过 SSH 的远程服务器 | 网络边界 | 远程开发、强大硬件 |
 | **modal** | Modal 云沙箱 | 完全（云虚拟机） | 临时云计算、评估 |
 | **daytona** | Daytona 工作区 | 完全（云容器） | 托管的云开发环境 |
 | **singularity** | Singularity/Apptainer 容器 | 命名空间（--containall） | HPC 集群、共享机器 |
 
-### Local 后端
+### 本地后端
 
 默认后端。命令直接在机器上运行，没有隔离。无需特殊设置。
 
@@ -111,7 +111,7 @@ terminal:
 ```
 
 :::warning
-Agent 拥有与你的用户账户相同的文件系统访问权限。使用 `hermes tools` 来禁用你不希望使用的工具，或者切换到 Docker 进行沙箱化。
+Agent 拥有与你的用户账户相同的文件系统访问权限。使用 `hermes tools` 来禁用你不想要的工具，或者切换到 Docker 进行沙箱化。
 :::
 
 ### Docker 后端
@@ -132,7 +132,7 @@ terminal:
   # 资源限制
   container_cpu: 1                 # CPU 核心数（0 = 无限制）
   container_memory: 5120           # MB（0 = 无限制）
-  container_disk: 51200            # MB（需要在 XFS+pquota 上启用 overlay2）
+  container_disk: 51200            # MB（需要在 XFS+pquota 上使用 overlay2）
   container_persistent: true       # 在会话间持久化 /workspace 和 /root
 ```
 
@@ -141,10 +141,10 @@ terminal:
 **容器生命周期：** 每个会话启动一个长期运行的容器（`docker run -d ... sleep 2h`）。命令通过 `docker exec` 使用登录 shell 运行。清理时，容器被停止并移除。
 
 **安全加固：**
-- `--cap-drop ALL`，仅重新添加 `DAC_OVERRIDE`、`CHOWN`、`FOWNER`
+- `--cap-drop ALL`，仅添加回 `DAC_OVERRIDE`、`CHOWN`、`FOWNER`
 - `--security-opt no-new-privileges`
 - `--pids-limit 256`
-- 为 `/tmp`（512MB）、`/var/tmp`（256MB）、`/run`（64MB）设置大小限制的 tmpfs
+- 大小受限的 tmpfs：`/tmp` (512MB)、`/var/tmp` (256MB)、`/run` (64MB)
 
 **凭据转发：** `docker_forward_env` 中列出的环境变量首先从你的 shell 环境解析，然后从 `~/.hermes/.env` 解析。技能也可以声明 `required_environment_variables`，这些变量会自动合并。
 
@@ -173,11 +173,11 @@ TERMINAL_SSH_USER=ubuntu
 | `TERMINAL_SSH_KEY` | （系统默认） | SSH 私钥路径 |
 | `TERMINAL_SSH_PERSISTENT` | `true` | 启用持久化 shell |
 
-**工作原理：** 在初始化时使用 `BatchMode=yes` 和 `StrictHostKeyChecking=accept-new` 连接。持久化 shell 在远程主机上保持一个 `bash -l` 进程存活，通过临时文件进行通信。需要 `stdin_data` 或 `sudo` 的命令会自动回退到一次性模式。
+**工作原理：** 在初始化时使用 `BatchMode=yes` 和 `StrictHostKeyChecking=accept-new` 连接。持久化 shell 在远程主机上保持一个 `bash -l` 进程存活，通过临时文件通信。需要 `stdin_data` 或 `sudo` 的命令会自动回退到一次性模式。
 
 ### Modal 后端
 
-在 [Modal](https://modal.com) 云沙箱中运行命令。每个任务获得一个隔离的虚拟机，具有可配置的 CPU、内存和磁盘。文件系统可以在会话间快照/恢复。
+在 [Modal](https://modal.com) 云沙箱中运行命令。每个任务获得一个具有可配置 CPU、内存和磁盘的隔离虚拟机。文件系统可以在会话间快照/恢复。
 
 ```yaml
 terminal:
@@ -187,9 +187,9 @@ terminal:
   container_disk: 51200            # MB（50GB）
   container_persistent: true       # 快照/恢复文件系统
 ```
-**必需：** 要么设置 `MODAL_TOKEN_ID` + `MODAL_TOKEN_SECRET` 环境变量，要么提供一个 `~/.modal.toml` 配置文件。
+**必需：** 设置 `MODAL_TOKEN_ID` + `MODAL_TOKEN_SECRET` 环境变量，或提供 `~/.modal.toml` 配置文件。
 
-**持久化：** 启用后，沙盒文件系统会在清理时进行快照，并在下次会话时恢复。快照记录在 `~/.hermes/modal_snapshots.json` 中。这会保留文件系统状态，但不会保留活动进程、PID 空间或后台作业。
+**持久化：** 启用后，沙盒文件系统会在清理时创建快照，并在下次会话时恢复。快照记录在 `~/.hermes/modal_snapshots.json` 中。这仅保留文件系统状态，不保留活动进程、PID 空间或后台作业。
 
 **凭证文件：** 自动从 `~/.hermes/` 挂载（OAuth 令牌等），并在每次命令执行前同步。
 
@@ -208,7 +208,7 @@ terminal:
 
 **必需：** `DAYTONA_API_KEY` 环境变量。
 
-**持久化：** 启用后，沙盒在清理时会被停止（而非删除），并在下次会话时恢复。沙盒名称遵循模式 `hermes-{task_id}`。
+**持久化：** 启用后，沙盒在清理时会被停止（而非删除），并在下次会话时恢复。沙盒名称遵循 `hermes-{task_id}` 模式。
 
 **磁盘限制：** Daytona 强制最大 10 GiB。超过此限制的请求会被截断并发出警告。
 
@@ -238,13 +238,13 @@ terminal:
 如果终端命令立即失败或报告终端工具被禁用：
 
 - **Local** — 无特殊要求。入门时最安全的默认选项。
-- **Docker** — 运行 `docker version` 验证 Docker 是否正常工作。如果失败，修复 Docker 或执行 `hermes config set terminal.backend local`。
-- **SSH** — 必须同时设置 `TERMINAL_SSH_HOST` 和 `TERMINAL_SSH_USER`。如果缺少任一，Hermes 会记录清晰的错误信息。
+- **Docker** — 运行 `docker version` 验证 Docker 是否正常工作。如果失败，请修复 Docker 或执行 `hermes config set terminal.backend local`。
+- **SSH** — 必须同时设置 `TERMINAL_SSH_HOST` 和 `TERMINAL_SSH_USER`。如果缺少任一，Hermes 会记录明确的错误。
 - **Modal** — 需要 `MODAL_TOKEN_ID` 环境变量或 `~/.modal.toml`。运行 `hermes doctor` 检查。
 - **Daytona** — 需要 `DAYTONA_API_KEY`。Daytona SDK 处理服务器 URL 配置。
-- **Singularity** — 需要 `$PATH` 中存在 `apptainer` 或 `singularity`。常见于 HPC 集群。
+- **Singularity** — 需要 `$PATH` 中存在 `apptainer` 或 `singularity`。在 HPC 集群上常见。
 
-如有疑问，将 `terminal.backend` 设置回 `local`，并验证命令能否首先在那里运行。
+如有疑问，请将 `terminal.backend` 设置回 `local`，并首先验证命令能否在那里运行。
 
 ### Docker 卷挂载
 
@@ -259,7 +259,7 @@ terminal:
     - "/home/user/outputs:/outputs"               # Agent 写入，你读取
 ```
 
-这在以下场景很有用：
+这适用于：
 - **向 Agent 提供文件**（数据集、配置、参考代码）
 - **从 Agent 接收文件**（生成的代码、报告、导出文件）
 - **共享工作区**，你和 Agent 都能访问相同的文件
@@ -278,7 +278,7 @@ terminal:
     - "NPM_TOKEN"
 ```
 
-Hermes 首先从当前 shell 解析每个列出的变量，如果变量已通过 `hermes config set` 保存，则回退到 `~/.hermes/.env`。
+Hermes 首先从你当前的 shell 解析每个列出的变量，如果变量已通过 `hermes config set` 保存，则回退到 `~/.hermes/.env`。
 
 :::warning
 `docker_forward_env` 中列出的任何内容都会对容器内运行的命令可见。只转发你愿意暴露给终端会话的凭证。
@@ -307,17 +307,17 @@ terminal:
 - `false` 保持沙盒边界
 - `true` 让沙盒直接访问你启动 Hermes 的目录
 
-仅当你特意希望容器处理宿主机上的实时文件时，才使用此选择加入功能。
+仅当你确实希望容器处理宿主机上的实时文件时，才使用此选择加入功能。
 
 ### 持久化 Shell
 
-默认情况下，每个终端命令都在其自己的子进程中运行——工作目录、环境变量和 shell 变量在命令之间会重置。当启用**持久化 Shell** 时，会在多个 `execute()` 调用之间保持一个长期存活的 bash 进程，以便状态在命令之间得以保留。
+默认情况下，每个终端命令都在其自己的子进程中运行——工作目录、环境变量和 shell 变量在命令之间重置。当启用**持久化 shell** 时，会在多个 `execute()` 调用之间保持一个长期存活的 bash 进程，以便状态在命令之间得以保留。
 
-这对于 **SSH 后端** 最有用，因为它还能消除每次命令的连接开销。持久化 Shell **默认对 SSH 启用**，对本地后端禁用。
+这对于 **SSH 后端** 最有用，因为它还能消除每次命令的连接开销。持久化 shell **默认对 SSH 启用**，对本地后端禁用。
 
 ```yaml
 terminal:
-  persistent_shell: true   # 默认 — 为 SSH 启用持久化 Shell
+  persistent_shell: true   # 默认 — 为 SSH 启用持久化 shell
 ```
 
 要禁用：
@@ -326,7 +326,7 @@ terminal:
 hermes config set terminal.persistent_shell false
 ```
 
-**在命令之间持久化的内容：**
+**在命令间持久化的内容：**
 - 工作目录 (`cd /tmp` 对下一条命令生效)
 - 导出的环境变量 (`export FOO=bar`)
 - Shell 变量 (`MY_VAR=hello`)
@@ -339,17 +339,17 @@ hermes config set terminal.persistent_shell false
 | SSH 覆盖 | `TERMINAL_SSH_PERSISTENT` | 遵循配置 |
 | 本地覆盖 | `TERMINAL_LOCAL_PERSISTENT` | `false` |
 
-每个后端的特定环境变量具有最高优先级。如果你也想在本地后端启用持久化 Shell：
+每个后端的特定环境变量具有最高优先级。如果你也想在本地后端启用持久化 shell：
 
 ```bash
 export TERMINAL_LOCAL_PERSISTENT=true
 ```
 
 :::note
-需要 `stdin_data` 或 sudo 的命令会自动回退到一次性模式，因为持久化 Shell 的 stdin 已被 IPC 协议占用。
+需要 `stdin_data` 或 sudo 的命令会自动回退到一次性模式，因为持久化 shell 的 stdin 已被 IPC 协议占用。
 :::
 
-有关每个后端的详细信息，请参阅 [代码执行](features/code-execution.md) 和 README 的 [终端部分](features/tools.md)。
+有关每个后端的详细信息，请参阅[代码执行](features/code-execution.md)和 README 的[终端部分](features/tools.md)。
 
 ## 技能设置 {#skill-settings}
 
@@ -362,10 +362,10 @@ skills:
       path: ~/wiki          # 由 llm-wiki 技能使用
 ```
 
-**技能设置的工作原理：**
+**技能设置如何工作：**
 
 - `hermes config migrate` 扫描所有已启用的技能，查找未配置的设置，并提示你进行配置
-- `hermes config show` 在 "Skill Settings" 下显示所有技能设置及其所属技能
+- `hermes config show` 在“技能设置”下显示所有技能设置及其所属技能
 - 当技能加载时，其解析后的配置值会自动注入到技能上下文中
 
 **手动设置值：**
@@ -374,9 +374,9 @@ skills:
 hermes config set skills.config.wiki.path ~/my-research-wiki
 ```
 
-有关在你自己的技能中声明配置设置的详细信息，请参阅 [创建技能 — 配置设置](/developer-guide/creating-skills#config-settings-configyaml)。
+有关在你自己的技能中声明配置设置的详细信息，请参阅[创建技能 — 配置设置](/developer-guide/creating-skills#config-settings-configyaml)。
 
-## 内存配置
+## 记忆配置
 
 ```yaml
 memory:
@@ -393,7 +393,7 @@ memory:
 file_read_max_chars: 100000  # 默认值 — 约 25-35K tokens
 ```
 
-如果你使用的模型具有较大的上下文窗口，并且经常读取大文件，可以调高此值。对于小上下文模型，可以降低此值以保持读取效率：
+如果你使用的是具有大上下文窗口的模型，并且经常读取大文件，可以提高此值。对于小上下文模型，则降低此值以保持读取效率：
 
 ```yaml
 # 大上下文模型 (200K+)
@@ -403,7 +403,7 @@ file_read_max_chars: 200000
 file_read_max_chars: 30000
 ```
 
-Agent 还会自动对文件读取进行去重——如果同一文件区域被读取两次且文件未更改，则会返回一个轻量级存根，而不是重新发送内容。这会在上下文压缩时重置，以便 Agent 在其内容被摘要化后可以重新读取文件。
+Agent 还会自动对文件读取进行去重——如果同一文件区域被读取两次且文件未更改，则会返回一个轻量级的存根，而不是重新发送内容。这会在上下文压缩时重置，以便 Agent 在其内容被摘要化后可以重新读取文件。
 
 ## Git 工作树隔离
 
@@ -427,7 +427,7 @@ node_modules/
 
 ## 上下文压缩 {#context-compression}
 
-Hermes 会自动压缩长对话，以保持在模型的上下文窗口内。压缩摘要器是一个独立的 LLM 调用——你可以将其指向任何提供商或端点。
+Hermes 会自动压缩长对话，以保持在你的模型上下文窗口内。压缩摘要器是一个独立的 LLM 调用——你可以将其指向任何提供商或端点。
 
 所有压缩设置都位于 `config.yaml` 中（没有环境变量）。
 
@@ -454,7 +454,7 @@ auxiliary:
 
 ### 常见设置
 
-**默认（自动检测）——无需配置：**
+**默认（自动检测）—— 无需配置：**
 ```yaml
 compression:
   enabled: true
@@ -485,16 +485,16 @@ auxiliary:
 | `auxiliary.compression.provider` | `auxiliary.compression.base_url` | 结果 |
 |---------------------|---------------------|--------|
 | `auto` (默认) | 未设置 | 自动检测最佳可用提供商 |
-| `nous` / `openrouter` / 等. | 未设置 | 强制使用该提供商，使用其身份验证 |
-| 任意 | 已设置 | 直接使用自定义端点（忽略 provider） |
+| `nous` / `openrouter` / 等。 | 未设置 | 强制使用该提供商，使用其身份验证 |
+| 任意值 | 已设置 | 直接使用自定义端点（忽略 provider） |
 
 :::warning 摘要模型上下文长度要求
-摘要模型的上下文窗口**必须**至少与你的主 Agent 模型的一样大。压缩器会将对话的整个中间部分发送给摘要模型——如果该模型的上下文窗口小于主模型的，摘要调用将因上下文长度错误而失败。发生这种情况时，中间轮次的对话将被**丢弃而不进行摘要**，从而静默地丢失对话上下文。如果你覆盖了模型，请确认其上下文长度达到或超过主模型的。
+摘要模型**必须**具有至少与你的主 Agent 模型一样大的上下文窗口。压缩器会将对话的整个中间部分发送给摘要模型——如果该模型的上下文窗口小于主模型的，摘要调用将因上下文长度错误而失败。发生这种情况时，中间轮次的对话将被**丢弃而不进行摘要**，从而静默地丢失对话上下文。如果你覆盖了模型，请验证其上下文长度是否达到或超过主模型的上下文长度。
 :::
 
 ## 上下文引擎
 
-上下文引擎控制在接近模型的 token 限制时如何管理对话。内置的 `compressor` 引擎使用有损摘要（参见[上下文压缩](/developer-guide/context-compression-and-caching)）。插件引擎可以用其他策略替换它。
+上下文引擎控制在接近模型 token 限制时如何管理对话。内置的 `compressor` 引擎使用有损摘要（参见[上下文压缩](/developer-guide/context-compression-and-caching)）。插件引擎可以用其他策略替换它。
 
 ```yaml
 context:
@@ -508,7 +508,7 @@ context:
   engine: "lcm"          # 必须与插件名称匹配
 ```
 
-插件引擎**永远不会自动激活**——你必须将 `context.engine` 显式设置为插件名称。可用的引擎可以通过 `hermes plugins` → Provider Plugins → Context Engine 浏览和选择。
+插件引擎**永远不会自动激活**——你必须显式地将 `context.engine` 设置为插件名称。可用的引擎可以通过 `hermes plugins` → Provider Plugins → Context Engine 浏览和选择。
 
 有关内存插件的类似单选系统，请参阅[内存提供程序](/user-guide/features/memory-providers)。
 
@@ -542,9 +542,9 @@ LLM 流式传输连接有两层超时。两者都会为本地提供商（localho
 | 陈旧流检测 | 180s | 自动禁用 | `HERMES_STREAM_STALE_TIMEOUT` |
 | API 调用（非流式） | 1800s | 不变 | `HERMES_API_TIMEOUT` |
 
-**Socket 读取超时**控制 httpx 等待来自提供商的下一个数据块的时间。本地 LLM 在产生第一个 token 之前，可能需要几分钟来对大上下文进行预填充，因此当 Hermes 检测到本地端点时，会将此值提高到 30 分钟。如果你显式设置了 `HERMES_STREAM_READ_TIMEOUT`，则无论端点检测如何，都将始终使用该值。
+**Socket 读取超时**控制 httpx 等待来自提供商的下一个数据块的时间。本地 LLM 在生成第一个 token 之前，可能需要几分钟的时间在大上下文上进行预填充，因此当 Hermes 检测到本地端点时，会将此超时提高到 30 分钟。如果你显式设置了 `HERMES_STREAM_READ_TIMEOUT`，则无论端点检测如何，都将始终使用该值。
 
-**陈旧流检测**会终止那些接收 SSE 保持活动 ping 但没有实际内容的连接。这对于本地提供商是完全禁用的，因为它们在预填充期间不发送保持活动 ping。
+**陈旧流检测**会终止那些接收 SSE 保持活动 ping 但没有实际内容的连接。对于本地提供商，这会被完全禁用，因为它们在预填充期间不会发送保持活动 ping。
 
 ## 上下文压力警告
 
@@ -568,7 +568,7 @@ LLM 流式传输连接有两层超时。两者都会为本地提供商（localho
 
 如果自动压缩被禁用，警告会告诉你上下文可能会被截断。
 
-上下文压力是自动的——无需配置。它纯粹作为一个面向用户的通知触发，不会修改消息流或向模型的上下文中注入任何内容。
+上下文压力是自动的——无需配置。它纯粹是作为面向用户的通知触发，不会修改消息流或向模型的上下文中注入任何内容。
 
 ## 凭证池策略
 
@@ -584,24 +584,24 @@ credential_pool_strategies:
 
 ## 辅助模型 {#auxiliary-models}
 
-Hermes 使用轻量级的“辅助”模型来处理图像分析、网页摘要和浏览器截图分析等辅助任务。默认情况下，这些任务通过自动检测使用 **Gemini Flash**——你无需配置任何东西。
+Hermes 使用轻量级的“辅助”模型来处理图像分析、网页摘要和浏览器截图分析等辅助任务。默认情况下，这些任务通过自动检测使用 **Gemini Flash**——你无需配置任何内容。
 
 ### 通用配置模式
 
-Hermes 中的每个模型槽位——辅助任务、压缩、后备——都使用相同的三个旋钮：
+Hermes 中的每个模型槽位——辅助任务、压缩、备用模型——都使用相同的三个旋钮：
 
 | 键 | 作用 | 默认值 |
 |-----|-------------|---------|
 | `provider` | 用于认证和路由的提供商 | `"auto"` |
-| `model` | 请求的模型 | 提供商的默认值 |
+| `model` | 请求的模型 | 提供商的默认模型 |
 | `base_url` | 自定义的 OpenAI 兼容端点（覆盖 provider） | 未设置 |
 
 当设置了 `base_url` 时，Hermes 会忽略 provider 并直接调用该端点（使用 `api_key` 或 `OPENAI_API_KEY` 进行认证）。当只设置了 `provider` 时，Hermes 会使用该提供商内置的认证和基础 URL。
 
-辅助任务可用的提供商：`auto`、`openrouter`、`nous`、`codex`、`copilot`、`anthropic`、`main`、`zai`、`kimi-coding`、`kimi-coding-cn`、`arcee`、`minimax`、[提供商注册表](/reference/environment-variables)中注册的任何提供商，或你 `custom_providers` 列表中的任何命名自定义提供商（例如 `provider: "beans"`）。
+辅助任务可用的提供商：`auto`、`openrouter`、`nous`、`codex`、`copilot`、`anthropic`、`main`、`zai`、`kimi-coding`、`kimi-coding-cn`、`minimax`、[提供商注册表](/reference/environment-variables)中注册的任何提供商，或你 `custom_providers` 列表中的任何命名自定义提供商（例如 `provider: "beans"`）。
 
 :::warning `"main"` 仅用于辅助任务
-`"main"` 提供商选项意味着“使用我的主 Agent 使用的任何提供商”——它仅在 `auxiliary:`、`compression:` 和 `fallback_model:` 配置内部有效。它**不是**你顶层 `model.provider` 设置的有效值。如果你使用自定义的 OpenAI 兼容端点，请在 `model:` 部分设置 `provider: custom`。所有主模型提供商选项请参阅 [AI 提供商](/integrations/providers)。
+`"main"` 提供商选项意味着“使用我的主 Agent 使用的任何提供商”——它仅在 `auxiliary:`、`compression:` 和 `fallback_model:` 配置内部有效。它**不是**顶层 `model.provider` 设置的有效值。如果你使用自定义的 OpenAI 兼容端点，请在 `model:` 部分设置 `provider: custom`。所有主模型提供商选项请参阅 [AI 提供商](/integrations/providers)。
 :::
 
 ### 完整的辅助配置参考
@@ -613,9 +613,9 @@ auxiliary:
     provider: "auto"           # "auto", "openrouter", "nous", "codex", "main" 等
     model: ""                  # 例如 "openai/gpt-4o", "google/gemini-2.5-flash"
     base_url: ""               # 自定义 OpenAI 兼容端点（覆盖 provider）
-    api_key: ""                # base_url 的 API 密钥（回退到 OPENAI_API_KEY）
-    timeout: 120               # 秒 —— LLM API 调用超时；视觉负载需要较长的超时时间
-    download_timeout: 30       # 秒 —— 图像 HTTP 下载；网络慢时可增加
+    api_key: ""                # 用于 base_url 的 API 密钥（回退到 OPENAI_API_KEY）
+    timeout: 120               # 秒 — LLM API 调用超时；视觉负载需要较长的超时时间
+    download_timeout: 30       # 秒 — 图像 HTTP 下载超时；网络慢可增加此值
 
   # 网页摘要 + 浏览器页面文本提取
   web_extract:
@@ -623,7 +623,7 @@ auxiliary:
     model: ""                  # 例如 "google/gemini-2.5-flash"
     base_url: ""
     api_key: ""
-    timeout: 360               # 秒 (6分钟) —— 每次尝试的 LLM 摘要
+    timeout: 360               # 秒 (6分钟) — 每次尝试的 LLM 摘要超时
 
   # 危险命令批准分类器
   approval:
@@ -635,9 +635,9 @@ auxiliary:
 
   # 上下文压缩超时（与 compression.* 配置分开）
   compression:
-    timeout: 120               # 秒 —— 压缩会总结长对话，需要更多时间
+    timeout: 120               # 秒 — 压缩功能会总结长对话，需要更多时间
 
-  # 会话搜索 —— 总结过去的会话匹配项
+  # 会话搜索 — 总结过去的会话匹配项
   session_search:
     provider: "auto"
     model: ""
@@ -645,7 +645,7 @@ auxiliary:
     api_key: ""
     timeout: 30
 
-  # 技能中心 —— 技能匹配和搜索
+  # 技能中心 — 技能匹配和搜索
   skills_hub:
     provider: "auto"
     model: ""
@@ -653,7 +653,7 @@ auxiliary:
     api_key: ""
     timeout: 30
 
-  # MCP 工具调度
+  # MCP 工具分发
   mcp:
     provider: "auto"
     model: ""
@@ -661,7 +661,7 @@ auxiliary:
     api_key: ""
     timeout: 30
 
-  # 记忆刷新 —— 为持久记忆总结对话
+  # 记忆刷新 — 为持久化记忆总结对话
   flush_memories:
     provider: "auto"
     model: ""
@@ -671,11 +671,11 @@ auxiliary:
 ```
 
 :::tip
-每个辅助任务都有一个可配置的 `timeout`（以秒为单位）。默认值：vision 120s, web_extract 360s, approval 30s, compression 120s。如果你为辅助任务使用慢速的本地模型，请增加这些值。Vision 还有一个单独的 `download_timeout`（默认 30s）用于 HTTP 图像下载——对于慢速连接或自托管的图像服务器，可以增加此值。
+每个辅助任务都有一个可配置的 `timeout`（单位：秒）。默认值：vision 120s, web_extract 360s, approval 30s, compression 120s。如果你为辅助任务使用速度较慢的本地模型，请增加这些值。Vision 还有一个单独的 `download_timeout`（默认 30s）用于 HTTP 图像下载——对于慢速连接或自托管图像服务器，请增加此值。
 :::
 
 :::info
-上下文压缩有自己的 `compression:` 块用于设置阈值，以及一个 `auxiliary.compression:` 块用于模型/提供商设置——请参阅上面的[上下文压缩](#context-compression)。后备模型使用一个 `fallback_model:` 块——请参阅[后备模型](/integrations/providers#fallback-model)。这三者都遵循相同的 provider/model/base_url 模式。
+上下文压缩有自己的 `compression:` 块用于设置阈值，以及一个 `auxiliary.compression:` 块用于模型/提供商设置——请参阅上面的[上下文压缩](#context-compression)。备用模型使用 `fallback_model:` 块——请参阅[备用模型](/integrations/providers#fallback-model)。这三者都遵循相同的 provider/model/base_url 模式。
 :::
 
 ### 更改视觉模型
@@ -701,14 +701,14 @@ AUXILIARY_VISION_MODEL=openai/gpt-4o
 | 提供商 | 描述 | 要求 |
 |----------|-------------|-------------|
 | `"auto"` | 最佳可用（默认）。Vision 尝试 OpenRouter → Nous → Codex。 | — |
-| `"openrouter"` | 强制使用 OpenRouter —— 路由到任何模型（Gemini、GPT-4o、Claude 等） | `OPENROUTER_API_KEY` |
+| `"openrouter"` | 强制使用 OpenRouter — 路由到任何模型（Gemini、GPT-4o、Claude 等） | `OPENROUTER_API_KEY` |
 | `"nous"` | 强制使用 Nous Portal | `hermes auth` |
 | `"codex"` | 强制使用 Codex OAuth（ChatGPT 账户）。支持视觉（gpt-5.3-codex）。 | `hermes model` → Codex |
-| `"main"` | 使用你活动的自定义/主端点。这可以来自 `OPENAI_BASE_URL` + `OPENAI_API_KEY` 或通过 `hermes model` / `config.yaml` 保存的自定义端点。适用于 OpenAI、本地模型或任何 OpenAI 兼容的 API。**仅限辅助任务——对 `model.provider` 无效。** | 自定义端点凭证 + 基础 URL |
+| `"main"` | 使用你活动的自定义/主端点。这可以来自 `OPENAI_BASE_URL` + `OPENAI_API_KEY` 或通过 `hermes model` / `config.yaml` 保存的自定义端点。适用于 OpenAI、本地模型或任何 OpenAI 兼容的 API。**仅限辅助任务 — 对 `model.provider` 无效。** | 自定义端点凭证 + 基础 URL |
 
 ### 常见设置
 
-**使用直接的自定义端点**（对于本地/自托管 API，比 `provider: "main"` 更清晰）：
+**使用直接自定义端点**（对于本地/自托管 API，比 `provider: "main"` 更清晰）：
 ```yaml
 auxiliary:
   vision:
@@ -728,7 +728,7 @@ auxiliary:
 auxiliary:
   vision:
     provider: "main"
-    model: "gpt-4o"       # 或 "gpt-4o-mini" 以降低成本
+    model: "gpt-4o"       # 或者用 "gpt-4o-mini" 更便宜
 ```
 
 **使用 OpenRouter 进行视觉分析**（路由到任何模型）：
@@ -736,10 +736,10 @@ auxiliary:
 auxiliary:
   vision:
     provider: "openrouter"
-    model: "openai/gpt-4o"      # 或 "google/gemini-2.5-flash" 等
+    model: "openai/gpt-4o"      # 或者 "google/gemini-2.5-flash" 等
 ```
 
-**使用 Codex OAuth**（ChatGPT Pro/Plus 账户——无需 API 密钥）：
+**使用 Codex OAuth**（ChatGPT Pro/Plus 账户 — 无需 API 密钥）：
 ```yaml
 auxiliary:
   vision:
@@ -750,14 +750,14 @@ auxiliary:
 ```yaml
 auxiliary:
   vision:
-    provider: "main"      # 使用你当前活跃的自定义端点
+    provider: "main"      # 使用你当前激活的自定义端点
     model: "my-local-model"
 ```
 
 `provider: "main"` 会使用 Hermes 用于普通聊天的任何提供方 —— 无论是命名的自定义提供方（例如 `beans`）、内置提供方如 `openrouter`，还是遗留的 `OPENAI_BASE_URL` 端点。
 
 :::tip
-如果你使用 Codex OAuth 作为你的主要模型提供方，视觉功能会自动工作 —— 无需额外配置。Codex 已包含在视觉功能的自动检测链中。
+如果你使用 Codex OAuth 作为主要模型提供方，视觉功能会自动生效 —— 无需额外配置。Codex 已包含在视觉功能的自动检测链中。
 :::
 
 :::warning
@@ -766,9 +766,9 @@ auxiliary:
 
 ### 环境变量（旧版）
 
-辅助模型也可以通过环境变量配置。但是，`config.yaml` 是首选方法 —— 它更易于管理，并且支持包括 `base_url` 和 `api_key` 在内的所有选项。
+辅助模型也可以通过环境变量配置。但是，`config.yaml` 是首选方法 —— 它更易于管理，并且支持所有选项，包括 `base_url` 和 `api_key`。
 
-| 设置项 | 环境变量 |
+| 设置 | 环境变量 |
 |---------|---------------------|
 | 视觉提供方 | `AUXILIARY_VISION_PROVIDER` |
 | 视觉模型 | `AUXILIARY_VISION_MODEL` |
@@ -794,7 +794,7 @@ agent:
   reasoning_effort: ""   # 空 = 中等（默认）。选项：none, minimal, low, medium, high, xhigh (max)
 ```
 
-当未设置时（默认），推理强度默认为“medium”——这是一个适用于大多数任务的平衡水平。设置一个值会覆盖它 —— 更高的推理强度在复杂任务上能提供更好的结果，但代价是消耗更多 token 和增加延迟。
+当未设置时（默认），推理强度默认为“medium”——这是一个适用于大多数任务的平衡级别。设置一个值会覆盖它 —— 更高的推理强度在复杂任务上能提供更好的结果，但代价是消耗更多 token 和增加延迟。
 
 你也可以在运行时使用 `/reasoning` 命令更改推理强度：
 
@@ -808,7 +808,7 @@ agent:
 
 ## 工具使用强制
 
-有些模型偶尔会用文本描述意图动作，而不是实际调用工具（“我会运行测试...”而不是实际调用终端）。工具使用强制功能会注入系统提示指导，引导模型回到实际调用工具的行为。
+某些模型偶尔会以文本形式描述预期操作，而不是进行工具调用（例如“我会运行测试...”而不是实际调用终端）。工具使用强制功能会注入系统提示指导，引导模型回到实际调用工具的行为。
 
 ```yaml
 agent:
@@ -818,23 +818,23 @@ agent:
 | 值 | 行为 |
 |-------|----------|
 | `"auto"` (默认) | 对匹配以下子串的模型启用：`gpt`, `codex`, `gemini`, `gemma`, `grok`。对所有其他模型（Claude, DeepSeek, Qwen 等）禁用。 |
-| `true` | 无论模型如何，始终启用。如果你发现当前模型描述动作而不是执行它们，这很有用。 |
+| `true` | 无论模型如何，始终启用。如果你发现当前模型描述操作而不是执行它们，这很有用。 |
 | `false` | 无论模型如何，始终禁用。 |
-| `["gpt", "codex", "qwen", "llama"]` | 仅当模型名称包含所列子串之一时启用（不区分大小写）。 |
+| `["gpt", "codex", "qwen", "llama"]` | 仅当模型名称包含列出的子串之一时启用（不区分大小写）。 |
 
 ### 它注入什么
 
-启用时，可能会向系统提示添加三层指导：
+启用后，可能会向系统提示添加三层指导：
 
-1.  **通用工具使用强制**（所有匹配的模型）—— 指导模型立即进行工具调用而不是描述意图，持续工作直到任务完成，并且永远不要以承诺未来行动来结束一个回合。
+1.  **通用工具使用强制**（所有匹配的模型）—— 指导模型立即进行工具调用而不是描述意图，持续工作直到任务完成，并且永远不要以承诺未来行动结束一个回合。
 
-2.  **OpenAI 执行纪律**（仅限 GPT 和 Codex 模型）—— 额外的指导，针对 GPT 特有的失败模式：在部分结果上放弃工作，跳过先决条件查找，产生幻觉而不是使用工具，以及未经验证就宣布“完成”。
+2.  **OpenAI 执行纪律**（仅限 GPT 和 Codex 模型）—— 针对 GPT 特定失败模式的额外指导：在部分结果上放弃工作、跳过先决条件查找、产生幻觉而不是使用工具，以及未经验证就声明“完成”。
 
 3.  **Google 操作指导**（仅限 Gemini 和 Gemma 模型）—— 简洁性、绝对路径、并行工具调用以及编辑前验证模式。
 
 这些对用户是透明的，只影响系统提示。已经可靠使用工具的模型（如 Claude）不需要这种指导，这就是为什么 `"auto"` 排除了它们。
 
-### 何时开启
+### 何时开启它
 
 如果你使用的模型不在默认的自动列表中，并且发现它经常描述它*会*做什么而不是实际去做，请设置 `tool_use_enforcement: true` 或将模型子串添加到列表中：
 
@@ -870,9 +870,9 @@ tts:
     device: cpu
 ```
 
-这同时控制着 `text_to_speech` 工具和语音模式下的语音回复（CLI 或消息网关中的 `/voice tts`）。
+这同时控制着 `text_to_speech` 工具和语音模式中的语音回复（CLI 或消息网关中的 `/voice tts`）。
 
-**速度后备层级：** 特定提供方的速度（例如 `tts.edge.speed`）→ 全局 `tts.speed` → `1.0` 默认值。设置全局 `tts.speed` 以在所有提供方上应用统一的速度，或者按提供方覆盖以进行细粒度控制。
+**速度后备层级：** 特定提供方的速度（例如 `tts.edge.speed`）→ 全局 `tts.speed` → `1.0` 默认值。设置全局 `tts.speed` 以在所有提供方上应用统一速度，或者按提供方覆盖以进行细粒度控制。
 
 ## 显示设置 {#display-settings}
 
@@ -896,7 +896,7 @@ display:
 | 模式 | 你看到的内容 |
 |------|-------------|
 | `off` | 静默 —— 仅显示最终响应 |
-| `new` | 仅当工具改变时显示工具指示器 |
+| `new` | 仅当工具更改时显示工具指示器 |
 | `all` | 每个工具调用都带有简短预览（默认） |
 | `verbose` | 完整的参数、结果和调试日志 |
 
@@ -916,13 +916,13 @@ display:
 ```
 没有覆盖的平台将回退到全局的 `tool_progress` 值。有效的平台键：`telegram`、`discord`、`slack`、`signal`、`whatsapp`、`matrix`、`mattermost`、`email`、`sms`、`homeassistant`、`dingtalk`、`feishu`、`wecom`、`weixin`、`bluebubbles`。
 
-`interim_assistant_messages` 仅适用于网关。启用后，Hermes 会将对话中已完成的助手更新作为单独的聊天消息发送。这独立于 `tool_progress`，并且不需要网关流式传输。
+`interim_assistant_messages` 仅适用于网关。启用后，Hermes 会将对话中已完成的助手更新作为单独的聊天消息发送。这与 `tool_progress` 无关，且不需要网关流式传输。
 
 ## 隐私
 
 ```yaml
 privacy:
-  redact_pii: false  # 从 LLM 上下文中剥离个人身份信息（仅限网关）
+  redact_pii: false  # 从 LLM 上下文中剥离个人身份信息（仅网关）
 ```
 
 当 `redact_pii` 为 `true` 时，网关会在将系统提示发送给 LLM 之前，从支持的平台中剥离个人身份信息：
@@ -931,15 +931,15 @@ privacy:
 |-------|-----------|
 | 电话号码（WhatsApp/Signal 上的用户 ID） | 哈希化为 `user_<12-char-sha256>` |
 | 用户 ID | 哈希化为 `user_<12-char-sha256>` |
-| 聊天 ID | 数字部分被哈希化，平台前缀保留（`telegram:&lt;hash&gt;`） |
-| 主频道 ID | 数字部分被哈希化 |
+| 聊天 ID | 数字部分哈希化，平台前缀保留（`telegram:&lt;hash&gt;`） |
+| 主频道 ID | 数字部分哈希化 |
 | 用户姓名 / 用户名 | **不受影响**（用户选择，公开可见） |
 
 **平台支持：** 信息脱敏适用于 WhatsApp、Signal 和 Telegram。Discord 和 Slack 被排除在外，因为它们的提及系统（`<@user_id>`）需要在 LLM 上下文中使用真实的 ID。
 
 哈希值是确定性的——同一用户始终映射到同一哈希值，因此模型仍能区分群聊中的不同用户。路由和投递在内部使用原始值。
 
-## 语音转文本 (STT)
+## 语音转文本（STT）
 
 ```yaml
 stt:
@@ -955,7 +955,7 @@ stt:
 
 - `local` 使用在你机器上运行的 `faster-whisper`。请使用 `pip install faster-whisper` 单独安装。
 - `groq` 使用 Groq 的 Whisper 兼容端点，并读取 `GROQ_API_KEY`。
-- `openai` 使用 OpenAI 的语音 API，并读取 `VOICE_TOOLS_OPENAI_KEY`。
+- `openai` 使用 OpenAI 语音 API，并读取 `VOICE_TOOLS_OPENAI_KEY`。
 
 如果请求的提供商不可用，Hermes 会按以下顺序自动回退：`local` → `groq` → `openai`。
 
@@ -968,7 +968,7 @@ GROQ_BASE_URL=https://api.groq.com/openai/v1
 STT_OPENAI_BASE_URL=https://api.openai.com/v1
 ```
 
-## 语音模式 (CLI)
+## 语音模式（CLI）
 
 ```yaml
 voice:
@@ -979,11 +979,11 @@ voice:
   silence_duration: 3.0         # 自动停止前的静音秒数
 ```
 
-在 CLI 中使用 `/voice on` 启用麦克风模式，使用 `record_key` 开始/停止录音，使用 `/voice tts` 切换语音回复。有关端到端设置和平台特定行为，请参阅[语音模式](/user-guide/features/voice-mode)。
+在 CLI 中使用 `/voice on` 启用麦克风模式，使用 `record_key` 开始/停止录音，使用 `/voice tts` 切换语音回复。端到端设置和平台特定行为请参阅[语音模式](/user-guide/features/voice-mode)。
 
 ## 流式传输
 
-在令牌到达时将其流式传输到终端或消息平台，而不是等待完整响应。
+在令牌到达时实时流式传输到终端或消息平台，而不是等待完整响应。
 
 ### CLI 流式传输
 
@@ -993,9 +993,9 @@ display:
   show_reasoning: true    # 同时流式传输推理/思考令牌（可选）
 ```
 
-启用后，响应会在一个流式传输框内逐个令牌地显示。工具调用仍会被静默捕获。如果提供商不支持流式传输，它会自动回退到正常显示。
+启用后，响应会在一个流式传输框内逐个令牌显示。工具调用仍会被静默捕获。如果提供商不支持流式传输，它会自动回退到正常显示。
 
-### 网关流式传输 (Telegram, Discord, Slack)
+### 网关流式传输（Telegram、Discord、Slack）
 
 ```yaml
 streaming:
@@ -1006,14 +1006,14 @@ streaming:
   cursor: " ▉"            # 流式传输期间显示的光标
 ```
 
-启用后，机器人会在第一个令牌到达时发送一条消息，然后随着更多令牌到达逐步编辑它。不支持消息编辑的平台（Signal、Email、Home Assistant）会在首次尝试时自动检测到——流式传输会为该会话优雅地禁用，而不会产生消息洪流。
+启用后，机器人会在第一个令牌到达时发送一条消息，然后随着更多令牌到达逐步编辑它。不支持消息编辑的平台（Signal、Email、Home Assistant）会在首次尝试时自动检测到——流式传输会为该会话优雅地禁用，而不会产生消息泛滥。
 
 对于独立的、自然的对话中助手更新（无需渐进式令牌编辑），请设置 `display.interim_assistant_messages: true`。
 
-**溢出处理：** 如果流式传输的文本超过平台的消息长度限制（约 4096 个字符），当前消息将被最终确定，并自动开始一条新消息。
+**溢出处理：** 如果流式传输的文本超过平台的消息长度限制（约 4096 个字符），当前消息会被最终确定，并自动开始一条新消息。
 
 :::note
-流式传输默认是禁用的。请在 `~/.hermes/config.yaml` 中启用它以尝试流式传输用户体验。
+流式传输默认禁用。请在 `~/.hermes/config.yaml` 中启用它以尝试流式传输用户体验。
 :::
 
 ## 群聊会话隔离
@@ -1025,13 +1025,13 @@ group_sessions_per_user: true  # true = 在群组/频道中按用户隔离，fal
 ```
 
 - `true` 是默认且推荐的设置。在 Discord 频道、Telegram 群组、Slack 频道和类似的共享上下文中，当平台提供用户 ID 时，每个发送者都会获得自己的会话。
-- `false` 会恢复到旧的共享房间行为。如果你明确希望 Hermes 将一个频道视为一个协作对话，这可能很有用，但这也意味着用户共享上下文、令牌成本和中断状态。
-- 私信不受影响。Hermes 仍会像往常一样按聊天/DM ID 来区分私信。
-- 无论哪种方式，线程都与其父频道保持隔离；当设置为 `true` 时，每个参与者在线程内也拥有自己的会话。
+- `false` 会恢复到旧的共享房间行为。如果你明确希望 Hermes 将频道视为一个协作对话，这可能很有用，但这也意味着用户共享上下文、令牌成本和中断状态。
+- 私信不受影响。Hermes 仍会像往常一样按聊天/私信 ID 来区分私信。
+- 无论哪种方式，线程都与其父频道保持隔离；当设置为 `true` 时，每个参与者在线程内也会获得自己的会话。
 
 有关行为细节和示例，请参阅[会话](/user-guide/sessions)和 [Discord 指南](/user-guide/messaging/discord)。
 
-## 未经授权的私信行为
+## 未授权私信行为
 
 控制当未知用户发送私信时 Hermes 的行为：
 
@@ -1043,12 +1043,12 @@ whatsapp:
 ```
 
 - `pair` 是默认值。Hermes 拒绝访问，但会在私信中回复一个一次性配对码。
-- `ignore` 会静默丢弃未经授权的私信。
+- `ignore` 会静默丢弃未授权的私信。
 - 平台部分会覆盖全局默认值，因此你可以在广泛启用配对的同时，让某个平台保持安静。
 
 ## 快捷命令 {#quick-commands}
 
-定义自定义命令，这些命令无需调用 LLM 即可运行 shell 命令——零令牌消耗，即时执行。对于从消息平台（Telegram、Discord 等）进行快速服务器检查或运行实用脚本尤其有用。
+定义自定义命令，无需调用 LLM 即可运行 shell 命令——零令牌消耗，即时执行。在消息平台（Telegram、Discord 等）上尤其有用，可用于快速服务器检查或实用脚本。
 
 ```yaml
 quick_commands:
@@ -1066,7 +1066,7 @@ quick_commands:
     command: nvidia-smi --query-gpu=name,utilization.gpu,memory.used,memory.total --format=csv,noheader
 ```
 
-用法：在 CLI 或任何消息平台中输入 `/status`、`/disk`、`/update` 或 `/gpu`。命令在主机上本地运行并直接返回输出——无需调用 LLM，不消耗令牌。
+用法：在 CLI 或任何消息平台中输入 `/status`、`/disk`、`/update` 或 `/gpu`。命令在主机上本地运行并直接返回输出——无需 LLM 调用，不消耗令牌。
 
 - **30 秒超时** —— 长时间运行的命令会被终止并显示错误消息
 - **优先级** —— 快捷命令在技能命令之前被检查，因此你可以覆盖技能名称
@@ -1114,7 +1114,7 @@ web:
 
 **自托管 Firecrawl：** 设置 `FIRECRAWL_API_URL` 指向你自己的实例。设置自定义 URL 后，API 密钥变为可选（在服务器上设置 `USE_DB_AUTHENTICATION=false` 以禁用身份验证）。
 
-**Parallel 搜索模式：** 设置 `PARALLEL_SEARCH_MODE` 来控制搜索行为 — `fast`、`one-shot` 或 `agentic`（默认：`agentic`）。
+**Parallel 搜索模式：** 设置 `PARALLEL_SEARCH_MODE` 来控制搜索行为 —— `fast`、`one-shot` 或 `agentic`（默认：`agentic`）。
 
 ## 浏览器
 
@@ -1126,7 +1126,7 @@ browser:
   command_timeout: 30             # 浏览器命令（截图、导航等）的超时时间（秒）
   record_sessions: false         # 自动将浏览器会话录制为 WebM 视频到 ~/.hermes/browser_recordings/
   camofox:
-    managed_persistence: false   # 为 true 时，Camofox 会话在重启后保留 cookie/登录状态
+    managed_persistence: false   # 为 true 时，Camofox 会话在重启后保留 cookies/登录状态
 ```
 
 浏览器工具集支持多个提供商。有关 Browserbase、Browser Use 和本地 Chrome CDP 设置的详细信息，请参阅[浏览器功能页面](/user-guide/features/browser)。
@@ -1177,9 +1177,9 @@ security:
 - `tirith_enabled` — 当为 `true` 时，终端命令在执行前会由 [Tirith](https://github.com/StackGuardian/tirith) 扫描，以检测潜在的危险操作。
 - `tirith_path` — tirith 二进制文件的路径。如果 tirith 安装在非标准位置，请设置此项。
 - `tirith_timeout` — 等待 tirith 扫描的最大秒数。如果扫描超时，命令将继续执行。
-- `tirith_fail_open` — 当为 `true`（默认）时，如果 tirith 不可用或失败，允许命令执行。设置为 `false` 可在 tirith 无法验证命令时阻止执行。
+- `tirith_fail_open` — 当为 `true`（默认）时，如果 tirith 不可用或失败，则允许执行命令。设置为 `false` 可在 tirith 无法验证命令时阻止执行。
 
-## 网站阻止列表
+## 网站阻止列表 {#website-blocklist}
 
 阻止 Agent 的网页和浏览器工具访问特定域名：
 
@@ -1217,11 +1217,11 @@ approvals:
 
 | 模式 | 行为 |
 |------|----------|
-| `manual` (默认) | 在执行任何被标记的命令前提示用户。在 CLI 中，显示交互式审批对话框。在消息传递中，将待处理的审批请求加入队列。 |
-| `smart` | 使用辅助 LLM 来评估被标记的命令是否真的危险。低风险命令会自动批准，并具有会话级别的持久性。真正有风险的命令会升级给用户处理。 |
-| `off` | 跳过所有审批检查。相当于 `HERMES_YOLO_MODE=true`。**请谨慎使用。** |
+| `manual` (默认) | 在执行任何被标记的命令之前提示用户。在 CLI 中，显示交互式审批对话框。在消息传递中，将待处理的审批请求加入队列。 |
+| `smart` | 使用辅助 LLM 来评估被标记的命令是否真正危险。低风险命令会自动批准，并具有会话级别的持久性。真正有风险的命令会升级给用户处理。 |
+| `off` | 跳过所有审批检查。等同于 `HERMES_YOLO_MODE=true`。**请谨慎使用。** |
 
-智能模式对于减少审批疲劳特别有用 — 它允许 Agent 在安全操作上更自主地工作，同时仍能捕获真正具有破坏性的命令。
+智能模式对于减少审批疲劳特别有用——它让 Agent 在安全操作上更自主地工作，同时仍能捕获真正具有破坏性的命令。
 
 :::warning
 设置 `approvals.mode: off` 会禁用所有终端命令的安全检查。仅在受信任的沙盒环境中使用此设置。
@@ -1229,7 +1229,7 @@ approvals:
 
 ## 检查点
 
-在破坏性文件操作之前自动创建文件系统快照。详情请参阅[检查点与回滚](/user-guide/checkpoints-and-rollback)。
+在执行破坏性文件操作前自动创建文件系统快照。详情请参阅[检查点与回滚](/user-guide/checkpoints-and-rollback)。
 
 ```yaml
 checkpoints:
@@ -1237,9 +1237,9 @@ checkpoints:
   max_snapshots: 50              # 每个目录保留的最大检查点数量
 ```
 
-## 委派
+## 委托
 
-为 delegate 工具配置子 Agent 行为：
+为委托工具配置子 Agent 行为：
 
 ```yaml
 delegation:
@@ -1249,10 +1249,10 @@ delegation:
   # api_key: "local-key"                    # base_url 的 API 密钥 (回退到 OPENAI_API_KEY)
 ```
 
-**子 Agent 提供商:模型覆盖：** 默认情况下，子 Agent 继承父 Agent 的提供商和模型。设置 `delegation.provider` 和 `delegation.model` 可以将子 Agent 路由到不同的提供商:模型对 — 例如，当你的主 Agent 运行昂贵的推理模型时，为范围狭窄的子任务使用廉价/快速的模型。
+**子 Agent 提供商:模型覆盖：** 默认情况下，子 Agent 继承父 Agent 的提供商和模型。设置 `delegation.provider` 和 `delegation.model` 可以将子 Agent 路由到不同的提供商:模型组合——例如，当你的主 Agent 运行昂贵的推理模型时，使用廉价/快速的模型来处理范围狭窄的子任务。
 
 **直接端点覆盖：** 如果你想要明显的自定义端点路径，请设置 `delegation.base_url`、`delegation.api_key` 和 `delegation.model`。这将直接把子 Agent 发送到该 OpenAI 兼容端点，并且优先级高于 `delegation.provider`。如果省略 `delegation.api_key`，Hermes 仅回退到 `OPENAI_API_KEY`。
-委托提供方使用与 CLI/网关启动相同的凭据解析机制。支持所有已配置的提供方：`openrouter`、`nous`、`copilot`、`zai`、`kimi-coding`、`minimax`、`minimax-cn`。当设置提供方时，系统会自动解析正确的基础 URL、API 密钥和 API 模式——无需手动配置凭据。
+委托提供方使用与 CLI/网关启动相同的凭据解析机制。支持所有已配置的提供方：`openrouter`、`nous`、`copilot`、`zai`、`kimi-coding`、`minimax`、`minimax-cn`。设置提供方后，系统会自动解析正确的基础 URL、API 密钥和 API 模式——无需手动配置凭据。
 
 **优先级：** 配置中的 `delegation.base_url` → 配置中的 `delegation.provider` → 父级提供方（继承）。配置中的 `delegation.model` → 父级模型（继承）。仅设置 `model` 而不设置 `provider` 只会更改模型名称，同时保留父级的凭据（适用于在同一提供方内切换模型，例如 OpenRouter）。
 
@@ -1281,7 +1281,7 @@ Hermes 使用两种不同的上下文作用域：
 - **SOUL.md** 是 Agent 的主要身份。它占据系统提示中的槽位 #1，完全替换内置的默认身份。编辑它以完全自定义 Agent 的身份。
 - 如果 SOUL.md 缺失、为空或无法加载，Hermes 将回退到内置的默认身份。
 - **项目上下文文件使用优先级系统** — 只加载一种类型（首次匹配优先）：`.hermes.md` → `AGENTS.md` → `CLAUDE.md` → `.cursorrules`。SOUL.md 始终独立加载。
-- **AGENTS.md** 是层次化的：如果子目录也有 AGENTS.md，所有文件会被合并。
+- **AGENTS.md** 是层次化的：如果子目录也有 AGENTS.md，所有文件都会被合并。
 - 如果 `SOUL.md` 不存在，Hermes 会自动生成一个默认版本。
 - 所有加载的上下文文件都限制在 20,000 个字符以内，并采用智能截断。
 
@@ -1293,7 +1293,7 @@ Hermes 使用两种不同的上下文作用域：
 
 | 上下文 | 默认值 |
 |---------|---------|
-| **CLI (`hermes`)** | 运行命令时的当前目录 |
+| **CLI (`hermes`)** | 运行命令的当前目录 |
 | **消息网关** | 主目录 `~`（可通过 `MESSAGING_CWD` 覆盖） |
 | **Docker / Singularity / Modal / SSH** | 容器或远程机器内的用户主目录 |
 

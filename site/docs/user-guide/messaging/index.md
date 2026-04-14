@@ -192,7 +192,7 @@ GATEWAY_ALLOWED_USERS=123456789,987654321
 GATEWAY_ALLOW_ALL_USERS=true
 ```
 
-### 私信配对（替代允许列表）
+### 私信配对（替代允许列表） {#dm-pairing-alternative-to-allowlists}
 
 无需手动配置用户 ID，未知用户向机器人发送私信时会收到一个一次性配对码：
 

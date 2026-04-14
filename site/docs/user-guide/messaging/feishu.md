@@ -227,7 +227,7 @@ FEISHU_BOT_NAME=MyBot
 
 **命令审批** 也是通过这种方式工作的——当 Agent 需要运行危险命令时，它会发送一个带有“允许一次”/“会话内允许”/“始终允许”/“拒绝”按钮的交互式卡片。用户点击按钮后，卡片操作回调将审批决定传回给 Agent。
 
-### 必需的飞书应用配置
+### 必需的飞书应用配置 {#required-feishu-app-configuration}
 
 交互式卡片需要在飞书开发者控制台中进行 **三个** 配置步骤。缺少任何一步都会导致用户点击卡片按钮时出现错误 **200340**。
 1.  **订阅卡片操作事件：**
@@ -356,7 +356,7 @@ platforms:
 | 重连间隔 | `ws_reconnect_interval` | 120 秒 | 重连尝试之间的等待时间 |
 | Ping 间隔 | `ws_ping_interval` | _(SDK 默认)_ | WebSocket 保活 ping 的频率 |
 
-## 按群组访问控制
+## 按群组访问控制 {#per-group-access-control}
 
 除了全局的 `FEISHU_GROUP_POLICY`，你还可以在 config.yaml 中使用 `group_rules` 为每个群聊设置细粒度规则：
 

@@ -177,7 +177,7 @@ TTS 设置从 **两个** OpenClaw 配置位置读取，优先级如下：
 | 频道绑定 | `archive/bindings.json` | 按平台手动设置 |
 | 复杂频道 | `archive/channels-deep-config.json` | 手动平台配置 |
 
-## API 密钥解析
+## API 密钥解析 {#api-key-resolution}
 
 当启用 `--migrate-secrets` 时，API 密钥会按**优先级顺序**从**四个来源**收集：
 
