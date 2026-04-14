@@ -75,6 +75,13 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'category',
+          label: 'Management',
+          items: [
+            'user-guide/features/web-dashboard',
+          ],
+        },
+        {
+          type: 'category',
           label: '高级能力',
           items: [
             'user-guide/features/rl-training',
