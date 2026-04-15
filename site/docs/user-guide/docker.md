@@ -83,7 +83,7 @@ docker run -it --rm \
 
 直接使用 `-e` 标志会覆盖 `.env` 中的值。这对于 CI/CD 或不希望将密钥存储在磁盘上的机密管理器集成非常有用。
 
-## Docker Compose 示例
+## Docker Compose 示例 {#docker-compose-example}
 
 对于持久化的网关部署，使用 `docker-compose.yaml` 会很方便：
 

@@ -312,6 +312,8 @@ def normalize_translated_markdown_links(text: str) -> str:
         (r"\]\(/docs/", "](/"),
         (r'href="/docs/', 'href="/'),
         (r'src="/docs/', 'src="/'),
+        (r"/docs/user-guide/features/profiles(?=$|[)#])", "/user-guide/profiles"),
+        (r"/user-guide/features/profiles(?=$|[)#])", "/user-guide/profiles"),
         (r"/user-guide/features/hooks#pre_api_request", "/user-guide/features/hooks#plugin-hooks"),
         (r"/user-guide/features/hooks#post_api_request", "/user-guide/features/hooks#plugin-hooks"),
     )
@@ -319,6 +321,67 @@ def normalize_translated_markdown_links(text: str) -> str:
     for pattern, replacement in replacements:
         normalized = re.sub(pattern, replacement, normalized)
     return normalized
+
+
+MARKDOWN_LINK_PATTERN = re.compile(
+    r"(?<!\!)\[[^\]]+\]\((?P<url>[^)\s]+(?:\s+\"[^\"]*\")?)\)"
+)
+
+
+def collect_markdown_link_matches(text: str) -> list[dict[str, int | str]]:
+    frontmatter, body = split_frontmatter(text)
+    matches: list[dict[str, int | str]] = []
+    in_fence = False
+    fence_char = ""
+    offset = len(frontmatter)
+
+    for line in body.splitlines(keepends=True):
+        fence_match = re.match(r"^(```+|~~~+)", line)
+        if fence_match:
+            marker = fence_match.group(1)
+            if not in_fence:
+                in_fence = True
+                fence_char = marker[0]
+            elif marker[0] == fence_char:
+                in_fence = False
+                fence_char = ""
+            offset += len(line)
+            continue
+
+        if not in_fence:
+            for match in MARKDOWN_LINK_PATTERN.finditer(line):
+                matches.append(
+                    {
+                        "start": offset + match.start("url"),
+                        "end": offset + match.end("url"),
+                        "url": match.group("url"),
+                    }
+                )
+
+        offset += len(line)
+
+    return matches
+
+
+def restore_source_link_destinations(source_text: str, translated_text: str) -> str:
+    source_matches = collect_markdown_link_matches(source_text)
+    translated_matches = collect_markdown_link_matches(translated_text)
+
+    if not source_matches or len(source_matches) != len(translated_matches):
+        return translated_text
+
+    rebuilt: list[str] = []
+    last_index = 0
+
+    for source_match, translated_match in zip(source_matches, translated_matches, strict=True):
+        start = int(translated_match["start"])
+        end = int(translated_match["end"])
+        rebuilt.append(translated_text[last_index:start])
+        rebuilt.append(str(source_match["url"]))
+        last_index = end
+
+    rebuilt.append(translated_text[last_index:])
+    return "".join(rebuilt)
 
 
 def escape_angle_placeholders_in_inline_code(text: str) -> str:
@@ -479,7 +542,11 @@ STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
         "## 辅助模型": "auxiliary-models",
         "## 显示设置": "display-settings",
         "## 快捷命令": "quick-commands",
+        "## 凭证池策略": "credential-pool-strategies",
         "## 网站黑名单": "website-blocklist",
+    },
+    "user-guide/docker.md": {
+        "## Docker Compose 示例": "docker-compose-example",
     },
     "user-guide/features/context-files.md": {
         "## 安全：提示词注入保护": "security-prompt-injection-protection",
@@ -762,6 +829,7 @@ def translate_markdown_file(
             validate=validate,
         )
         translated_chunk = repair_translated_frontmatter(frontmatter, translated_chunk)
+        translated_chunk = restore_source_link_destinations(payload, translated_chunk)
         translated_chunk = normalize_translated_markdown_links(translated_chunk)
         translated_chunk = escape_angle_placeholders_in_inline_code(translated_chunk)
         translated_chunk = apply_stable_heading_ids(relative_path, payload, translated_chunk)
