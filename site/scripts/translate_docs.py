@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import time
+import unicodedata
 from pathlib import Path
 from typing import Iterable
 
@@ -330,6 +331,120 @@ def escape_angle_placeholders_in_inline_code(text: str) -> str:
     return re.sub(r"`[^`\n]+`", replace_code_span, text)
 
 
+def strip_markdown_inline_formatting(text: str) -> str:
+    normalized = text
+    normalized = re.sub(r"!\[([^\]]*)\]\([^)]+\)", r"\1", normalized)
+    normalized = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", normalized)
+    normalized = re.sub(r"`([^`]*)`", r"\1", normalized)
+    normalized = re.sub(r"<[^>]+>", " ", normalized)
+    normalized = re.sub(r"[*_~]", "", normalized)
+    normalized = normalized.replace("&lt;", " ").replace("&gt;", " ")
+    return normalized.strip()
+
+
+def slugify_heading_anchor(text: str) -> str:
+    normalized = strip_markdown_inline_formatting(text)
+    normalized = unicodedata.normalize("NFKD", normalized)
+    normalized = normalized.encode("ascii", "ignore").decode("ascii")
+    normalized = normalized.lower()
+    normalized = re.sub(r"[^a-z0-9\s-]", " ", normalized)
+    normalized = re.sub(r"[-\s]+", "-", normalized).strip("-")
+    return normalized
+
+
+def extract_markdown_headings(text: str) -> list[dict[str, str | int | None]]:
+    _, body = split_frontmatter(text)
+    headings: list[dict[str, str | int | None]] = []
+    lines = body.splitlines()
+    in_fence = False
+    fence_char = ""
+
+    for index, line in enumerate(lines):
+        fence_match = re.match(r"^(```+|~~~+)", line)
+        if fence_match:
+            marker = fence_match.group(1)
+            if not in_fence:
+                in_fence = True
+                fence_char = marker[0]
+            elif marker[0] == fence_char:
+                in_fence = False
+                fence_char = ""
+            continue
+
+        if in_fence:
+            continue
+
+        match = re.match(r"^(#{1,6})\s+(.*?)(?:\s+#+\s*)?$", line)
+        if not match:
+            continue
+
+        raw_text = match.group(2).strip()
+        explicit_id = None
+        id_match = re.search(r"\s*\{#([A-Za-z0-9._:-]+)\}\s*$", raw_text)
+        if id_match:
+            explicit_id = id_match.group(1)
+            raw_text = raw_text[: id_match.start()].rstrip()
+
+        headings.append(
+            {
+                "line_index": index,
+                "heading_text": raw_text,
+                "explicit_id": explicit_id,
+            }
+        )
+
+    return headings
+
+
+def inject_source_anchor_aliases(source_text: str, translated_text: str) -> str:
+    source_frontmatter, source_body = split_frontmatter(source_text)
+    translated_frontmatter, translated_body = split_frontmatter(translated_text)
+
+    source_headings = extract_markdown_headings(source_text)
+    translated_headings = extract_markdown_headings(translated_text)
+
+    if not source_headings or len(source_headings) != len(translated_headings):
+        return translated_text
+
+    translated_lines = translated_body.splitlines()
+    existing_aliases = set(re.findall(r'<a id="([^"]+)"></a>', translated_body))
+    insertions: list[tuple[int, str]] = []
+
+    for source_heading, translated_heading in zip(source_headings, translated_headings, strict=True):
+        source_anchor = source_heading["explicit_id"] or slugify_heading_anchor(
+            str(source_heading["heading_text"])
+        )
+        translated_anchor = translated_heading["explicit_id"]
+
+        if not source_anchor:
+            continue
+        if source_anchor == translated_anchor:
+            continue
+        if source_anchor in existing_aliases:
+            continue
+
+        insertions.append((int(translated_heading["line_index"]), f'<a id="{source_anchor}"></a>'))
+        existing_aliases.add(source_anchor)
+
+    if not insertions:
+        return translated_text
+
+    had_trailing_newline = translated_body.endswith("\n")
+    offset = 0
+    for line_index, alias in insertions:
+        insert_at = line_index + offset
+        if insert_at > 0 and translated_lines[insert_at - 1].strip() == alias:
+            continue
+        translated_lines.insert(insert_at, alias)
+        offset += 1
+
+    rebuilt_body = "\n".join(translated_lines)
+    if had_trailing_newline:
+        rebuilt_body += "\n"
+
+    return translated_frontmatter + rebuilt_body if translated_frontmatter else rebuilt_body
+
+
 STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
     "developer-guide/creating-skills.md": {
         "### 配置设置 (config.yaml)": "config-settings-configyaml",
@@ -415,9 +530,9 @@ STABLE_ALIAS_INSERTIONS: dict[str, list[tuple[str, str]]] = {
 }
 
 
-def apply_stable_heading_ids(relative_path: Path, text: str) -> str:
+def apply_stable_heading_ids(relative_path: Path, source_text: str, text: str) -> str:
     rel = relative_path.as_posix()
-    updated = text
+    updated = inject_source_anchor_aliases(source_text, text)
 
     for heading, anchor_id in STABLE_HEADING_IDS.get(rel, {}).items():
         anchored_heading = f"{heading} {{#{anchor_id}}}"
@@ -649,7 +764,7 @@ def translate_markdown_file(
         translated_chunk = repair_translated_frontmatter(frontmatter, translated_chunk)
         translated_chunk = normalize_translated_markdown_links(translated_chunk)
         translated_chunk = escape_angle_placeholders_in_inline_code(translated_chunk)
-        translated_chunk = apply_stable_heading_ids(relative_path, translated_chunk)
+        translated_chunk = apply_stable_heading_ids(relative_path, payload, translated_chunk)
         translated_chunks.append(translated_chunk)
 
     translated = "".join(translated_chunks)

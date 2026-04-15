@@ -24,6 +24,7 @@ const config: Config = {
   projectName: 'hermes-agent',
 
   onBrokenLinks: 'warn',
+  onBrokenAnchors: 'throw',
 
   markdown: {
     mermaid: true,
