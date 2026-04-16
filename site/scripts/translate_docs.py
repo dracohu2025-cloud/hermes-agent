@@ -189,24 +189,25 @@ def extract_frontmatter_keys(frontmatter: str) -> list[str]:
     return keys
 
 
-def repair_translated_frontmatter(source_frontmatter: str, translated: str) -> str:
-    if not source_frontmatter:
-        return translated
+TRANSLATABLE_FRONTMATTER_KEYS = {"title", "description", "sidebar_label"}
 
-    translated_frontmatter, _ = split_frontmatter(translated)
-    if translated_frontmatter:
-        return translated
 
-    if not translated.startswith("---\n"):
-        return translated
+def collect_frontmatter_line_map(frontmatter: str) -> dict[str, str]:
+    line_map: dict[str, str] = {}
+    for line in extract_frontmatter_lines(frontmatter):
+        match = re.match(r"^([A-Za-z0-9_-]+):\s*.*$", line)
+        if match:
+            line_map[match.group(1)] = line
+    return line_map
 
-    source_lines = extract_frontmatter_lines(source_frontmatter)
-    if not source_lines:
-        return translated
 
-    after_open = translated[len("---\n") :]
+def collect_partial_frontmatter_line_map(text: str) -> tuple[dict[str, str], str] | None:
+    if not text.startswith("---\n"):
+        return None
+
+    after_open = text[len("---\n") :]
     lines = after_open.splitlines()
-    translated_line_map: dict[str, str] = {}
+    line_map: dict[str, str] = {}
     consumed = 0
 
     for line in lines:
@@ -216,11 +217,38 @@ def repair_translated_frontmatter(source_frontmatter: str, translated: str) -> s
         match = re.match(r"^([A-Za-z0-9_-]+):\s*.*$", line)
         if not match:
             break
-        translated_line_map[match.group(1)] = line
+        line_map[match.group(1)] = line
         consumed += 1
 
-    if not translated_line_map:
+    if not line_map:
+        return None
+
+    body_lines = lines[consumed:]
+    body = "\n".join(body_lines).lstrip("\n")
+    if text.endswith("\n") and body and not body.endswith("\n"):
+        body += "\n"
+    return line_map, body
+
+
+def repair_translated_frontmatter(source_frontmatter: str, translated: str) -> str:
+    if not source_frontmatter:
         return translated
+
+    translated_frontmatter, _ = split_frontmatter(translated)
+    source_lines = extract_frontmatter_lines(source_frontmatter)
+    if not source_lines:
+        return translated
+
+    translated_line_map: dict[str, str] = {}
+    body = translated
+
+    if translated_frontmatter:
+        translated_line_map = collect_frontmatter_line_map(translated_frontmatter)
+        body = translated[len(translated_frontmatter) :]
+    else:
+        partial = collect_partial_frontmatter_line_map(translated)
+        if partial is not None:
+            translated_line_map, body = partial
 
     rebuilt_lines: list[str] = []
     for source_line in source_lines:
@@ -229,10 +257,11 @@ def repair_translated_frontmatter(source_frontmatter: str, translated: str) -> s
             rebuilt_lines.append(source_line)
             continue
         key = match.group(1)
-        rebuilt_lines.append(translated_line_map.get(key, source_line))
+        if key in TRANSLATABLE_FRONTMATTER_KEYS and key in translated_line_map:
+            rebuilt_lines.append(translated_line_map[key])
+        else:
+            rebuilt_lines.append(source_line)
 
-    body_lines = lines[consumed:]
-    body = "\n".join(body_lines).lstrip("\n")
     repaired = "---\n" + "\n".join(rebuilt_lines) + "\n---\n"
     if body:
         repaired += body
@@ -293,6 +322,14 @@ def validate_markdown_translation(source: str, translated: str) -> list[str]:
     elif source_frontmatter and translated_frontmatter:
         if extract_frontmatter_keys(source_frontmatter) != extract_frontmatter_keys(translated_frontmatter):
             issues.append("frontmatter keys changed")
+        source_line_map = collect_frontmatter_line_map(source_frontmatter)
+        translated_line_map = collect_frontmatter_line_map(translated_frontmatter)
+        for key, source_line in source_line_map.items():
+            if key in TRANSLATABLE_FRONTMATTER_KEYS:
+                continue
+            if translated_line_map.get(key) != source_line:
+                issues.append(f"frontmatter protected key changed: {key}")
+                break
 
     if count_headings(source) != count_headings(translated):
         issues.append("heading count changed")
