@@ -149,7 +149,30 @@ def build_client(transport: str, api_key: str, base_url: str | None):
 
 
 def count_headings(text: str) -> int:
-    return len(re.findall(r"(?m)^#{1,6}\s", text))
+    _, body = split_frontmatter(text)
+    count = 0
+    in_fence = False
+    fence_char = ""
+
+    for line in body.splitlines():
+        fence_match = re.match(r"^(```+|~~~+)", line)
+        if fence_match:
+            marker = fence_match.group(1)
+            if not in_fence:
+                in_fence = True
+                fence_char = marker[0]
+            elif marker[0] == fence_char:
+                in_fence = False
+                fence_char = ""
+            continue
+
+        if in_fence:
+            continue
+
+        if re.match(r"^#{1,6}\s", line):
+            count += 1
+
+    return count
 
 
 def count_fences(text: str) -> int:
