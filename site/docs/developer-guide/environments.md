@@ -4,7 +4,7 @@ title: "环境、基准测试与数据生成"
 description: "构建 RL 训练环境、运行评估基准测试，以及通过 Hermes-Agent 与 Atropos 集成生成 SFT 数据"
 ---
 
-# 环境、基准测试与数据生成
+# 环境、基准测试与数据生成 {#environments-benchmarks-data-generation}
 
 Hermes Agent 包含一个完整的环境框架，可将其工具调用能力与 [Atropos](https://github.com/NousResearch/atropos) RL 训练框架连接起来。这支持三种工作流：
 
@@ -19,12 +19,12 @@ Hermes Agent 包含一个完整的环境框架，可将其工具调用能力与 
 :::
 
 :::tip 快速链接
-- **想运行基准测试？** 跳转到 [可用基准测试](#可用基准测试)
-- **想进行 RL 训练？** 查看面向智能体驱动的界面 [RL 训练工具](/user-guide/features/rl-training)，或手动执行 [运行环境](#运行环境)
-- **想创建新环境？** 查看 [创建环境](#创建环境)
+- **想运行基准测试？** 跳转到 [可用基准测试](#available-benchmarks)
+- **想进行 RL 训练？** 查看面向智能体驱动的界面 [RL 训练工具](/user-guide/features/rl-training)，或手动执行 [运行环境](#running-environments)
+- **想创建新环境？** 查看 [创建环境](#creating-environments)
 :::
 
-## 架构
+## 架构 {#architecture}
 
 环境系统构建在一个三层继承链上：
 
@@ -46,10 +46,12 @@ classDiagram
 
     class TerminalTestEnv {
       Stack testing
+<a id="repo-environments-vs-rl-training-tools"></a>
     }
 
     class HermesSweEnv {
       SWE training
+<a id="quick-links"></a>
     }
 
     class TerminalBench2EvalEnv {
@@ -72,7 +74,7 @@ classDiagram
     TerminalBench2EvalEnv <|-- YCBenchEvalEnv
 ```
 
-### BaseEnv (Atropos)
+### BaseEnv (Atropos) {#baseenv-atropos}
 
 来自 `atroposlib` 的基础层。提供：
 - **服务器管理** — 连接到 OpenAI 兼容的 API（VLLM、SGLang、OpenRouter）
@@ -81,7 +83,7 @@ classDiagram
 - **CLI 界面** — 三个子命令：`serve`、`process`、`evaluate`
 - **评估日志** — `evaluate_log()` 将结果保存到 JSON + JSONL
 
-### HermesAgentBaseEnv
+### HermesAgentBaseEnv {#hermesagentbaseenv}
 
 hermes-agent 层（`environments/hermes_base_env.py`）。增加：
 - **终端后端配置** — 为沙盒执行设置 `TERMINAL_ENV`（本地、Docker、Modal、Daytona、SSH、Singularity）
@@ -90,7 +92,7 @@ hermes-agent 层（`environments/hermes_base_env.py`）。增加：
 - **两阶段操作** — 阶段 1（OpenAI 服务器）用于评估/SFT，阶段 2（VLLM ManagedServer）用于带 logprobs 的完整 RL
 - **异步安全补丁** — 对 Modal 后端进行猴子补丁，使其能在 Atropos 的事件循环中工作
 
-### 具体环境
+### 具体环境 {#concrete-environments}
 
 你的环境继承自 `HermesAgentBaseEnv` 并实现五个方法：
 
@@ -102,9 +104,9 @@ hermes-agent 层（`environments/hermes_base_env.py`）。增加：
 | `compute_reward(item, result, ctx)` | 对运行轨迹评分（0.0–1.0） |
 | `evaluate()` | 周期性评估逻辑 |
 
-## 核心组件
+## 核心组件 {#core-components}
 
-### 智能体循环
+### 智能体循环 {#agent-loop}
 
 `HermesAgentLoop`（`environments/agent_loop.py`）是可复用的多轮智能体引擎。它运行与 hermes-agent 主循环相同的工具调用模式：
 
@@ -128,7 +130,7 @@ class AgentResult:
     managed_state: Optional[Dict]         # VLLM ManagedServer 状态（阶段 2）
 ```
 
-### 工具上下文
+### 工具上下文 {#tool-context}
 
 `ToolContext`（`environments/tool_context.py`）让奖励函数能够直接访问模型在其运行轨迹期间使用的**同一个沙盒**。`task_id` 作用域意味着所有状态（文件、进程、浏览器标签页）都得以保留。
 
@@ -176,9 +178,9 @@ content, tool_calls = parser.parse(raw_model_output)
 
 在阶段 1（OpenAI 服务器类型）中，不需要解析器 — 服务器原生处理工具调用解析。
 
-## 可用基准测试
+## 可用基准测试 {#available-benchmarks}
 
-### TerminalBench2
+### TerminalBench2 {#terminalbench2}
 
 **89 个具有挑战性的终端任务**，每个任务都有独立的 Docker 沙盒环境。
 
@@ -204,7 +206,7 @@ python environments/benchmarks/terminalbench_2/terminalbench2_env.py evaluate \
 
 数据集：HuggingFace 上的 [NousResearch/terminal-bench-2](https://huggingface.co/datasets/NousResearch/terminal-bench-2)。
 
-### TBLite (OpenThoughts Terminal Bench Lite)
+### TBLite (OpenThoughts Terminal Bench Lite) {#tblite-openthoughts-terminal-bench-lite}
 
 **100 个难度校准的任务** — TerminalBench2 的更快替代品。
 
@@ -225,7 +227,7 @@ python environments/benchmarks/tblite/tblite_env.py evaluate \
 
 TBLite 是 TerminalBench2 的一个薄子类 — 仅数据集和超时时间不同。由 OpenThoughts Agent 团队（Snorkel AI + Bespoke Labs）创建。数据集：[NousResearch/openthoughts-tblite](https://huggingface.co/datasets/NousResearch/openthoughts-tblite)。
 
-### YC-Bench
+### YC-Bench {#yc-bench}
 
 **长视野战略基准测试** — 智能体扮演一家 AI 初创公司的 CEO。
 
@@ -258,9 +260,9 @@ python environments/benchmarks/yc_bench/yc_bench_env.py evaluate \
 
 YC-Bench 使用 [collinear-ai/yc-bench](https://github.com/collinear-ai/yc-bench) — 一个具有 4 个技能领域（研究、推理、数据环境、训练）、声望系统、员工管理和财务压力的确定性模拟。与 TB2 的每任务二进制评分不同，YC-Bench 衡量的是智能体能否在数百个复合决策中保持连贯的战略。
 
-## 训练环境
+## 训练环境 {#training-environments}
 
-### TerminalTestEnv
+### TerminalTestEnv {#terminaltestenv}
 
 一个最小化的自包含环境，带有内联任务（无外部数据集）。用于**端到端验证完整技术栈**。每个任务要求模型在已知路径创建一个文件；验证器检查内容。
 
@@ -273,7 +275,7 @@ python environments/terminal_test_env/terminal_test_env.py process \
 python environments/terminal_test_env/terminal_test_env.py serve
 ```
 
-### HermesSweEnv
+### HermesSweEnv {#hermessweenv}
 
 SWE-bench 风格的训练环境。模型获得一个编码任务，使用终端 + 文件 + 网页工具来解决它，奖励函数在同一个 Modal 沙盒中运行测试。
 
@@ -284,11 +286,11 @@ python environments/hermes_swe_env/hermes_swe_env.py serve \
     --env.terminal_backend modal
 ```
 
-## 运行环境
+## 运行环境 {#running-environments}
 
 每个环境都是一个独立的 Python 脚本，带有三个 CLI 子命令：
 
-### `evaluate` — 运行基准测试
+### `evaluate` — 运行基准测试 {#evaluate-run-a-benchmark}
 
 用于仅评估的环境（基准测试）。运行所有条目，计算指标，记录到 wandb。
 
@@ -300,7 +302,7 @@ python environments/benchmarks/tblite/tblite_env.py evaluate \
 
 无需训练服务器或 `run-api`。环境处理一切。
 
-### `process` — 生成 SFT 数据
+### `process` — 生成 SFT 数据 {#process-generate-sft-data}
 
 运行轨迹并将评分后的轨迹保存到 JSONL。适用于生成训练数据而无需完整 RL 循环。
 
@@ -311,7 +313,7 @@ python environments/terminal_test_env/terminal_test_env.py process \
 ```
 
 输出格式：每行是一个评分后的轨迹，包含完整的对话历史、奖励和元数据。
-### `serve` — 连接到 Atropos 进行 RL 训练
+### `serve` — 连接到 Atropos 进行 RL 训练 {#serve-connect-to-atropos-for-rl-training}
 
 将环境连接到正在运行的 Atropos API 服务器 (`run-api`)。用于实时 RL 训练。
 
@@ -326,16 +328,16 @@ python environments/hermes_swe_env/hermes_swe_env.py serve \
 
 环境从 Atropos 接收任务项，运行智能体轨迹，计算奖励，并将评分后的轨迹发送回训练系统。
 
-## 两阶段操作
+## 两阶段操作 {#two-phase-operation}
 
-### 阶段 1：OpenAI 服务器（评估 / SFT）
+### 阶段 1：OpenAI 服务器（评估 / SFT） {#phase-1-openai-server-eval-sft}
 
 使用 `server.chat_completion()` 并设置 `tools=` 参数。服务器（VLLM、SGLang、OpenRouter、OpenAI）原生处理工具调用解析。返回带有结构化 `tool_calls` 的 `ChatCompletion` 对象。
 
 - **适用于**：评估、SFT 数据生成、基准测试、功能测试
 - 为 Atropos 流水线创建**占位符 token**（因为 OpenAI API 不提供真实的 token ID）
 
-### 阶段 2：VLLM ManagedServer（完整 RL）
+### 阶段 2：VLLM ManagedServer（完整 RL） {#phase-2-vllm-managedserver-full-rl}
 
 使用 ManagedServer 通过 `/generate` 端点获取精确的 token ID 和 logprobs。客户端侧的[工具调用解析器](#tool-call-parsers)从原始输出中重建结构化的 `tool_calls`。
 
@@ -343,9 +345,9 @@ python environments/hermes_swe_env/hermes_swe_env.py serve \
 - 真实的 **token**、掩码和 logprobs 在流水线中流动
 - 在配置中设置 `tool_call_parser` 以匹配你的模型格式（例如 `"hermes"`、`"qwen"`、`"mistral"`）
 
-## 创建环境
+## 创建环境 {#creating-environments}
 
-### 训练环境
+### 训练环境 {#training-environment}
 
 ```python
 from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
@@ -398,7 +400,7 @@ if __name__ == "__main__":
     MyEnv.cli()
 ```
 
-### 仅用于评估的基准测试
+### 仅用于评估的基准测试 {#eval-only-benchmark}
 
 对于基准测试，请遵循 TerminalBench2、TBLite 和 YC-Bench 使用的模式：
 
@@ -413,9 +415,9 @@ if __name__ == "__main__":
 
 请参考 `environments/benchmarks/yc_bench/yc_bench_env.py` 以获取一个简洁、文档完善的参考实现。
 
-## 配置参考
+## 配置参考 {#configuration-reference}
 
-### HermesAgentEnvConfig 字段
+### HermesAgentEnvConfig 字段 {#hermesagentenvconfig-fields}
 
 | 字段 | 类型 | 默认值 | 描述 |
 |-------|------|---------|-------------|
@@ -434,7 +436,7 @@ if __name__ == "__main__":
 | `extra_body` | `Dict` | `None` | OpenAI API 的额外参数（例如 OpenRouter 提供商偏好） |
 | `eval_handling` | `Enum` | `STOP_TRAIN` | `STOP_TRAIN`、`LIMIT_TRAIN`、`NONE` |
 
-### YAML 配置
+### YAML 配置 {#yaml-configuration}
 
 可以通过 `--config` 传递的 YAML 文件来配置环境：
 
@@ -466,25 +468,25 @@ python my_env.py evaluate \
     --openai.model_name anthropic/claude-opus-4.6  # 覆盖 YAML 设置
 ```
 
-## 先决条件
+## 先决条件 {#prerequisites}
 
-### 所有环境通用
+### 所有环境通用 {#for-all-environments}
 
 - Python >= 3.11
 - `atroposlib`: `pip install git+https://github.com/NousResearch/atropos.git`
 - LLM API 密钥（OpenRouter、OpenAI 或自托管的 VLLM/SGLang）
 
-### 对于 Modal 沙盒基准测试（TB2、TBLite）
+### 对于 Modal 沙盒基准测试（TB2、TBLite） {#for-modal-sandboxed-benchmarks-tb2-tblite}
 
 - [Modal](https://modal.com) 账户和 CLI: `pip install "hermes-agent[modal]"`
 - 环境变量 `MODAL_TOKEN_ID` 和 `MODAL_TOKEN_SECRET`
 
-### 对于 YC-Bench
+### 对于 YC-Bench {#for-yc-bench}
 
 - `pip install "hermes-agent[yc-bench]"`（安装 yc-bench CLI + SQLAlchemy）
 - 不需要 Modal — 使用本地终端后端运行
 
-### 对于 RL 训练
+### 对于 RL 训练 {#for-rl-training}
 
 - `TINKER_API_KEY` — [Tinker](https://tinker.computer) 训练服务的 API 密钥
 - `WANDB_API_KEY` — 用于 Weights & Biases 指标跟踪
@@ -492,7 +494,7 @@ python my_env.py evaluate \
 
 关于智能体驱动的 RL 工作流，请参阅 [RL 训练](/user-guide/features/rl-training)。
 
-## 目录结构
+## 目录结构 {#directory-structure}
 
 ```
 environments/

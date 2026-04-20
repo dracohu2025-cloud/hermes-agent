@@ -4,11 +4,11 @@ title: "Subagent 任务委派"
 description: "使用 delegate_task 生成隔离的子 Agent 以处理并行工作流"
 ---
 
-# Subagent 任务委派
+# Subagent 任务委派 {#subagent-delegation}
 
 `delegate_task` 工具可以生成具有隔离上下文、受限工具集和独立终端会话的子 AIAgent 实例。每个子 Agent 都会开启一段全新的对话并独立工作 —— 只有其最终生成的总结会进入父 Agent 的上下文。
 
-## 单个任务
+## 单个任务 {#single-task}
 
 ```python
 delegate_task(
@@ -18,7 +18,7 @@ delegate_task(
 )
 ```
 
-## 并行批处理
+## 并行批处理 {#parallel-batch}
 
 最多支持 3 个并发运行的 Subagent：
 
@@ -30,7 +30,7 @@ delegate_task(tasks=[
 ])
 ```
 
-## Subagent 上下文工作原理
+## Subagent 上下文工作原理 {#how-subagent-context-works}
 
 :::warning 重要提示：Subagent 没有任何先验知识
 Subagent 启动时使用的是**完全全新的对话**。它们对父 Agent 的对话历史、之前的工具调用或委派前讨论的任何内容一无所知。Subagent 唯一的上下文来源是你提供的 `goal` 和 `context` 字段。
@@ -44,6 +44,7 @@ delegate_task(goal="修复那个错误")
 
 # 正确做法 - Subagent 拥有所需的全部上下文
 delegate_task(
+<a id="critical-subagents-know-nothing"></a>
     goal="修复 api/handlers.py 中的 TypeError",
     context="""文件 api/handlers.py 第 47 行出现 TypeError：
     'NoneType' object has no attribute 'get'。
@@ -55,9 +56,9 @@ delegate_task(
 
 Subagent 会收到一个根据你的目标和上下文构建的专注型系统提示词，指示其完成任务并提供一份结构化的总结，内容包括：做了什么、发现了什么、修改了哪些文件以及遇到了哪些问题。
 
-## 实际案例
+## 实际案例 {#practical-examples}
 
-### 并行研究
+### 并行研究 {#parallel-research}
 
 同时研究多个主题并收集总结：
 
@@ -81,7 +82,7 @@ delegate_task(tasks=[
 ])
 ```
 
-### 代码审查 + 修复
+### 代码审查 + 修复 {#code-review-fix}
 
 将“审查并修复”工作流委派给一个全新的上下文：
 
@@ -97,7 +98,7 @@ delegate_task(
 )
 ```
 
-### 多文件重构
+### 多文件重构 {#multi-file-refactoring}
 
 委派一个大型重构任务，避免其产生的日志淹没父 Agent 的上下文：
 
@@ -117,7 +118,7 @@ delegate_task(
 )
 ```
 
-## 批处理模式详情
+## 批处理模式详情 {#batch-mode-details}
 
 当你提供 `tasks` 数组时，Subagent 会通过线程池**并行**运行：
 
@@ -129,7 +130,7 @@ delegate_task(
 
 单任务委派直接运行，没有线程池开销。
 
-## 模型覆盖 (Model Override)
+## 模型覆盖 (Model Override) {#model-override}
 
 你可以通过 `config.yaml` 为 Subagent 配置不同的模型 —— 这对于将简单任务委派给更便宜/更快的模型非常有用：
 
@@ -142,7 +143,7 @@ delegation:
 
 如果省略此配置，Subagent 将使用与父 Agent 相同的模型。
 
-## 工具集选择建议
+## 工具集选择建议 {#toolset-selection-tips}
 
 `toolsets` 参数控制 Subagent 可以访问哪些工具。请根据任务进行选择：
 
@@ -161,7 +162,7 @@ delegation:
 - `code_execution` — 子 Agent 应该进行逐步推理
 - `send_message` — 禁止跨平台副作用（例如发送 Telegram 消息）
 
-## 最大迭代次数 (Max Iterations)
+## 最大迭代次数 (Max Iterations) {#max-iterations}
 
 每个 Subagent 都有一个迭代限制（默认：50），控制其可以进行的工具调用轮数：
 
@@ -173,11 +174,11 @@ delegate_task(
 )
 ```
 
-## 层级深度限制
+## 层级深度限制 {#depth-limit}
 
 委派具有 **2 层的深度限制** —— 父 Agent（深度 0）可以生成子 Agent（深度 1），但子 Agent 不能进一步委派。这可以防止失控的递归委派链。
 
-## 核心特性
+## 核心特性 {#key-properties}
 
 - 每个 Subagent 拥有**自己的终端会话**（与父 Agent 隔离）
 - **禁止嵌套委派** —— 子 Agent 不能进一步委派（没有孙子 Agent）
@@ -186,7 +187,7 @@ delegate_task(
 - 只有最终总结会进入父 Agent 的上下文，保持 Token 使用的高效性
 - Subagent 继承父 Agent 的 **API 密钥、供应商配置和凭据池**（支持在触发速率限制时进行密钥轮换）
 
-## Delegation vs execute_code
+## Delegation vs execute_code {#delegation-vs-executecode}
 
 | 维度 | delegate_task | execute_code |
 |--------|--------------|-------------|
@@ -200,7 +201,7 @@ delegate_task(
 
 **经验法则：** 当子任务需要推理、判断或多步骤解决问题时，使用 `delegate_task`。当你需要机械化的数据处理或脚本化工作流时，使用 `execute_code`。
 
-## 配置项
+## 配置项 {#configuration}
 
 ```yaml
 # 在 ~/.hermes/config.yaml 中

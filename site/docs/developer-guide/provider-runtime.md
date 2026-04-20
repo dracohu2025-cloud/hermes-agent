@@ -4,7 +4,7 @@ title: "Provider 运行时解析"
 description: "Hermes 如何在运行时解析 Provider、凭据、API 模式和辅助模型"
 ---
 
-# Provider 运行时解析
+# Provider 运行时解析 {#provider-runtime-resolution}
 
 Hermes 拥有一套通用的 Provider 运行时解析器，用于以下场景：
 
@@ -23,7 +23,7 @@ Hermes 拥有一套通用的 Provider 运行时解析器，用于以下场景：
 
 如果你打算添加一个新的原生推理 Provider，请在阅读本页的同时参考 [添加 Provider](./adding-providers.md)。
 
-## 解析优先级
+## 解析优先级 {#resolution-precedence}
 
 从高层级来看，Provider 解析遵循以下顺序：
 
@@ -34,7 +34,7 @@ Hermes 拥有一套通用的 Provider 运行时解析器，用于以下场景：
 
 这个顺序非常重要，因为 Hermes 将保存的模型/Provider 选择视为常规运行的“单一真理来源”。这可以防止过时的 shell 环境变量静默覆盖用户上次在 `hermes model` 中选择的端点。
 
-## Providers
+## Providers {#providers}
 
 目前的 Provider 家族包括：
 
@@ -57,7 +57,7 @@ Hermes 拥有一套通用的 Provider 运行时解析器，用于以下场景：
 - Custom (`provider: custom`) — 适用于任何兼容 OpenAI 接口端点的原生 Provider
 - 命名的自定义 Provider (`config.yaml` 中的 `custom_providers` 列表)
 
-## 运行时解析的输出
+## 运行时解析的输出 {#output-of-runtime-resolution}
 
 运行时解析器返回如下数据：
 
@@ -68,7 +68,7 @@ Hermes 拥有一套通用的 Provider 运行时解析器，用于以下场景：
 - `source`
 - Provider 特定的元数据（如过期/刷新信息）
 
-## 为什么这很重要
+## 为什么这很重要 {#why-this-matters}
 
 该解析器是 Hermes 能够在以下组件间共享认证/运行时逻辑的核心原因：
 
@@ -78,11 +78,11 @@ Hermes 拥有一套通用的 Provider 运行时解析器，用于以下场景：
 - ACP 编辑器会话
 - 辅助模型任务
 
-## AI Gateway
+## AI Gateway {#ai-gateway}
 
 在 `~/.hermes/.env` 中设置 `AI_GATEWAY_API_KEY` 并使用 `--provider ai-gateway` 运行。Hermes 会从 Gateway 的 `/models` 端点获取可用模型，并过滤出支持 Tool-use 的语言模型。
 
-## OpenRouter, AI Gateway 以及自定义 OpenAI 兼容 Base URL
+## OpenRouter, AI Gateway 以及自定义 OpenAI 兼容 Base URL {#openrouter-ai-gateway-and-custom-openai-compatible-base-urls}
 
 Hermes 包含一套逻辑，用于在存在多个 Provider 密钥（例如 `OPENROUTER_API_KEY`、`AI_GATEWAY_API_KEY` 和 `OPENAI_API_KEY`）时，避免将错误的 API Key 泄露给自定义端点。
 
@@ -104,7 +104,7 @@ Hermes 还会区分：
 - 在不重新运行设置的情况下切换 Provider
 - 即使当前 shell 中未导出 `OPENAI_BASE_URL`，也应保持有效的配置保存型自定义端点
 
-## 原生 Anthropic 路径
+## 原生 Anthropic 路径 {#native-anthropic-path}
 
 Anthropic 不再仅仅通过 "OpenRouter" 访问。
 
@@ -121,14 +121,14 @@ Anthropic 不再仅仅通过 "OpenRouter" 访问。
 - Hermes 在调用原生 Messages API 之前会预检 Anthropic 凭据刷新
 - 作为备选路径，Hermes 在重建 Anthropic 客户端后，遇到 401 错误仍会重试一次
 
-## OpenAI Codex 路径
+## OpenAI Codex 路径 {#openai-codex-path}
 
 Codex 使用独立的 Responses API 路径：
 
 - `api_mode = codex_responses`
 - 专用的凭据解析和认证存储支持
 
-## 辅助模型路由
+## 辅助模型路由 {#auxiliary-model-routing}
 
 辅助任务如：
 
@@ -148,11 +148,11 @@ Codex 使用独立的 Responses API 路径：
 - 通过 `hermes model` / `config.yaml` 保存的自定义端点也有效
 - 辅助路由可以区分真实的已保存自定义端点和 OpenRouter 备选项
 
-## 备选模型 (Fallback models)
+## 备选模型 (Fallback models) {#fallback-models}
 
 Hermes 支持配置备选模型/Provider 对，允许在主模型遇到错误时进行运行时故障转移。
 
-### 内部工作原理
+### 内部工作原理 {#how-it-works-internally}
 
 1. **存储**：`AIAgent.__init__` 存储 `fallback_model` 字典并设置 `_fallback_activated = False`。
 
@@ -176,17 +176,17 @@ Hermes 支持配置备选模型/Provider 对，允许在主模型遇到错误时
    - Gateway：`gateway/run.py._load_fallback_model()` 读取 `config.yaml` → 传递给 `AIAgent`
    - 校验：`provider` 和 `model` 键都必须非空，否则禁用备选机制
 
-### 不支持备选的情况
+### 不支持备选的情况 {#what-does-not-support-fallback}
 
 - **Sub-agent 委派** (`tools/delegate_tool.py`)：Sub-agents 继承父级的 Provider，但不继承备选配置
 - **Cron 任务** (`cron/`)：使用固定 Provider 运行，没有备选机制
 - **辅助任务**：使用它们自己独立的 Provider 自动检测链（见上文“辅助模型路由”）
 
-### 测试覆盖
+### 测试覆盖 {#test-coverage}
 
 参见 `tests/test_fallback_model.py` 获取涵盖所有支持的 Provider、单次触发语义和边缘情况的全面测试。
 
-## 相关文档
+## 相关文档 {#related-docs}
 
 - [Agent 循环原理](./agent-loop.md)
 - [ACP 原理](./acp-internals.md)

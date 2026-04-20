@@ -4,11 +4,11 @@ title: "RL 训练"
 description: "使用 Tinker-Atropos 对智能体行为进行强化学习——环境发现、训练和评估"
 ---
 
-# RL 训练
+# RL 训练 {#rl-training}
 
 Hermes Agent 包含一个基于 **Tinker-Atropos** 构建的集成 RL（强化学习）训练流程。这使得能够使用 GRPO（组相对策略优化）和 LoRA 适配器，在特定环境任务上训练语言模型，整个过程完全通过智能体的工具接口进行编排。
 
-## 概述
+## 概述 {#overview}
 
 RL 训练系统由三个组件组成：
 
@@ -18,7 +18,7 @@ RL 训练系统由三个组件组成：
 
 智能体可以通过一组 `rl_*` 工具来发现环境、配置训练参数、启动训练运行并监控指标。
 
-## 要求
+## 要求 {#requirements}
 
 RL 训练需要：
 
@@ -35,7 +35,7 @@ hermes config set WANDB_API_KEY your-wandb-key
 
 当两个密钥都存在且 Python >= 3.11 可用时，`rl` 工具集会自动启用。
 
-## 可用工具
+## 可用工具 {#available-tools}
 
 | 工具 | 描述 |
 |------|-------------|
@@ -50,9 +50,9 @@ hermes config set WANDB_API_KEY your-wandb-key
 | `rl_list_runs` | 列出所有活跃和已完成的运行 |
 | `rl_test_inference` | 使用 OpenRouter 进行快速推理测试 |
 
-## 工作流程
+## 工作流程 {#workflow}
 
-### 1. 发现环境
+### 1. 发现环境 {#1-discover-environments}
 
 ```
 列出可用的 RL 环境
@@ -64,7 +64,7 @@ hermes config set WANDB_API_KEY your-wandb-key
 - **提示词构建** — 如何为模型格式化数据项
 - **评分/验证** — 如何评估模型输出并分配奖励
 
-### 2. 选择与配置
+### 2. 选择与配置 {#2-select-and-configure}
 
 ```
 选择 GSM8K 环境并显示配置
@@ -90,7 +90,7 @@ hermes config set WANDB_API_KEY your-wandb-key
 - `learning_rate` — 学习率（4e-5）
 - `max_token_trainer_length` — 训练器的最大 token 数（9000）
 
-### 3. 开始训练
+### 3. 开始训练 {#3-start-training}
 
 ```
 启动训练运行
@@ -107,7 +107,7 @@ hermes config set WANDB_API_KEY your-wandb-key
 
 这些进程以交错延迟启动（API 5 秒，训练器 30 秒，环境再 90 秒），以确保正确的初始化顺序。
 
-### 4. 监控进度
+### 4. 监控进度 {#4-monitor-progress}
 
 ```
 检查训练运行 abc12345 的状态
@@ -124,8 +124,9 @@ hermes config set WANDB_API_KEY your-wandb-key
 状态检查被限制为每个运行 ID **每 30 分钟一次**。这可以防止在需要数小时运行的长时间训练任务期间进行过多的轮询。
 :::
 
-### 5. 停止或获取结果
+### 5. 停止或获取结果 {#5-stop-or-get-results}
 
+<a id="rate-limiting"></a>
 ```
 停止训练运行
 # 或
@@ -134,7 +135,7 @@ hermes config set WANDB_API_KEY your-wandb-key
 
 `rl_stop_training()` 以相反顺序终止所有三个进程（环境 → 训练器 → API）。`rl_get_results()` 检索最终的 WandB 指标和训练历史记录。
 
-## 推理测试
+## 推理测试 {#inference-testing}
 
 在投入完整训练运行之前，您可以使用 `rl_test_inference` 测试环境是否正常工作。这使用 OpenRouter 运行几个推理和评分步骤——不需要 Tinker API，只需要一个 `OPENROUTER_API_KEY`。
 
@@ -156,7 +157,7 @@ hermes config set WANDB_API_KEY your-wandb-key
 - 推理响应解析在不同模型规模下具有鲁棒性
 - 验证器/评分逻辑产生有效的奖励
 
-## Tinker API 集成
+## Tinker API 集成 {#tinker-api-integration}
 
 训练器使用 [Tinker](https://tinker.computer) API 进行模型训练操作：
 
@@ -172,7 +173,7 @@ hermes config set WANDB_API_KEY your-wandb-key
 5. 保存权重并为下一步推理创建新的采样客户端
 6. 将指标记录到 WandB
 
-## 架构图
+## 架构图 {#architecture-diagram}
 
 ```mermaid
 flowchart LR
@@ -187,7 +188,7 @@ flowchart LR
     trainer -->|"提供推理服务"| infer
 ```
 
-## 创建自定义环境
+## 创建自定义环境 {#creating-custom-environments}
 
 要创建新的 RL 环境：
 
@@ -202,7 +203,7 @@ flowchart LR
 
 研究现有的 `gsm8k_tinker.py` 作为模板。智能体可以帮助您创建新环境——它可以读取现有的环境文件、检查 HuggingFace 数据集并编写新的环境代码。
 
-## WandB 指标
+## WandB 指标 {#wandb-metrics}
 
 训练运行会记录到 Weights & Biases，包含以下关键指标：
 
@@ -217,7 +218,7 @@ flowchart LR
 | `advantages/mean` | 平均优势值 |
 | `advantages/std` | 优势标准差 |
 
-## 日志文件
+## 日志文件 {#log-files}
 
 每个训练运行都会在 `~/.hermes/logs/rl_training/` 目录下生成日志文件：
 

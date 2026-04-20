@@ -1,11 +1,11 @@
-# Trajectory 格式
+# Trajectory 格式 {#trajectory-format}
 
 Hermes Agent 将对话轨迹（trajectories）保存为兼容 ShareGPT 的 JSONL 格式，用于训练数据、调试制品以及强化学习数据集。
 
 源码文件：`agent/trajectory.py`，`run_agent.py`（搜索 `_save_trajectory`），`batch_runner.py`
 
 
-## 文件命名规范
+## 文件命名规范 {#file-naming-convention}
 
 轨迹文件会被写入当前工作目录：
 
@@ -19,11 +19,11 @@ Hermes Agent 将对话轨迹（trajectories）保存为兼容 ShareGPT 的 JSONL
 你可以通过 `save_trajectory()` 中的 `filename` 参数覆盖文件名。
 
 
-## JSONL 条目格式
+## JSONL 条目格式 {#jsonl-entry-format}
 
 文件中的每一行都是一个独立的 JSON 对象。存在两种变体：
 
-### CLI/交互式格式（来自 `_save_trajectory`）
+### CLI/交互式格式（来自 `_save_trajectory`） {#cli-interactive-format-from-savetrajectory}
 
 ```json
 {
@@ -34,7 +34,7 @@ Hermes Agent 将对话轨迹（trajectories）保存为兼容 ShareGPT 的 JSONL
 }
 ```
 
-### 批量运行器格式（来自 `batch_runner.py`）
+### 批量运行器格式（来自 `batch_runner.py`） {#batch-runner-format-from-batchrunner-py}
 
 ```json
 {
@@ -61,7 +61,7 @@ Hermes Agent 将对话轨迹（trajectories）保存为兼容 ShareGPT 的 JSONL
 `tool_stats` 和 `tool_error_counts` 字典经过归一化处理，包含了所有可能的工具（来自 `model_tools.TOOL_TO_TOOLSET_MAP`），默认值为零。这确保了在加载 HuggingFace 数据集时，所有条目的 Schema 保持一致。
 
 
-## Conversations 数组 (ShareGPT 格式)
+## Conversations 数组 (ShareGPT 格式) {#conversations-array-sharegpt-format}
 
 `conversations` 数组使用 ShareGPT 的角色约定：
 
@@ -72,7 +72,7 @@ Hermes Agent 将对话轨迹（trajectories）保存为兼容 ShareGPT 的 JSONL
 | assistant | `"gpt"` |
 | tool | `"tool"` |
 
-### 完整示例
+### 完整示例 {#complete-example}
 
 ```json
 {
@@ -105,9 +105,9 @@ Hermes Agent 将对话轨迹（trajectories）保存为兼容 ShareGPT 的 JSONL
 ```
 
 
-## 归一化规则
+## 归一化规则 {#normalization-rules}
 
-### 推理内容标记 (Reasoning Content Markup)
+### 推理内容标记 (Reasoning Content Markup) {#reasoning-content-markup}
 
 轨迹转换器会将所有推理内容归一化到 `<think>` 标签中，无论模型最初是如何生成的：
 
@@ -117,7 +117,7 @@ Hermes Agent 将对话轨迹（trajectories）保存为兼容 ShareGPT 的 JSONL
 
 3. **空思考块**：每个 `gpt` 轮次都保证有一个 `<think>` 块。如果没有产生推理，则插入一个空块：`<think>\n</think>\n` —— 这确保了训练数据的格式一致性。
 
-### 工具调用归一化
+### 工具调用归一化 {#tool-call-normalization}
 
 来自 API 格式的工具调用（带有 `tool_call_id`、函数名、JSON 字符串格式的参数）会被转换为 XML 包装的 JSON：
 
@@ -131,7 +131,7 @@ Hermes Agent 将对话轨迹（trajectories）保存为兼容 ShareGPT 的 JSONL
 - 如果 JSON 解析失败（理论上不应发生，因为在对话期间已验证），则使用空的 `{}` 并记录警告。
 - 一个 Assistant 轮次中的多个工具调用会在单个 `gpt` 消息中生成多个 `<tool_call>` 块。
 
-### 工具响应归一化
+### 工具响应归一化 {#tool-response-normalization}
 
 紧随 Assistant 消息之后的所有工具结果都会被合并到一个 `tool` 轮次中，并使用 XML 包装的 JSON 响应：
 
@@ -145,7 +145,7 @@ Hermes Agent 将对话轨迹（trajectories）保存为兼容 ShareGPT 的 JSONL
 - 多个工具结果在一条消息中以换行符连接。
 - 工具名称通过位置与父级 Assistant 的 `tool_calls` 数组进行匹配。
 
-### 系统消息
+### 系统消息 {#system-message}
 
 系统消息是在保存时生成的（不是直接从对话中提取的）。它遵循 Hermes 函数调用提示词模板，包含：
 
@@ -157,7 +157,7 @@ Hermes Agent 将对话轨迹（trajectories）保存为兼容 ShareGPT 的 JSONL
 工具定义包括 `name`、`description`、`parameters` 和 `required`（设置为 `null` 以符合规范格式）。
 
 
-## 加载轨迹
+## 加载轨迹 {#loading-trajectories}
 
 轨迹文件是标准的 JSONL 格式 —— 可以使用任何 JSON-lines 读取器加载：
 
@@ -182,7 +182,7 @@ successful = [e for e in load_trajectories("trajectory_samples.jsonl")
 training_data = [e["conversations"] for e in successful]
 ```
 
-### 为 HuggingFace Datasets 加载
+### 为 HuggingFace Datasets 加载 {#loading-for-huggingface-datasets}
 
 ```python
 from datasets import load_dataset
@@ -193,7 +193,7 @@ ds = load_dataset("json", data_files="trajectory_samples.jsonl")
 归一化的 `tool_stats` Schema 确保所有条目具有相同的列，从而防止在加载数据集时出现 Arrow Schema 不匹配错误。
 
 
-## 控制轨迹保存
+## 控制轨迹保存 {#controlling-trajectory-saving}
 
 在 CLI 中，轨迹保存由以下配置控制：
 

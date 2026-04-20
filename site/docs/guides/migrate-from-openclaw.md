@@ -4,11 +4,11 @@ title: "从 OpenClaw 迁移"
 description: "将你的 OpenClaw / Clawdbot 设置迁移到 Hermes Agent 的完整指南 —— 包含迁移内容、配置映射关系以及迁移后需要检查的事项。"
 ---
 
-# 从 OpenClaw 迁移
+# 从 OpenClaw 迁移 {#migrate-from-openclaw}
 
 `hermes claw migrate` 命令可以将你的 OpenClaw（或旧版 Clawdbot/Moldbot）设置导入到 Hermes。本指南详细说明了具体迁移哪些内容、配置键的映射关系以及迁移后需要验证的事项。
 
-## 快速开始
+## 快速开始 {#quick-start}
 
 ```bash
 # 预览然后迁移（总是先显示预览，然后请求确认）
@@ -25,7 +25,7 @@ hermes claw migrate --preset full --yes
 
 默认从 `~/.openclaw/` 读取。旧版的 `~/.clawdbot/` 或 `~/.moltbot/` 目录会被自动检测。旧版配置文件（`clawdbot.json`, `moltbot.json`）同理。
 
-## 选项
+## 选项 {#options}
 
 | 选项 | 描述 |
 |--------|-------------|
@@ -38,9 +38,9 @@ hermes claw migrate --preset full --yes
 | `--skill-conflict &lt;mode&gt;` | `skip`（默认）、`overwrite` 或 `rename`。 |
 | `--yes` | 预览后跳过确认提示。 |
 
-## 迁移内容
+## 迁移内容 {#what-gets-migrated}
 
-### 角色、记忆和指令
+### 角色、记忆和指令 {#persona-memory-and-instructions}
 
 | 内容 | OpenClaw 源 | Hermes 目标 | 备注 |
 |------|----------------|-------------------|-------|
@@ -52,7 +52,7 @@ hermes claw migrate --preset full --yes
 
 工作空间文件也会在 `workspace.default/` 和 `workspace-main/` 路径下检查作为备用（OpenClaw 在近期版本中将 `workspace/` 重命名为 `workspace-main/`，并为多 Agent 设置使用 `workspace-{agentId}`）。
 
-### 技能（4 个来源）
+### 技能（4 个来源） {#skills-4-sources}
 
 | 来源 | OpenClaw 位置 | Hermes 目标 |
 |--------|------------------|-------------------|
@@ -63,7 +63,7 @@ hermes claw migrate --preset full --yes
 
 技能冲突由 `--skill-conflict` 处理：`skip` 保留现有的 Hermes 技能，`overwrite` 替换它，`rename` 创建一个 `-imported` 副本。
 
-### 模型和提供商配置
+### 模型和提供商配置 {#model-and-provider-configuration}
 
 | 内容 | OpenClaw 配置路径 | Hermes 目标 | 备注 |
 |------|---------------------|-------------------|-------|
@@ -71,7 +71,7 @@ hermes claw migrate --preset full --yes
 | 自定义提供商 | `models.providers.*` | `config.yaml` → `custom_providers` | 映射 `baseUrl`、`apiType`/`api` —— 处理短格式（"openai", "anthropic"）和带连字符的（"openai-completions", "anthropic-messages", "google-generative-ai"）值 |
 | 提供商 API 密钥 | `models.providers.*.apiKey` | `~/.hermes/.env` | 需要 `--migrate-secrets`。参见下面的 [API 密钥解析](#api-key-resolution)。 |
 
-### Agent 行为
+### Agent 行为 {#agent-behavior}
 
 | 内容 | OpenClaw 配置路径 | Hermes 配置路径 | 映射关系 |
 |------|---------------------|-------------------|---------|
@@ -87,7 +87,7 @@ hermes claw migrate --preset full --yes
 | Docker 沙箱 | `agents.defaults.sandbox.backend` | `terminal.backend` | "docker" → "docker" |
 | Docker 镜像 | `agents.defaults.sandbox.docker.image` | `terminal.docker_image` | 直接复制 |
 
-### 会话重置策略
+### 会话重置策略 {#session-reset-policies}
 
 | OpenClaw 配置路径 | Hermes 配置路径 | 备注 |
 |---------------------|-------------------|-------|
@@ -97,7 +97,7 @@ hermes claw migrate --preset full --yes
 
 注意：OpenClaw 也有 `session.resetTriggers`（一个简单的字符串数组，如 `["daily", "idle"]`）。如果结构化的 `session.reset` 不存在，迁移会回退到从 `resetTriggers` 推断。
 
-### MCP 服务器
+### MCP 服务器 {#mcp-servers}
 
 | OpenClaw 字段 | Hermes 字段 | 备注 |
 |----------------|-------------|-------|
@@ -109,7 +109,7 @@ hermes claw migrate --preset full --yes
 | `mcp.servers.*.tools.include` | `mcp_servers.*.tools.include` | 工具过滤 |
 | `mcp.servers.*.tools.exclude` | `mcp_servers.*.tools.exclude` | |
 
-### TTS（文本转语音）
+### TTS（文本转语音） {#tts-text-to-speech}
 
 TTS 设置从 **两个** OpenClaw 配置位置读取，优先级如下：
 
@@ -127,7 +127,7 @@ TTS 设置从 **两个** OpenClaw 配置位置读取，优先级如下：
 | Edge TTS 语音 | `config.yaml` → `tts.edge.voice`（OpenClaw 将 "edge" 重命名为 "microsoft" —— 两者都能识别） |
 | TTS 资源文件 | `~/.hermes/tts/`（文件复制） |
 
-### 消息平台
+### 消息平台 {#messaging-platforms}
 
 | 平台 | OpenClaw 配置路径 | Hermes `.env` 变量 | 备注 |
 |----------|---------------------|----------------------|-------|
@@ -144,7 +144,7 @@ TTS 设置从 **两个** OpenClaw 配置位置读取，优先级如下：
 | Signal | `channels.signal.allowFrom` 或 `.accounts.default.allowFrom` | `SIGNAL_ALLOWED_USERS` | |
 | Matrix | `channels.matrix.accessToken` 或 `.accounts.default.accessToken` | `MATRIX_ACCESS_TOKEN` | 使用 `accessToken`（不是 `botToken`） |
 | Mattermost | `channels.mattermost.botToken` 或 `.accounts.default.botToken` | `MATTERMOST_BOT_TOKEN` | |
-### 其他配置
+### 其他配置 {#other-config}
 
 | 配置项 | OpenClaw 路径 | Hermes 路径 | 备注 |
 |------|-------------|-------------|-------|
@@ -156,7 +156,7 @@ TTS 设置从 **两个** OpenClaw 配置位置读取，优先级如下：
 | 网关认证令牌 | `gateway.auth.token` | `.env` → `HERMES_GATEWAY_TOKEN` | 需要 `--migrate-secrets` |
 | 工作目录 | `agents.defaults.workspace` | `.env` → `MESSAGING_CWD` | |
 
-### 已归档（无直接对应的 Hermes 配置）
+### 已归档（无直接对应的 Hermes 配置） {#archived-no-direct-hermes-equivalent}
 
 这些内容会被保存到 `~/.hermes/migration/openclaw/&lt;timestamp&gt;/archive/` 供手动检查：
 
@@ -188,7 +188,7 @@ TTS 设置从 **两个** OpenClaw 配置位置读取，优先级如下：
 
 配置值优先级最高。每个后续来源会填补剩余的空缺。
 
-### 支持的密钥目标
+### 支持的密钥目标 {#supported-key-targets}
 
 `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `DEEPSEEK_API_KEY`, `GEMINI_API_KEY`, `ZAI_API_KEY`, `MINIMAX_API_KEY`, `ELEVENLABS_API_KEY`, `TELEGRAM_BOT_TOKEN`, `VOICE_TOOLS_OPENAI_KEY`
 
@@ -211,7 +211,7 @@ OpenClaw 配置中用于令牌和 API 密钥的值可以有以下三种格式：
 
 迁移过程会解析所有三种格式。对于环境变量模板和 `source: "env"` 的 SecretRef 对象，它会从 `~/.openclaw/.env` 和 `openclaw.json` 的 env 子对象中查找值。对于 `source: "file"` 或 `source: "exec"` 的 SecretRef 对象，无法自动解析——迁移过程会对此发出警告，这些值必须通过 `hermes config set` 手动添加到 Hermes。
 
-## 迁移后操作
+## 迁移后操作 {#after-migration}
 
 1.  **检查迁移报告** — 完成后会打印报告，包含已迁移、已跳过和冲突项的数量。
 
@@ -229,20 +229,20 @@ OpenClaw 配置中用于令牌和 API 密钥的值可以有以下三种格式：
 
 8.  **清理归档** — 确认一切正常后，运行 `hermes claw cleanup` 将剩余的 OpenClaw 目录重命名为 `.pre-migration/`（防止状态混淆）。
 
-## 故障排除
+## 故障排除 {#troubleshooting}
 
-### “未找到 OpenClaw 目录”
+### “未找到 OpenClaw 目录” {#openclaw-directory-not-found}
 
 迁移过程会依次检查 `~/.openclaw/`、`~/.clawdbot/`、`~/.moltbot/`。如果你的安装在其他位置，请使用 `--source /path/to/your/openclaw`。
 
-### “未找到提供商 API 密钥”
+### “未找到提供商 API 密钥” {#no-provider-api-keys-found}
 
 根据你的 OpenClaw 版本，密钥可能存储在几个地方：`openclaw.json` 中 `models.providers.*.apiKey` 下的内联值、`~/.openclaw/.env` 中、`openclaw.json` 的 `"env"` 子对象中，或 `agents/main/agent/auth-profiles.json` 中。迁移过程会检查所有四个位置。如果密钥使用了 `source: "file"` 或 `source: "exec"` 的 SecretRef，则无法自动解析——需要通过 `hermes config set` 添加。
 
-### 迁移后技能未出现
+### 迁移后技能未出现 {#skills-not-appearing-after-migration}
 
 导入的技能位于 `~/.hermes/skills/openclaw-imports/`。启动一个新会话使其生效，或运行 `/skills` 来验证它们是否已加载。
 
-### TTS 语音未迁移
+### TTS 语音未迁移 {#tts-voice-not-migrated}
 
 OpenClaw 将 TTS 设置存储在两个地方：`messages.tts.providers.*` 和顶层的 `talk` 配置。迁移过程会检查这两处。如果你的语音 ID 是通过 OpenClaw UI 设置的（存储在不同的路径），你可能需要手动设置：`hermes config set tts.elevenlabs.voice_id YOUR_VOICE_ID`。

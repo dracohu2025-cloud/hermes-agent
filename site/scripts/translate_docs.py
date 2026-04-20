@@ -293,6 +293,19 @@ def repair_translated_frontmatter(source_frontmatter: str, translated: str) -> s
     return repaired
 
 
+def strip_unexpected_frontmatter(translated: str) -> str:
+    translated_frontmatter, body = split_frontmatter(translated)
+    if translated_frontmatter:
+        return body
+
+    partial = collect_partial_frontmatter_line_map(translated)
+    if partial is None:
+        return translated
+
+    _, partial_body = partial
+    return partial_body
+
+
 def split_markdown_chunks(text: str, max_chars: int = 8000) -> list[str]:
     if len(text) <= max_chars:
         return [text]
@@ -519,35 +532,206 @@ def extract_markdown_headings(text: str) -> list[dict[str, str | int | None]]:
     return headings
 
 
+ADMONITION_OPEN_PATTERN = re.compile(
+    r"^:::(?P<kind>[A-Za-z][A-Za-z0-9_-]*)(?:\s+(?P<title>.*\S))?\s*$"
+)
+
+
+def extract_markdown_admonitions(text: str) -> list[dict[str, str | int | None]]:
+    _, body = split_frontmatter(text)
+    admonitions: list[dict[str, str | int | None]] = []
+    lines = body.splitlines()
+    in_fence = False
+    fence_char = ""
+
+    for index, line in enumerate(lines):
+        fence_match = re.match(r"^(```+|~~~+)", line)
+        if fence_match:
+            marker = fence_match.group(1)
+            if not in_fence:
+                in_fence = True
+                fence_char = marker[0]
+            elif marker[0] == fence_char:
+                in_fence = False
+                fence_char = ""
+            continue
+
+        if in_fence:
+            continue
+
+        match = ADMONITION_OPEN_PATTERN.match(line)
+        if not match:
+            continue
+
+        title = (match.group("title") or "").strip() or None
+        admonitions.append(
+            {
+                "line_index": index,
+                "kind": match.group("kind"),
+                "title": title,
+            }
+        )
+
+    return admonitions
+
+
+def repair_split_admonition_titles(source_text: str, translated_text: str) -> str:
+    translated_frontmatter, translated_body = split_frontmatter(translated_text)
+    source_admonitions = extract_markdown_admonitions(source_text)
+    translated_admonitions = extract_markdown_admonitions(translated_text)
+
+    if not source_admonitions or len(source_admonitions) != len(translated_admonitions):
+        return translated_text
+
+    lines = translated_body.splitlines()
+    repairs: list[tuple[int, int, str, str]] = []
+
+    for source_admonition, translated_admonition in zip(
+        source_admonitions, translated_admonitions, strict=True
+    ):
+        if not source_admonition["title"] or translated_admonition["title"]:
+            continue
+
+        admonition_index = int(translated_admonition["line_index"])
+        heading_index = admonition_index - 1
+        while heading_index >= 0 and not lines[heading_index].strip():
+            heading_index -= 1
+
+        if heading_index < 0:
+            continue
+
+        match = re.match(r"^(#{1,6})\s+(.*?)(?:\s+#+\s*)?$", lines[heading_index])
+        if not match:
+            continue
+
+        raw_heading = match.group(2).strip()
+        id_match = re.search(r"\s*\{#([A-Za-z0-9._:-]+)\}\s*$", raw_heading)
+        heading_text = raw_heading[: id_match.start()].rstrip() if id_match else raw_heading
+        if not heading_text:
+            continue
+
+        if any(lines[idx].strip() for idx in range(heading_index + 1, admonition_index)):
+            continue
+
+        repairs.append(
+            (
+                heading_index,
+                admonition_index,
+                str(translated_admonition["kind"]),
+                heading_text,
+            )
+        )
+
+    if not repairs:
+        return translated_text
+
+    for heading_index, admonition_index, kind, heading_text in reversed(repairs):
+        lines[admonition_index] = f":::{kind} {heading_text}"
+        del lines[heading_index:admonition_index]
+
+    rebuilt_body = "\n".join(lines)
+    if translated_body.endswith("\n"):
+        rebuilt_body += "\n"
+
+    return translated_frontmatter + rebuilt_body if translated_frontmatter else rebuilt_body
+
+
+def normalize_leading_anchor_heading_ids(text: str) -> str:
+    frontmatter, body = split_frontmatter(text)
+    lines = body.splitlines()
+    had_trailing_newline = body.endswith("\n")
+    seen_ids: set[str] = set()
+    normalized_lines: list[str] = []
+    index = 0
+
+    while index < len(lines):
+        line = lines[index]
+        anchor_match = re.match(r'^<a id="([A-Za-z0-9._:-]+)"></a>$', line.strip())
+        if not anchor_match or index + 1 >= len(lines):
+            normalized_lines.append(line)
+            index += 1
+            continue
+
+        heading_line = lines[index + 1]
+        heading_match = re.match(r"^(#{1,6}\s+.*?)(?:\s+\{#([A-Za-z0-9._:-]+)\})?\s*$", heading_line)
+        anchor_id = anchor_match.group(1)
+
+        if not heading_match or anchor_id in seen_ids:
+            normalized_lines.append(line)
+            index += 1
+            continue
+
+        if heading_match.group(2):
+            normalized_lines.append(line)
+            normalized_lines.append(heading_line)
+            seen_ids.add(heading_match.group(2))
+            index += 2
+            continue
+
+        normalized_lines.append(f"{heading_match.group(1)} {{#{anchor_id}}}")
+        seen_ids.add(anchor_id)
+        index += 2
+
+    rebuilt_body = "\n".join(normalized_lines)
+    if had_trailing_newline:
+        rebuilt_body += "\n"
+    return frontmatter + rebuilt_body if frontmatter else rebuilt_body
+
+
 def inject_source_anchor_aliases(source_text: str, translated_text: str) -> str:
-    source_frontmatter, source_body = split_frontmatter(source_text)
     translated_frontmatter, translated_body = split_frontmatter(translated_text)
 
     source_headings = extract_markdown_headings(source_text)
     translated_headings = extract_markdown_headings(translated_text)
-
-    if not source_headings or len(source_headings) != len(translated_headings):
-        return translated_text
+    source_admonitions = extract_markdown_admonitions(source_text)
+    translated_admonitions = extract_markdown_admonitions(translated_text)
 
     translated_lines = translated_body.splitlines()
     existing_aliases = set(re.findall(r'<a id="([^"]+)"></a>', translated_body))
     insertions: list[tuple[int, str]] = []
 
-    for source_heading, translated_heading in zip(source_headings, translated_headings, strict=True):
-        source_anchor = source_heading["explicit_id"] or slugify_heading_anchor(
-            str(source_heading["heading_text"])
-        )
-        translated_anchor = translated_heading["explicit_id"]
+    if source_headings and len(source_headings) == len(translated_headings):
+        for source_heading, translated_heading in zip(source_headings, translated_headings, strict=True):
+            source_anchor = source_heading["explicit_id"] or slugify_heading_anchor(
+                str(source_heading["heading_text"])
+            )
+            translated_anchor = translated_heading["explicit_id"]
 
-        if not source_anchor:
-            continue
-        if source_anchor == translated_anchor:
-            continue
-        if source_anchor in existing_aliases:
-            continue
+            if not source_anchor:
+                continue
+            if source_anchor == translated_anchor:
+                continue
+            if source_anchor in existing_aliases:
+                continue
 
-        insertions.append((int(translated_heading["line_index"]), f'<a id="{source_anchor}"></a>'))
-        existing_aliases.add(source_anchor)
+            insertions.append((int(translated_heading["line_index"]), f'<a id="{source_anchor}"></a>'))
+            existing_aliases.add(source_anchor)
+
+    if source_admonitions and len(source_admonitions) == len(translated_admonitions):
+        for source_admonition, translated_admonition in zip(
+            source_admonitions, translated_admonitions, strict=True
+        ):
+            source_title = source_admonition["title"]
+            translated_title = translated_admonition["title"]
+            if not source_title:
+                continue
+
+            source_anchor = slugify_heading_anchor(str(source_title))
+            translated_anchor = slugify_heading_anchor(str(translated_title)) if translated_title else ""
+            if not source_anchor:
+                continue
+            if source_anchor == translated_anchor:
+                continue
+            if source_anchor in existing_aliases:
+                continue
+
+            insertions.append(
+                (
+                    int(translated_admonition["line_index"]),
+                    f'<a id="{source_anchor}"></a>',
+                )
+            )
+            existing_aliases.add(source_anchor)
 
     if not insertions:
         return translated_text
@@ -570,7 +754,7 @@ def inject_source_anchor_aliases(source_text: str, translated_text: str) -> str:
 
 STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
     "developer-guide/creating-skills.md": {
-        "### 配置设置 (config.yaml)": "config-settings-configyaml",
+        "### 配置项（config.yaml）": "config-settings-configyaml",
     },
     "developer-guide/memory-provider-plugin.md": {
         "## 添加 CLI 命令": "adding-cli-commands",
@@ -583,15 +767,15 @@ STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
         "## SecretRef 处理": "secretref-handling",
     },
     "integrations/providers.md": {
-        "### WSL2 网络（Windows 用户）": "wsl2-networking-windows-users",
+        "### WSL2 网络配置（Windows 用户）": "wsl2-networking-windows-users",
         "### 上下文长度检测": "context-length-detection",
-        "## 回退模型 (Fallback Model)": "fallback-model",
+        "## 备用模型": "fallback-model",
     },
     "reference/faq.md": {
         "## Profile (配置文件)": "profiles",
     },
     "reference/slash-commands.md": {
-        "## 注意事项": "notes",
+        "## 说明": "notes",
     },
     "user-guide/cli.md": {
         "## 后台会话": "background-sessions",
@@ -612,8 +796,8 @@ STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
         "## 安全：提示词注入保护": "security-prompt-injection-protection",
     },
     "user-guide/features/hooks.md": {
-        "## Gateway 事件钩子": "gateway-event-hooks",
-        "## Plugin 钩子": "plugin-hooks",
+        "## 网关事件钩子": "gateway-event-hooks",
+        "## 插件钩子": "plugin-hooks",
     },
     "user-guide/features/mcp.md": {
         "### 动态工具发现": "dynamic-tool-discovery",
@@ -637,7 +821,7 @@ STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
         "## 后台会话": "background-sessions",
     },
     "user-guide/messaging/telegram.md": {
-        "## 第 3 步：隐私模式（群组关键设置）": "step-3-privacy-mode-critical-for-groups",
+        "## 步骤 3：隐私模式（对群组至关重要）": "step-3-privacy-mode-critical-for-groups",
         "## 私聊话题 (Bot API 9.4)": "private-chat-topics-bot-api-94",
     },
     "user-guide/security.md": {
@@ -657,15 +841,45 @@ STABLE_ALIAS_INSERTIONS: dict[str, list[tuple[str, str]]] = {
 }
 
 
+STABLE_HEADING_REWRITES: dict[str, dict[str, str]] = {
+    "developer-guide/creating-skills.md": {
+        "### 配置项（config.yaml） {#config-settings-config-yaml}": "### 配置项（config.yaml） {#config-settings-configyaml}",
+    },
+    "user-guide/features/hooks.md": {
+        "### `pre_tool_call` {#pretoolcall}": "### `pre_tool_call` {#pre_tool_call}",
+        "### `post_tool_call` {#posttoolcall}": "### `post_tool_call` {#post_tool_call}",
+        "### `pre_llm_call` {#prellmcall}": "### `pre_llm_call` {#pre_llm_call}",
+        "### `post_llm_call` {#postllmcall}": "### `post_llm_call` {#post_llm_call}",
+        "### `on_session_start` {#onsessionstart}": "### `on_session_start` {#on_session_start}",
+        "### `on_session_end` {#onsessionend}": "### `on_session_end` {#on_session_end}",
+        "### `on_session_finalize` {#onsessionfinalize}": "### `on_session_finalize` {#on_session_finalize}",
+        "### `on_session_reset` {#onsessionreset}": "### `on_session_reset` {#on_session_reset}",
+    },
+}
+
+
 def apply_stable_heading_ids(relative_path: Path, source_text: str, text: str) -> str:
     rel = relative_path.as_posix()
-    updated = inject_source_anchor_aliases(source_text, text)
+    updated = repair_split_admonition_titles(source_text, text)
+    updated = normalize_leading_anchor_heading_ids(updated)
+    updated = inject_source_anchor_aliases(source_text, updated)
+
+    for old_heading, new_heading in STABLE_HEADING_REWRITES.get(rel, {}).items():
+        updated = updated.replace(old_heading, new_heading)
 
     for heading, anchor_id in STABLE_HEADING_IDS.get(rel, {}).items():
         anchored_heading = f"{heading} {{#{anchor_id}}}"
         if anchored_heading in updated:
             continue
-        updated = updated.replace(heading, anchored_heading, 1)
+        heading_with_any_id = re.compile(
+            rf"^{re.escape(heading)}\s+\{{#[A-Za-z0-9._:-]+\}}\s*$",
+            re.MULTILINE,
+        )
+        if heading_with_any_id.search(updated):
+            continue
+
+        plain_heading_line = re.compile(rf"^{re.escape(heading)}$", re.MULTILINE)
+        updated = plain_heading_line.sub(anchored_heading, updated, count=1)
 
     for marker, alias_block in STABLE_ALIAS_INSERTIONS.get(rel, []):
         if alias_block in updated:
@@ -859,7 +1073,10 @@ def ensure_parent(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def translate_markdown_file(
+MIN_MARKDOWN_CHUNK_SIZE = 1000
+
+
+def _translate_markdown_file_once(
     client,
     transport: str,
     model: str,
@@ -888,7 +1105,10 @@ def translate_markdown_file(
             chunk_total=len(chunks) if len(chunks) > 1 else None,
             validate=validate,
         )
-        translated_chunk = repair_translated_frontmatter(frontmatter, translated_chunk)
+        if idx == 1:
+            translated_chunk = repair_translated_frontmatter(frontmatter, translated_chunk)
+        else:
+            translated_chunk = strip_unexpected_frontmatter(translated_chunk)
         translated_chunk = restore_source_link_destinations(payload, translated_chunk)
         translated_chunk = normalize_translated_markdown_links(translated_chunk)
         translated_chunk = escape_angle_placeholders_in_inline_code(translated_chunk)
@@ -907,6 +1127,63 @@ def translate_markdown_file(
     ensure_parent(target_path)
     target_path.write_text(translated, encoding="utf-8")
     print(f"[ok] {target_path.relative_to(REPO_ROOT)}")
+
+
+def translate_markdown_file(
+    client,
+    transport: str,
+    model: str,
+    source_path: Path,
+    target_path: Path,
+    source_root: Path = SOURCE_DOCS_ROOT,
+    dry_run: bool = False,
+    chunk_size: int = 8000,
+    validate: bool = True,
+) -> None:
+    attempt_chunk_size = chunk_size
+
+    while True:
+        try:
+            _translate_markdown_file_once(
+                client,
+                transport,
+                model,
+                source_path,
+                target_path,
+                source_root=source_root,
+                dry_run=dry_run,
+                chunk_size=attempt_chunk_size,
+                validate=validate,
+            )
+            return
+        except RuntimeError as exc:
+            if not validate:
+                raise
+
+            message = str(exc)
+            if (
+                "Markdown translation validation failed" not in message
+                and "Final markdown validation failed" not in message
+            ):
+                raise
+
+            if attempt_chunk_size <= MIN_MARKDOWN_CHUNK_SIZE:
+                raise
+
+            next_chunk_size = max(MIN_MARKDOWN_CHUNK_SIZE, attempt_chunk_size // 2)
+            if next_chunk_size == attempt_chunk_size:
+                raise
+
+            try:
+                display_path = target_path.relative_to(REPO_ROOT)
+            except ValueError:
+                display_path = target_path
+
+            print(
+                f"[retry-smaller-chunks] {display_path} chunk_size "
+                f"{attempt_chunk_size} -> {next_chunk_size} ({message})"
+            )
+            attempt_chunk_size = next_chunk_size
 
 
 def translate_json_file(

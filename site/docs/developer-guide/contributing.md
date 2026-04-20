@@ -4,11 +4,11 @@ title: "贡献指南"
 description: "如何为 Hermes Agent 贡献代码 —— 开发设置、代码风格、PR 流程"
 ---
 
-# 贡献指南
+# 贡献指南 {#contributing}
 
 感谢你为 Hermes Agent 做出贡献！本指南涵盖了开发环境搭建、代码库理解以及如何让你的 PR 被合并。
 
-## 贡献优先级
+## 贡献优先级 {#contribution-priorities}
 
 我们按以下顺序评估贡献的价值：
 
@@ -20,15 +20,15 @@ description: "如何为 Hermes Agent 贡献代码 —— 开发设置、代码�
 6. **新 Tool** —— 很少需要；大多数功能应该作为 Skill 实现
 7. **文档** —— 修复、澄清、新示例
 
-## 常见的贡献路径
+## 常见的贡献路径 {#common-contribution-paths}
 
 - 想要构建新 Tool？从 [添加 Tool](./adding-tools.md) 开始
 - 想要构建新 Skill？从 [创建 Skill](./creating-skills.md) 开始
 - 想要构建新的推理提供商（Provider）？从 [添加 Provider](./adding-providers.md) 开始
 
-## 开发设置
+## 开发设置 {#development-setup}
 
-### 前置条件
+### 前置条件 {#prerequisites}
 
 | 要求 | 备注 |
 |-------------|-------|
@@ -37,7 +37,7 @@ description: "如何为 Hermes Agent 贡献代码 —— 开发设置、代码�
 | **uv** | 极速 Python 包管理器 ([安装](https://docs.astral.sh/uv/)) |
 | **Node.js 18+** | 可选 —— 浏览器 Tool 和 WhatsApp 桥接需要 |
 
-### 克隆与安装
+### 克隆与安装 {#clone-and-install}
 
 ```bash
 git clone --recurse-submodules https://github.com/NousResearch/hermes-agent.git
@@ -55,7 +55,7 @@ uv pip install -e "./tinker-atropos"
 npm install
 ```
 
-### 开发配置
+### 开发配置 {#configure-for-development}
 
 ```bash
 mkdir -p ~/.hermes/{cron,sessions,logs,memories,skills}
@@ -66,7 +66,7 @@ touch ~/.hermes/.env
 echo 'OPENROUTER_API_KEY=sk-or-v1-your-key' >> ~/.hermes/.env
 ```
 
-### 运行
+### 运行 {#run}
 
 ```bash
 # 创建软链接以便全局访问
@@ -78,13 +78,13 @@ hermes doctor
 hermes chat -q "Hello"
 ```
 
-### 运行测试
+### 运行测试 {#run-tests}
 
 ```bash
 pytest tests/ -v
 ```
 
-## 代码风格
+## 代码风格 {#code-style}
 
 - **PEP 8**：允许实际开发中的例外（不强制限制行宽）
 - **注释**：仅在解释非显图意图、权衡取舍或 API 特性时使用
@@ -92,11 +92,11 @@ pytest tests/ -v
 - **跨平台**：永远不要假设环境是 Unix（见下文）
 - **Profile 安全路径**：永远不要硬编码 `~/.hermes` —— 代码路径请使用 `hermes_constants` 中的 `get_hermes_home()`，面向用户的消息请使用 `display_hermes_home()`。完整规则请参考 [AGENTS.md](https://github.com/NousResearch/hermes-agent/blob/main/AGENTS.md#profiles-multi-instance-support)。
 
-## 跨平台兼容性
+## 跨平台兼容性 {#cross-platform-compatibility}
 
 Hermes 正式支持 Linux、macOS 和 WSL2。**不支持**原生 Windows，但代码库包含了一些防御性编程模式，以避免在极端情况下发生硬崩溃。关键规则：
 
-### 1. `termios` 和 `fcntl` 仅限 Unix
+### 1. `termios` 和 `fcntl` 仅限 Unix {#1-termios-and-fcntl-are-unix-only}
 
 务必同时捕获 `ImportError` 和 `NotImplementedError`：
 
@@ -112,7 +112,7 @@ except (ImportError, NotImplementedError):
     idx = int(input("Choice: ")) - 1
 ```
 
-### 2. 文件编码
+### 2. 文件编码 {#2-file-encoding}
 
 某些环境可能会以非 UTF-8 编码保存 `.env` 文件：
 
@@ -123,7 +123,7 @@ except UnicodeDecodeError:
     load_dotenv(env_path, encoding="latin-1")
 ```
 
-### 3. 进程管理
+### 3. 进程管理 {#3-process-management}
 
 `os.setsid()`、`os.killpg()` 和信号处理在不同平台上有所不同：
 
@@ -133,15 +133,15 @@ if platform.system() != "Windows":
     kwargs["preexec_fn"] = os.sid
 ```
 
-### 4. 路径分隔符
+### 4. 路径分隔符 {#4-path-separators}
 
 使用 `pathlib.Path` 而不是使用 `/` 进行字符串拼接。
 
-## 安全考量
+## 安全考量 {#security-considerations}
 
 Hermes 拥有终端访问权限。安全性至关重要。
 
-### 现有保护机制
+### 现有保护机制 {#existing-protections}
 
 | 层级 | 实现方式 |
 |-------|---------------|
@@ -153,7 +153,7 @@ Hermes 拥有终端访问权限。安全性至关重要。
 | **代码执行沙箱** | 子进程运行时会剥离 API Key |
 | **容器加固** | Docker：丢弃所有 capability，禁止权限提升，限制 PID 数量 |
 
-### 贡献安全敏感代码
+### 贡献安全敏感代码 {#contributing-security-sensitive-code}
 
 - 在将用户输入插入 Shell 命令时，务必使用 `shlex.quote()`
 - 在进行访问控制检查前，先用 `os.path.realpath()` 解析符号链接
@@ -161,9 +161,9 @@ Hermes 拥有终端访问权限。安全性至关重要。
 - 在 Tool 执行周围捕获宽泛的异常
 - 如果你的更改涉及文件路径或进程，请在所有平台上进行测试
 
-## Pull Request 流程
+## Pull Request 流程 {#pull-request-process}
 
-### 分支命名
+### 分支命名 {#branch-naming}
 
 ```
 fix/description        # Bug 修复
@@ -173,14 +173,14 @@ test/description       # 测试
 refactor/description   # 代码重构
 ```
 
-### 提交之前
+### 提交之前 {#before-submitting}
 
 1. **运行测试**：`pytest tests/ -v`
 2. **手动测试**：运行 `hermes` 并执行你修改的代码路径
 3. **检查跨平台影响**：考虑 macOS 和不同的 Linux 发行版
 4. **保持 PR 聚焦**：每个 PR 只包含一个逻辑变更
 
-### PR 描述
+### PR 描述 {#pr-description}
 
 需包含：
 - **修改了什么**以及**为什么**修改
@@ -188,7 +188,7 @@ refactor/description   # 代码重构
 - 你在**哪些平台**上进行了测试
 - 引用任何相关的 Issue
 
-### Commit 消息
+### Commit 消息 {#commit-messages}
 
 我们使用 [Conventional Commits](https://www.conventionalcommits.org/) 规范：
 
@@ -214,7 +214,7 @@ feat(gateway): add WhatsApp multi-user session isolation
 fix(security): prevent shell injection in sudo password piping
 ```
 
-## 报告问题
+## 报告问题 {#reporting-issues}
 
 - 使用 [GitHub Issues](https://github.com/NousResearch/hermes-agent/issues)
 - 包含：操作系统、Python 版本、Hermes 版本（`hermes version`）、完整的错误堆栈追踪
@@ -222,12 +222,12 @@ fix(security): prevent shell injection in sudo password piping
 - 在创建重复问题前先检查现有 Issue
 - 对于安全漏洞，请进行私下报告
 
-## 社区
+## 社区 {#community}
 
 - **Discord**: [discord.gg/NousResearch](https://discord.gg/NousResearch)
 - **GitHub Discussions**: 用于设计提案和架构讨论
 - **Skills Hub**: 上传专门的 Skill 并与社区分享
 
-## 许可证
+## 许可证 {#license}
 
 通过贡献代码，你同意你的贡献将基于 [MIT License](https://github.com/NousResearch/hermes-agent/blob/main/LICENSE) 进行授权。

@@ -5,11 +5,11 @@ title: "上下文引用"
 description: "使用行内 @ 语法直接在消息中附加文件、文件夹、git diff 和 URL"
 ---
 
-# 上下文引用
+# 上下文引用 {#context-references}
 
 输入 `@` 后跟引用内容，即可将内容直接注入到消息中。Hermes 会在行内展开引用，并将具体内容附加在消息末尾的 `--- Attached Context ---` 部分。
 
-## 支持的引用类型
+## 支持的引用类型 {#supported-references}
 
 | 语法 | 描述 |
 |--------|-------------|
@@ -21,7 +21,7 @@ description: "使用行内 @ 语法直接在消息中附加文件、文件夹、
 | `@git:5` | 注入最近 N 条提交及其补丁（最多 10 条） |
 | `@url:https://example.com` | 获取并注入网页内容 |
 
-## 使用示例
+## 使用示例 {#usage-examples}
 
 ```text
 Review @file:src/main.py and suggest improvements
@@ -43,7 +43,7 @@ Check @file:main.py, and also @file:test.py.
 
 引用值末尾的标点符号（`,`、`.`、`;`、`!`、`?`）会被自动剔除。
 
-## CLI Tab 补全
+## CLI Tab 补全 {#cli-tab-completion}
 
 在交互式 CLI 中，输入 `@` 会触发自动补全：
 
@@ -51,7 +51,7 @@ Check @file:main.py, and also @file:test.py.
 - `@file:` 和 `@folder:` 触发文件系统路径补全，并显示文件大小元数据
 - 仅输入 `@` 后跟部分文本，会显示当前目录下匹配的文件和文件夹
 
-## 行范围
+## 行范围 {#line-ranges}
 
 `@file:` 引用支持行范围，以便精确注入内容：
 
@@ -62,7 +62,7 @@ Check @file:main.py, and also @file:test.py.
 
 行号从 1 开始。无效的范围会被静默忽略（返回完整文件）。
 
-## 大小限制
+## 大小限制 {#size-limits}
 
 上下文引用设有上限，以防止超出模型的上下文窗口：
 
@@ -73,9 +73,9 @@ Check @file:main.py, and also @file:test.py.
 | 文件夹条目 | 最多 200 个文件 | 超出部分被替换为 `- ...` |
 | Git 提交 | 最多 10 条 | `@git:N` 被限制在 [1, 10] 范围内 |
 
-## 安全性
+## 安全性 {#security}
 
-### 敏感路径阻断
+### 敏感路径阻断 {#sensitive-path-blocking}
 
 为了防止凭据泄露，以下路径始终禁止通过 `@file:` 引用：
 
@@ -87,21 +87,21 @@ Check @file:main.py, and also @file:test.py.
 以下目录被完全阻断（其中的任何文件都无法访问）：
 - `~/.ssh/`、`~/.aws/`、`~/.gnupg/`、`~/.kube/`、`$HERMES_HOME/skills/.hub/`
 
-### 路径穿越保护
+### 路径穿越保护 {#path-traversal-protection}
 
 所有路径都相对于工作目录进行解析。解析到允许的工作区根目录之外的引用将被拒绝。
 
-### 二进制文件检测
+### 二进制文件检测 {#binary-file-detection}
 
 通过 MIME 类型和空字节（null-byte）扫描来检测二进制文件。已知的文本扩展名（`.py`、`.md`、`.json`、`.yaml`、`.toml`、`.js`、`.ts` 等）会绕过基于 MIME 的检测。二进制文件将被拒绝并发出警告。
 
-## 平台可用性
+## 平台可用性 {#platform-availability}
 
 上下文引用主要是一项 **CLI 功能**。它们在交互式 CLI 中工作，其中 `@` 会触发 Tab 补全，并且在消息发送给 Agent 之前会先展开引用。
 
 在 **即时通讯平台**（Telegram、Discord 等）中，网关不会展开 `@` 语法 —— 消息会原样传递。Agent 本身仍然可以通过 `read_file`、`search_files` 和 `web_extract` 工具来引用文件。
 
-## 与上下文压缩的交互
+## 与上下文压缩的交互 {#interaction-with-context-compression}
 
 当对话上下文被压缩时，展开的引用内容会被包含在压缩摘要中。这意味着：
 
@@ -109,7 +109,7 @@ Check @file:main.py, and also @file:test.py.
 - 如果对话稍后被压缩，文件内容会被总结（而不是逐字保留）
 - 对于非常大的文件，建议使用行范围（如 `@file:main.py:100-200`）仅注入相关的部分
 
-## 常见模式
+## 常见模式 {#common-patterns}
 
 ```text
 # 代码审查工作流
@@ -127,7 +127,7 @@ Compare the approaches in @url:https://arxiv.org/abs/2301.00001
 and @url:https://arxiv.org/abs/2301.00002
 ```
 
-## 错误处理
+## 错误处理 {#error-handling}
 
 无效的引用会产生行内警告，而不是导致失败：
 

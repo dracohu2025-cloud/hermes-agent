@@ -4,27 +4,27 @@ title: "WeCom (企业微信)"
 description: "通过 AI Bot WebSocket 网关将 Hermes Agent 连接到企业微信"
 ---
 
-# WeCom (企业微信)
+# WeCom (企业微信) {#wecom-enterprise-wechat}
 
 将 Hermes 连接到 [企业微信](https://work.weixin.qq.com/) (WeCom)，这是腾讯推出的企业级通讯平台。该适配器使用企业微信的 AI Bot WebSocket 网关进行实时双向通信 —— 无需公网端点或 Webhook。
 
-## 前置条件
+## 前置条件 {#prerequisites}
 
 - 一个企业微信组织账号
 - 在企业微信管理后台创建一个 AI Bot
 - 来自机器人凭据页面的 Bot ID 和 Secret
 - Python 包：`aiohttp` 和 `httpx`
 
-## 设置
+## 设置 {#setup}
 
-### 1. 创建 AI Bot
+### 1. 创建 AI Bot {#1-create-an-ai-bot}
 
 1. 登录 [企业微信管理后台](https://work.weixin.qq.com/wework_admin/frame)
 2. 导航至 **应用管理** → **创建应用** → **AI Bot**
 3. 配置机器人名称和描述
 4. 从凭据页面复制 **Bot ID** 和 **Secret**
 
-### 2. 配置 Hermes
+### 2. 配置 Hermes {#2-configure-hermes}
 
 运行交互式设置：
 
@@ -47,13 +47,13 @@ WECOM_ALLOWED_USERS=user_id_1,user_id_2
 WECOM_HOME_CHANNEL=chat_id
 ```
 
-### 3. 启动网关
+### 3. 启动网关 {#3-start-the-gateway}
 
 ```bash
 hermes gateway
 ```
 
-## 功能特性
+## 功能特性 {#features}
 
 - **WebSocket 传输** —— 持久连接，无需公网端点
 - **私聊和群聊消息** —— 可配置的访问策略
@@ -65,7 +65,7 @@ hermes gateway
 - **回复模式流式传输** —— 将响应与入站消息上下文关联
 - **自动重连** —— 连接断开时采用指数退避机制
 
-## 配置选项
+## 配置选项 {#configuration-options}
 
 在 `config.yaml` 的 `platforms.wecom.extra` 下设置这些选项：
 
@@ -80,9 +80,9 @@ hermes gateway
 | `group_allow_from` | `[]` | 允许的群组 ID (当 group_policy=allowlist 时) |
 | `groups` | `{}` | 特定群组配置 (见下文) |
 
-## 访问策略
+## 访问策略 {#access-policies}
 
-### 私聊策略 (DM Policy)
+### 私聊策略 (DM Policy) {#dm-policy}
 
 控制谁可以向 Agent 发送私聊消息：
 
@@ -97,7 +97,7 @@ hermes gateway
 WECOM_DM_POLICY=allowlist
 ```
 
-### 群聊策略 (Group Policy)
+### 群聊策略 (Group Policy) {#group-policy}
 
 控制 Agent 在哪些群组中做出响应：
 
@@ -111,7 +111,7 @@ WECOM_DM_POLICY=allowlist
 WECOM_GROUP_POLICY=allowlist
 ```
 
-### 分群组发送者白名单
+### 分群组发送者白名单 {#per-group-sender-allowlists}
 
 为了实现精细化控制，你可以限制特定群组内允许与 Agent 交互的用户。这在 `config.yaml` 中配置：
 
@@ -149,9 +149,9 @@ platforms:
 
 如果群组未配置 `allow_from`，则该群组中的所有用户都被允许（前提是群组本身通过了顶级策略检查）。
 
-## 媒体支持
+## 媒体支持 {#media-support}
 
-### 入站 (接收)
+### 入站 (接收) {#inbound-receiving}
 
 适配器接收来自用户的媒体附件并将其缓存在本地供 Agent 处理：
 
@@ -164,7 +164,7 @@ platforms:
 
 **引用消息：** 被引用（回复）的消息中的媒体也会被提取，因此 Agent 拥有关于用户回复内容的上下文。
 
-### AES 加密媒体解密
+### AES 加密媒体解密 {#aes-encrypted-media-decryption}
 
 企业微信使用 AES-256-CBC 加密某些入站媒体附件。适配器会自动处理：
 
@@ -175,7 +175,7 @@ platforms:
 
 无需配置 —— 收到加密媒体时会自动进行透明解密。
 
-### 出站 (发送)
+### 出站 (发送) {#outbound-sending}
 
 | 方法 | 发送内容 | 大小限制 |
 |--------|--------------|------------|
@@ -196,7 +196,7 @@ platforms:
 
 超过 20 MB 绝对限制的文件将被拒绝，并向聊天窗口发送一条提示消息。
 
-## 回复模式流式响应
+## 回复模式流式响应 {#reply-mode-stream-responses}
 
 当 Agent 通过企业微信回调接收到消息时，适配器会记住入站请求 ID。如果在请求上下文仍处于活动状态时发送响应，适配器将使用企业微信的回复模式 (`aibot_respond_msg`) 并配合流式传输，将响应直接与入站消息关联。这在企业微信客户端中提供了更自然的对话体验。
 
@@ -204,16 +204,16 @@ platforms:
 
 回复模式也适用于媒体：上传的媒体可以作为对原始消息的回复发送。
 
-## 连接与重连
+## 连接与重连 {#connection-and-reconnection}
 
 适配器维持一个到企业微信网关 `wss://openws.work.weixin.qq.com` 的持久 WebSocket 连接。
 
-### 连接生命周期
+### 连接生命周期 {#connection-lifecycle}
 
 1. **连接：** 开启 WebSocket 连接并发送包含 bot_id 和 secret 的 `aibot_subscribe` 认证帧。
 2. **心跳：** 每 30 秒发送一次应用级 ping 帧以保持连接活跃。
 3. **监听：** 持续读取入站帧并分发消息回调。
-### 重连行为
+### 重连行为 {#reconnection-behavior}
 
 当连接断开时，适配器会使用指数退避算法进行重连：
 
@@ -227,11 +227,11 @@ platforms:
 
 每次重连成功后，退避计数器都会重置为零。连接断开时，所有挂起的请求（futures）都会被标记为失败，以防止调用方无限期挂起。
 
-### 去重机制
+### 去重机制 {#deduplication}
 
 入站消息会根据消息 ID 进行去重，去重窗口为 5 分钟，缓存条目上限为 1000 条。这可以防止在重连或网络波动期间重复处理消息。
 
-## 所有环境变量
+## 所有环境变量 {#all-environment-variables}
 
 | 变量名 | 必填 | 默认值 | 描述 |
 |----------|----------|---------|-------------|
@@ -243,7 +243,7 @@ platforms:
 | `WECOM_DM_POLICY` | — | `open` | 私聊访问策略 |
 | `WECOM_GROUP_POLICY` | — | `open` | 群聊访问策略 |
 
-## 故障排除
+## 故障排除 {#troubleshooting}
 
 | 问题 | 解决方法 |
 |---------|-----|

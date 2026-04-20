@@ -4,11 +4,11 @@ title: "Context Engine 插件"
 description: "如何构建一个用于替换内置 ContextCompressor 的 Context Engine 插件"
 ---
 
-# 构建 Context Engine 插件
+# 构建 Context Engine 插件 {#building-a-context-engine-plugin}
 
 Context Engine 插件用于替换内置的 `ContextCompressor`，提供另一种管理对话上下文的策略。例如，你可以构建一个无损上下文管理（Lossless Context Management, LCM）引擎，通过构建知识 DAG（有向无环图）来代替有损的摘要算法。
 
-## 工作原理
+## 工作原理 {#how-it-works}
 
 Agent 的上下文管理构建在 `ContextEngine` 抽象基类（ABC）之上（位于 `agent/context_engine.py`）。内置的 `ContextCompressor` 是默认实现。插件引擎必须实现相同的接口。
 
@@ -23,7 +23,7 @@ context:
 
 插件引擎**不会自动激活**——用户必须显式地将 `context.engine` 设置为插件的名称。
 
-## 目录结构
+## 目录结构 {#directory-structure}
 
 每个 Context Engine 都位于 `plugins/context_engine/<name>/` 目录下：
 
@@ -34,7 +34,7 @@ plugins/context_engine/lcm/
 └── ...              # 引擎所需的任何其他模块
 ```
 
-## ContextEngine 抽象基类 (ABC)
+## ContextEngine 抽象基类 (ABC) {#the-contextengine-abc}
 
 你的引擎必须实现以下**必需**方法：
 
@@ -65,7 +65,7 @@ class LCMEngine(ContextEngine):
         """
 ```
 
-### 你的引擎必须维护的类属性
+### 你的引擎必须维护的类属性 {#class-attributes-your-engine-must-maintain}
 
 Agent 会直接读取这些属性用于显示和日志记录：
 
@@ -78,7 +78,7 @@ context_length: int = 0          # 模型的完整上下文窗口
 compression_count: int = 0       # compress() 已运行的次数
 ```
 
-### 可选方法
+### 可选方法 {#optional-methods}
 
 这些方法在抽象基类中已有合理的默认实现。你可以根据需要进行重写：
 
@@ -93,7 +93,7 @@ compression_count: int = 0       # compress() 已运行的次数
 | `should_compress_preflight(messages)` | 返回 `False` | 你可以在 API 调用前进行低成本预估时 |
 | `get_status()` | 标准 Token/阈值字典 | 有需要展示的自定义指标时 |
 
-## 引擎工具
+## 引擎工具 {#engine-tools}
 
 Context Engine 可以暴露 Agent 直接调用的工具。通过 `get_tool_schemas()` 返回模式，并在 `handle_tool_call()` 中处理调用：
 
@@ -120,13 +120,13 @@ def handle_tool_call(self, name, args, **kwargs):
 
 引擎工具会在启动时注入到 Agent 的工具列表中并自动分发——无需手动注册。
 
-## 注册
+## 注册 {#registration}
 
-### 通过目录注册（推荐）
+### 通过目录注册（推荐） {#via-directory-recommended}
 
 将你的引擎放在 `plugins/context_engine/<name>/` 中。`__init__.py` 必须导出一个 `ContextEngine` 子类。发现系统会自动找到并实例化它。
 
-### 通过通用插件系统注册
+### 通过通用插件系统注册 {#via-general-plugin-system}
 
 通用插件也可以注册 Context Engine：
 
@@ -138,7 +138,7 @@ def register(ctx):
 
 同一时间只能注册一个引擎。如果第二个插件尝试注册，系统会拒绝并发出警告。
 
-## 生命周期
+## 生命周期 {#lifecycle}
 
 ```
 1. 引擎实例化（插件加载或目录发现）
@@ -151,7 +151,7 @@ def register(ctx):
 
 `on_session_reset()` 会在执行 `/new` 或 `/reset` 时被调用，用于在不完全关闭的情况下清除会话级状态。
 
-## 配置
+## 配置 {#configuration}
 
 用户可以通过 `hermes plugins` → Provider Plugins → Context Engine 选择你的引擎，或者通过编辑 `config.yaml` 来选择：
 
@@ -162,7 +162,7 @@ context:
 
 `compression` 配置块（`compression.threshold`、`compression.protect_last_n` 等）是内置 `ContextCompressor` 专用的。如果需要，你的引擎应在初始化时从 `config.yaml` 读取并定义自己的配置格式。
 
-## 测试
+## 测试 {#testing}
 
 ```python
 from agent.context_engine import ContextEngine
@@ -182,7 +182,7 @@ def test_compress_returns_valid_messages():
 
 查看 `tests/agent/test_context_engine.py` 获取完整的 ABC 合约测试套件。
 
-## 参阅
+## 参阅 {#see-also}
 
 - [Context Compression and Caching](/developer-guide/context-compression-and-caching) — 内置压缩器的工作原理
 - [Memory Provider Plugins](/developer-guide/memory-provider-plugin) — 类似的单选式内存插件系统

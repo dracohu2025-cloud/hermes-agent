@@ -4,13 +4,13 @@ title: "将 Hermes 作为 Python 库使用"
 description: "在你的 Python 脚本、Web 应用或自动化流水线中嵌入 AIAgent —— 无需 CLI"
 ---
 
-# 将 Hermes 作为 Python 库使用
+# 将 Hermes 作为 Python 库使用 {#using-hermes-as-a-python-library}
 
 Hermes 不仅仅是一个 CLI 工具。你可以直接导入 `AIAgent`，并在你自己的 Python 脚本、Web 应用程序或自动化流水线中以编程方式使用它。本指南将向你展示如何操作。
 
 ---
 
-## 安装
+## 安装 {#installation}
 
 直接从仓库安装 Hermes：
 
@@ -36,7 +36,7 @@ hermes-agent @ git+https://github.com/NousResearch/hermes-agent.git
 
 ---
 
-## 基础用法
+## 基础用法 {#basic-usage}
 
 使用 Hermes 最简单的方法是 `chat()` 方法 —— 传入一条消息，返回一个字符串：
 
@@ -59,7 +59,7 @@ print(response)
 
 ---
 
-## 完整的对话控制
+## 完整的对话控制 {#full-conversation-control}
 
 如果需要对对话进行更多控制，请直接使用 `run_conversation()`。它会返回一个包含完整响应、消息历史记录和元数据的字典：
 
@@ -94,7 +94,7 @@ result = agent.run_conversation(
 
 ---
 
-## 配置工具
+## 配置工具 {#configuring-tools}
 
 使用 `enabled_toolsets` 或 `disabled_toolsets` 来控制 Agent 可以访问哪些工具集：
 
@@ -120,7 +120,7 @@ agent = AIAgent(
 
 ---
 
-## 多轮对话
+## 多轮对话 {#multi-turn-conversations}
 
 通过将消息历史记录传回，可以在多轮对话中保持对话状态：
 
@@ -146,7 +146,7 @@ print(result2["final_response"])  # "Your name is Alice."
 
 ---
 
-## 保存轨迹 (Trajectories)
+## 保存轨迹 (Trajectories) {#saving-trajectories}
 
 启用轨迹保存以 ShareGPT 格式捕获对话 —— 这对于生成训练数据或调试非常有用：
 
@@ -165,7 +165,7 @@ agent.chat("Write a Python function to sort a list")
 
 ---
 
-## 自定义系统提示词
+## 自定义系统提示词 {#custom-system-prompts}
 
 使用 `ephemeral_system_prompt` 设置自定义系统提示词来引导 Agent 的行为，但该提示词**不会**保存到轨迹文件中（保持训练数据的纯净）：
 
@@ -184,7 +184,7 @@ print(response)
 
 ---
 
-## 批量处理
+## 批量处理 {#batch-processing}
 
 为了并行运行多个提示词，Hermes 包含了 `batch_runner.py`。它管理具有适当资源隔离的并发 `AIAgent` 实例：
 
@@ -226,9 +226,9 @@ for prompt, result in zip(prompts, results):
 
 ---
 
-## 集成示例
+## 集成示例 {#integration-examples}
 
-### FastAPI 接口
+### FastAPI 接口 {#fastapi-endpoint}
 
 ```python
 from fastapi import FastAPI
@@ -253,7 +253,7 @@ async def chat(request: ChatRequest):
     return {"response": response}
 ```
 
-### Discord 机器人
+### Discord 机器人 {#discord-bot}
 
 ```python
 import discord
@@ -280,7 +280,7 @@ async def on_message(message):
 client.run("YOUR_DISCORD_TOKEN")
 ```
 
-### CI/CD 流水线步骤
+### CI/CD 流水线步骤 {#ci-cd-pipeline-step}
 
 ```python
 #!/usr/bin/env python3
@@ -306,7 +306,7 @@ print(review)
 
 ---
 
-## 关键构造函数参数
+## 关键构造函数参数 {#key-constructor-parameters}
 
 | 参数 | 类型 | 默认值 | 描述 |
 |-----------|------|---------|-------------|
@@ -324,7 +324,7 @@ print(review)
 | `platform` | `str` | `None` | 平台提示（`"discord"`, `"telegram"` 等） |
 ---
 
-## 重要说明
+## 重要说明 {#important-notes}
 
 :::tip
 - 如果你不希望将工作目录中的 `AGENTS.md` 文件加载到系统提示词（system prompt）中，请设置 **`skip_context_files=True`**。

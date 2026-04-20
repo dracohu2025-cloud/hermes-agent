@@ -4,13 +4,13 @@ title: "在 Hermes 中使用 MCP"
 description: "将 MCP 服务连接到 Hermes Agent、过滤其工具并在实际工作流中安全使用它们的实用指南"
 ---
 
-# 在 Hermes 中使用 MCP
+# 在 Hermes 中使用 MCP {#use-mcp-with-hermes}
 
 本指南将展示如何在日常工作流中实际使用 MCP 与 Hermes Agent。
 
 如果说功能介绍页解释了什么是 MCP，那么本指南则侧重于如何快速、安全地从中获取价值。
 
-## 什么时候该使用 MCP？
+## 什么时候该使用 MCP？ {#when-should-you-use-mcp}
 
 在以下情况下使用 MCP：
 - 某个工具已经以 MCP 形式存在，且你不想构建原生的 Hermes 工具
@@ -23,7 +23,7 @@ description: "将 MCP 服务连接到 Hermes Agent、过滤其工具并在实际
 - 该服务暴露了大量危险的工具接口，而你还没准备好对其进行过滤
 - 你只需要一个非常简单的集成，此时原生工具会更简单、更安全
 
-## 心理模型
+## 心理模型 {#mental-model}
 
 将 MCP 视为一个适配层：
 
@@ -35,7 +35,7 @@ description: "将 MCP 服务连接到 Hermes Agent、过滤其工具并在实际
 
 最后一点至关重要。良好的 MCP 使用习惯不是“连接一切”，而是“以最小的有用接口连接正确的东西”。
 
-## 第 1 步：安装 MCP 支持
+## 第 1 步：安装 MCP 支持 {#step-1-install-mcp-support}
 
 如果你是使用标准安装脚本安装的 Hermes，那么 MCP 支持已经包含在内了（安装程序运行了 `uv pip install -e ".[all]"`）。
 
@@ -50,7 +50,7 @@ uv pip install -e ".[mcp]"
 
 对于许多 Python MCP 服务，使用 `uvx` 是一个不错的默认选择。
 
-## 第 2 步：先添加一个服务
+## 第 2 步：先添加一个服务 {#step-2-add-one-server-first}
 
 从单个、安全的服务开始。
 
@@ -75,7 +75,7 @@ hermes chat
 检查这个项目并总结代码库的布局。
 ```
 
-## 第 3 步：验证 MCP 是否加载
+## 第 3 步：验证 MCP 是否加载 {#step-3-verify-mcp-loaded}
 
 你可以通过以下几种方式验证 MCP：
 
@@ -90,11 +90,11 @@ hermes chat
 告诉我当前有哪些由 MCP 支持的工具可用。
 ```
 
-## 第 4 步：立即开始过滤
+## 第 4 步：立即开始过滤 {#step-4-start-filtering-immediately}
 
 如果服务暴露了大量工具，不要等到以后再处理。
 
-### 示例：仅将你需要的工具加入白名单
+### 示例：仅将你需要的工具加入白名单 {#example-whitelist-only-what-you-want}
 
 ```yaml
 mcp_servers:
@@ -109,7 +109,7 @@ mcp_servers:
 
 对于敏感系统，这通常是最佳的默认做法。
 
-### 示例：黑名单禁用危险操作
+### 示例：黑名单禁用危险操作 {#example-blacklist-dangerous-actions}
 
 ```yaml
 mcp_servers:
@@ -121,7 +121,7 @@ mcp_servers:
       exclude: [delete_customer, refund_payment]
 ```
 
-### 示例：同时禁用辅助封装器
+### 示例：同时禁用辅助封装器 {#example-disable-utility-wrappers-too}
 
 ```yaml
 mcp_servers:
@@ -132,7 +132,7 @@ mcp_servers:
       resources: false
 ```
 
-## 过滤实际上会影响什么？
+## 过滤实际上会影响什么？ {#what-does-filtering-actually-affect}
 
 Hermes 中由 MCP 暴露的功能分为两类：
 
@@ -146,7 +146,7 @@ Hermes 中由 MCP 暴露的功能分为两类：
   - `tools.resources`
   - `tools.prompts`
 
-### 你可能会看到的辅助封装器
+### 你可能会看到的辅助封装器 {#utility-wrappers-you-may-see}
 
 资源（Resources）：
 - `list_resources`
@@ -162,9 +162,9 @@ Hermes 中由 MCP 暴露的功能分为两类：
 
 因此，如果服务本身不支持资源/提示词，Hermes 不会假装它有。
 
-## 常见模式
+## 常见模式 {#common-patterns}
 
-### 模式 1：本地项目助手
+### 模式 1：本地项目助手 {#pattern-1-local-project-assistant}
 
 当你希望 Hermes 在限定的工作空间内进行推理时，为本地项目文件系统或 git 服务使用 MCP。
 
@@ -189,7 +189,7 @@ mcp_servers:
 检查本地 git 状态并总结最近的更改。
 ```
 
-### 模式 2：GitHub 分类助手
+### 模式 2：GitHub 分类助手 {#pattern-2-github-triage-assistant}
 
 ```yaml
 mcp_servers:
@@ -214,7 +214,7 @@ mcp_servers:
 在代码库中搜索 _discover_and_register_server 的使用情况，并解释 MCP 工具是如何注册的。
 ```
 
-### 模式 3：内部 API 助手
+### 模式 3：内部 API 助手 {#pattern-3-internal-api-assistant}
 
 ```yaml
 mcp_servers:
@@ -236,7 +236,7 @@ mcp_servers:
 
 在这种场景下，严格的白名单比黑名单要好得多。
 
-### 模式 4：文档 / 知识服务
+### 模式 4：文档 / 知识服务 {#pattern-4-documentation-knowledge-servers}
 
 某些 MCP 服务暴露的提示词或资源更像是共享的知识资产，而不是直接的操作。
 
@@ -259,11 +259,11 @@ mcp_servers:
 列出文档服务暴露的提示词，并告诉我哪些提示词对事件响应有帮助。
 ```
 
-## 教程：带过滤的端到端设置
+## 教程：带过滤的端到端设置 {#tutorial-end-to-end-setup-with-filtering}
 
 这是一个实际的操作流程。
 
-### 阶段 1：添加带严格白名单的 GitHub MCP
+### 阶段 1：添加带严格白名单的 GitHub MCP {#phase-1-add-github-mcp-with-a-tight-whitelist}
 
 ```yaml
 mcp_servers:
@@ -284,7 +284,7 @@ mcp_servers:
 在代码库中搜索对 MCP 的引用，并总结主要的集成点。
 ```
 
-### 阶段 2：仅在需要时扩展
+### 阶段 2：仅在需要时扩展 {#phase-2-expand-only-when-needed}
 
 如果你稍后也需要更新 issue：
 
@@ -299,7 +299,7 @@ tools:
 /reload-mcp
 ```
 
-### 阶段 3：添加具有不同策略的第二个服务
+### 阶段 3：添加具有不同策略的第二个服务 {#phase-3-add-a-second-server-with-different-policy}
 
 ```yaml
 mcp_servers:
@@ -326,15 +326,15 @@ mcp_servers:
 
 这就是 MCP 强大的地方：无需更改 Hermes 核心即可实现跨系统工作流。
 
-## 安全使用建议
+## 安全使用建议 {#safe-usage-recommendations}
 
-### 对危险系统优先使用允许列表（Allowlists）
+### 对危险系统优先使用允许列表（Allowlists） {#prefer-allowlists-for-dangerous-systems}
 
 对于任何涉及财务、面向客户或具有破坏性的操作：
 - 使用 `tools.include`
 - 从尽可能小的工具集开始
 
-### 禁用未使用的辅助工具
+### 禁用未使用的辅助工具 {#disable-unused-utilities}
 
 如果你不希望模型浏览服务提供的资源/提示词，请关闭它们：
 
@@ -344,13 +344,13 @@ tools:
   prompts: false
 ```
 
-### 保持服务范围狭窄
+### 保持服务范围狭窄 {#keep-servers-scoped-narrowly}
 
 示例：
 - 文件系统服务的根目录设为一个项目目录，而不是你的整个家目录
 - git 服务指向单个代码库
 - 内部 API 服务默认仅暴露偏向读取的工具
-### 配置更改后重新加载
+### 配置更改后重新加载 {#reload-after-config-changes}
 
 ```text
 /reload-mcp
@@ -362,9 +362,9 @@ tools:
 - resources/prompts 开关
 - 认证请求头（auth headers）/ 环境变量（env）
 
-## 按症状排查问题
+## 按症状排查问题 {#troubleshooting-by-symptom}
 
-### “服务器已连接，但我预期的工具缺失了”
+### “服务器已连接，但我预期的工具缺失了” {#the-server-connects-but-the-tools-i-expected-are-missing}
 
 可能的原因：
 - 被 `tools.include` 过滤掉了
@@ -372,7 +372,7 @@ tools:
 - 通过 `resources: false` 或 `prompts: false` 禁用了工具封装器
 - 服务器实际上并不支持 resources/prompts
 
-### “服务器已配置，但没有任何内容加载”
+### “服务器已配置，但没有任何内容加载” {#the-server-is-configured-but-nothing-loads}
 
 检查：
 - 配置中是否遗留了 `enabled: false`
@@ -380,11 +380,11 @@ tools:
 - HTTP 端点是否可访问
 - 认证环境变量或请求头是否正确
 
-### “为什么我看到的工具比 MCP server 宣称的要少？”
+### “为什么我看到的工具比 MCP server 宣称的要少？” {#why-do-i-see-fewer-tools-than-the-mcp-server-advertises}
 
 因为 Hermes 现在会遵循你为每个服务器设置的策略以及感知能力的注册机制。这是预期行为，通常也是我们希望看到的结果。
 
-### “如何在不删除配置的情况下移除一个 MCP server？”
+### “如何在不删除配置的情况下移除一个 MCP server？” {#how-do-i-remove-an-mcp-server-without-deleting-the-config}
 
 使用：
 
@@ -394,7 +394,7 @@ enabled: false
 
 这会保留配置，但会阻止连接和注册。
 
-## 推荐的初次 MCP 设置
+## 推荐的初次 MCP 设置 {#recommended-first-mcp-setups}
 
 适合大多数用户的入门级服务器：
 - filesystem
@@ -407,7 +407,7 @@ enabled: false
 - 包含大量破坏性操作且没有过滤机制的大型业务系统
 - 任何你了解不够深入、无法对其进行限制的系统
 
-## 相关文档
+## 相关文档 {#related-docs}
 
 - [MCP (Model Context Protocol)](/user-guide/features/mcp)
 - [FAQ](/reference/faq)

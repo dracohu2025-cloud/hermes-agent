@@ -4,7 +4,7 @@ title: "Prompt 组装"
 description: "Hermes 如何构建系统 Prompt、保持缓存稳定性以及注入临时层"
 ---
 
-# Prompt 组装
+# Prompt 组装 {#prompt-assembly}
 
 Hermes 有意识地将以下内容分开：
 
@@ -24,7 +24,7 @@ Hermes 有意识地将以下内容分开：
 - `agent/prompt_builder.py`
 - `tools/memory_tool.py`
 
-## 缓存的系统 Prompt 层
+## 缓存的系统 Prompt 层 {#cached-system-prompt-layers}
 
 缓存的系统 Prompt 大致按以下顺序组装：
 
@@ -41,7 +41,7 @@ Hermes 有意识地将以下内容分开：
 
 当设置了 `skip_context_files` 时（例如子 Agent 委派），不会加载 `SOUL.md`，而是使用硬编码的 `DEFAULT_AGENT_IDENTITY`。
 
-### 具体示例：组装后的系统 Prompt
+### 具体示例：组装后的系统 Prompt {#concrete-example-assembled-system-prompt}
 
 以下是当所有层都存在时，最终系统 Prompt 的简化视图（注释显示了每个部分的来源）：
 
@@ -116,7 +116,7 @@ You are a CLI AI Agent. Try not to use markdown but simple text
 renderable inside a terminal.
 ```
 
-## SOUL.md 如何出现在 Prompt 中
+## SOUL.md 如何出现在 Prompt 中 {#how-soul-md-appears-in-the-prompt}
 
 `SOUL.md` 位于 `~/.hermes/SOUL.md`，作为 Agent 的身份 —— 即系统 Prompt 的第一部分。`prompt_builder.py` 中的加载逻辑如下：
 
@@ -146,7 +146,7 @@ being genuinely useful over being verbose unless otherwise directed below.
 Be targeted and efficient in your exploration and investigations.
 ```
 
-## 上下文文件如何注入
+## 上下文文件如何注入 {#how-context-files-are-injected}
 
 `build_context_files_prompt()` 使用**优先级系统** —— 仅加载一种项目上下文类型（匹配到第一个即停止）：
 
@@ -184,7 +184,7 @@ def build_context_files_prompt(cwd=None, skip_soul=False):
     )
 ```
 
-### 上下文文件查找详情
+### 上下文文件查找详情 {#context-file-discovery-details}
 
 | 优先级 | 文件 | 搜索范围 | 备注 |
 |----------|-------|-------------|-------|
@@ -198,7 +198,7 @@ def build_context_files_prompt(cwd=None, skip_soul=False):
 - **截断** —— 限制在 20,000 字符以内，使用 70/20 的头尾保留比例并添加截断标记
 - **剥离 YAML frontmatter** —— `.hermes.md` 的 frontmatter 会被移除（保留用于未来的配置覆盖）
 
-## 仅限 API 调用时的层
+## 仅限 API 调用时的层 {#api-call-time-only-layers}
 
 这些内容有意识地*不*作为缓存系统 Prompt 的一部分进行持久化：
 
@@ -209,11 +209,11 @@ def build_context_files_prompt(cwd=None, skip_soul=False):
 
 这种分离保持了稳定前缀的稳定性，从而利于缓存。
 
-## 记忆快照
+## 记忆快照 {#memory-snapshots}
 
 本地记忆和用户档案数据在会话开始时作为固化快照注入。会话期间的写入会更新磁盘状态，但在开启新会话或强制重建之前，不会改变已经构建好的系统 Prompt。
 
-## 上下文文件
+## 上下文文件 {#context-files}
 
 `agent/prompt_builder.py` 使用**优先级系统**扫描并清理项目上下文文件 —— 仅加载一种类型（匹配到第一个即停止）：
 
@@ -225,11 +225,11 @@ def build_context_files_prompt(cwd=None, skip_soul=False):
 
 较长的文件在注入前会被截断。
 
-## Skills 索引
+## Skills 索引 {#skills-index}
 
 当 Skills 工具可用时，Skills 系统会向 Prompt 中贡献一个紧凑的 Skills 索引。
 
-## 为什么 Prompt 组装要这样拆分
+## 为什么 Prompt 组装要这样拆分 {#why-prompt-assembly-is-split-this-way}
 
 该架构经过专门优化，旨在：
 
@@ -238,7 +238,7 @@ def build_context_files_prompt(cwd=None, skip_soul=False):
 - 保持内存语义易于理解
 - 允许 Gateway/ACP/CLI 添加上下文，而不会污染持久化的 Prompt 状态
 
-## 相关文档
+## 相关文档 {#related-docs}
 
 - [上下文压缩与 Prompt 缓存](./context-compression-and-caching.md)
 - [会话存储](./session-storage.md)

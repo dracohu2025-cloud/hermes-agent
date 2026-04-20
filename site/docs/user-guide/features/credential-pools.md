@@ -5,13 +5,13 @@ sidebar_label: 凭据池
 sidebar_position: 9
 ---
 
-# 凭据池 (Credential Pools)
+# 凭据池 (Credential Pools) {#credential-pools}
 
 凭据池允许你为同一个提供商注册多个 API Key 或 OAuth 令牌。当某个 Key 达到速率限制（rate limit）或计费配额时，Hermes 会自动轮换到下一个健康的 Key —— 从而在不切换提供商的情况下保持会话活跃。
 
 这与 [备用提供商 (fallback providers)](./fallback-providers.md) 不同，后者是完全切换到 *另一个* 不同的提供商。凭据池是同提供商内的轮换；备用提供商是跨提供商的故障转移。系统会优先尝试凭据池 —— 如果池中所有 Key 都耗尽了，*才会* 激活备用提供商。
 
-## 工作原理
+## 工作原理 {#how-it-works}
 
 ```
 你的请求
@@ -29,7 +29,7 @@ sidebar_position: 9
   → 成功 → 正常继续
 ```
 
-## 快速上手
+## 快速上手 {#quick-start}
 
 如果你已经在 `.env` 中设置了 API Key，Hermes 会自动将其识别为包含 1 个 Key 的凭据池。要发挥凭据池的优势，请添加更多 Key：
 
@@ -65,7 +65,7 @@ anthropic (3 credentials):
 
 `←` 标记表示当前选中的凭据。
 
-## 交互式管理
+## 交互式管理 {#interactive-management}
 
 不带子命令运行 `hermes auth` 即可进入交互式向导：
 
@@ -93,7 +93,7 @@ anthropic supports both API keys and OAuth login.
 Type [1/2]:
 ```
 
-## CLI 命令
+## CLI 命令 {#cli-commands}
 
 | 命令 | 描述 |
 |---------|-------------|
@@ -106,7 +106,7 @@ Type [1/2]:
 | `hermes auth remove <provider> <index>` | 通过从 1 开始的索引删除凭据 |
 | `hermes auth reset <provider>` | 清除所有冷却/耗尽状态 |
 
-## 轮换策略
+## 轮换策略 {#rotation-strategies}
 
 可以通过 `hermes auth` → "Set rotation strategy" 进行配置，或在 `config.yaml` 中设置：
 
@@ -123,7 +123,7 @@ credential_pool_strategies:
 | `least_used` | 始终选择请求计数最低的 Key |
 | `random` | 在健康的 Key 中随机选择 |
 
-## 错误恢复
+## 错误恢复 {#error-recovery}
 
 凭据池对不同错误的处理方式不同：
 
@@ -136,7 +136,7 @@ credential_pool_strategies:
 
 `has_retried_429` 标志会在每次 API 调用成功后重置，因此单个瞬时 429 不会触发轮换。
 
-## 自定义端点池
+## 自定义端点池 {#custom-endpoint-pools}
 
 自定义的 OpenAI 兼容端点（如 Together.ai、RunPod、本地服务器）拥有各自的凭据池，其键名为 `config.yaml` 中 `custom_providers` 定义的端点名称。
 
@@ -164,7 +164,7 @@ hermes auth add Together.ai --api-key sk-together-second-key
 }
 ```
 
-## 自动发现
+## 自动发现 {#auto-discovery}
 
 Hermes 会自动从多个来源发现凭据，并在启动时填充凭据池：
 
@@ -179,7 +179,7 @@ Hermes 会自动从多个来源发现凭据，并在启动时填充凭据池：
 
 自动填充的条目在每次加载凭据池时都会更新 —— 如果你删除了某个环境变量，其对应的池条目也会自动清除。手动条目（通过 `hermes auth add` 添加）永远不会被自动清除。
 
-## 委派与 Subagent 共享
+## 委派与 Subagent 共享 {#delegation-subagent-sharing}
 
 当 Agent 通过 `delegate_task` 生成 Subagents 时，父级 Agent 的凭据池会自动共享给子级：
 
@@ -189,11 +189,11 @@ Hermes 会自动从多个来源发现凭据，并在启动时填充凭据池：
 
 这意味着 Subagents 享有与父级相同的速率限制弹性，无需额外配置。基于任务的凭据租赁机制确保了子级在并发轮换 Key 时不会发生冲突。
 
-## 线程安全
+## 线程安全 {#thread-safety}
 
 凭据池对所有状态变更（`select()`、`mark_exhausted_and_rotate()`、`try_refresh_current()`、`mark_used()`）均使用线程锁。这确保了网关在同时处理多个聊天会话时，并发访问是安全的。
 
-## 架构
+## 架构 {#architecture}
 
 有关完整的数据流图，请参阅仓库中的 [`docs/credential-pool-flow.excalidraw`](https://excalidraw.com/#json=2Ycqhqpi6f12E_3ITyiwh,c7u9jSt5BwrmiVzHGbm87g)。
 
@@ -204,7 +204,7 @@ Hermes 会自动从多个来源发现凭据，并在启动时填充凭据池：
 3. **`hermes_cli/runtime_provider.py`** — 感知凭据池的凭据解析。
 4. **`run_agent.py`** — 错误恢复：429/402/401 → 池轮换 → 备用方案。
 
-## 存储
+## 存储 {#storage}
 
 凭据池状态存储在 `~/.hermes/auth.json` 的 `credential_pool` 键下：
 

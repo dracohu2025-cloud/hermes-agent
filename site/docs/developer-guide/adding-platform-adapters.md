@@ -2,7 +2,7 @@
 sidebar_position: 9
 ---
 
-# 添加平台适配器
+# 添加平台适配器 {#adding-a-platform-adapter}
 
 本指南介绍如何为 Hermes 网关添加新的消息平台。平台适配器将 Hermes 连接到外部消息服务（Telegram、Discord、企业微信等），以便用户可以通过该服务与 Agent 交互。
 
@@ -10,7 +10,7 @@ sidebar_position: 9
 添加一个平台适配器会涉及代码、配置和文档中的 20 多个文件。请将此指南作为清单使用——适配器文件本身通常只占工作的 40%。
 :::
 
-## 架构概览
+## 架构概览 {#architecture-overview}
 
 ```
 用户 ↔ 消息平台 ↔ 平台适配器 ↔ 网关运行器 ↔ AI Agent
@@ -26,9 +26,9 @@ sidebar_position: 9
 
 入站消息由适配器接收，并通过 `self.handle_message(event)` 转发，基类会将其路由到网关运行器。
 
-## 逐步检查清单
+## 逐步检查清单 {#step-by-step-checklist}
 
-### 1. 平台枚举
+### 1. 平台枚举 {#1-platform-enum}
 
 在 `gateway/config.py` 的 `Platform` 枚举中添加你的平台：
 
@@ -38,7 +38,7 @@ class Platform(str, Enum):
     NEWPLAT = "newplat"
 ```
 
-### 2. 适配器文件
+### 2. 适配器文件 {#2-adapter-file}
 
 创建 `gateway/platforms/newplat.py`：
 
@@ -95,7 +95,7 @@ event = MessageEvent(
 await self.handle_message(event)
 ```
 
-### 3. 网关配置 (`gateway/config.py`)
+### 3. 网关配置 (`gateway/config.py`) {#3-gateway-config-gateway-config-py}
 
 三个需要修改的地方：
 
@@ -103,7 +103,7 @@ await self.handle_message(event)
 2.  **`load_gateway_config()`** — 添加令牌环境变量映射条目：`Platform.NEWPLAT: "NEWPLAT_TOKEN"`
 3.  **`_apply_env_overrides()`** — 将所有 `NEWPLAT_*` 环境变量映射到配置
 
-### 4. 网关运行器 (`gateway/run.py`)
+### 4. 网关运行器 (`gateway/run.py`) {#4-gateway-runner-gateway-run-py}
 
 五个需要修改的地方：
 
@@ -114,12 +114,12 @@ await self.handle_message(event)
 5.  **早期环境检查 `_allow_all` 元组** — 添加 `"NEWPLAT_ALLOW_ALL_USERS"`
 6.  **`_UPDATE_ALLOWED_PLATFORMS` frozenset** — 添加 `Platform.NEWPLAT`
 
-### 5. 跨平台投递
+### 5. 跨平台投递 {#5-cross-platform-delivery}
 
 1.  **`gateway/platforms/webhook.py`** — 在投递类型元组中添加 `"newplat"`
 2.  **`cron/scheduler.py`** — 添加到 `_KNOWN_DELIVERY_PLATFORMS` frozenset 和 `_deliver_result()` 平台映射中
 
-### 6. CLI 集成
+### 6. CLI 集成 {#6-cli-integration}
 
 1.  **`hermes_cli/config.py`** — 将所有 `NEWPLAT_*` 变量添加到 `_EXTRA_ENV_KEYS`
 2.  **`hermes_cli/gateway.py`** — 在 `_PLATFORMS` 列表中添加条目，包含 key、label、emoji、token_var、setup_instructions 和 vars
@@ -128,17 +128,17 @@ await self.handle_message(event)
 5.  **`hermes_cli/status.py`** — 添加平台检测条目：`"NewPlat": ("NEWPLAT_TOKEN", "NEWPLAT_HOME_CHANNEL")`
 6.  **`hermes_cli/dump.py`** — 在平台检测字典中添加 `"newplat": "NEWPLAT_TOKEN"`
 
-### 7. 工具
+### 7. 工具 {#7-tools}
 
 1.  **`tools/send_message_tool.py`** — 在平台映射中添加 `"newplat": Platform.NEWPLAT`
 2.  **`tools/cronjob_tools.py`** — 在投递目标描述字符串中添加 `newplat`
 
-### 8. 工具集
+### 8. 工具集 {#8-toolsets}
 
 1.  **`toolsets.py`** — 添加 `"hermes-newplat"` 工具集定义，包含 `_HERMES_CORE_TOOLS`
 2.  **`toolsets.py`** — 将 `"hermes-newplat"` 添加到 `"hermes-gateway"` 的 includes 列表中
 
-### 9. 可选：平台提示
+### 9. 可选：平台提示 {#9-optional-platform-hints}
 
 **`agent/prompt_builder.py`** — 如果你的平台有特定的渲染限制（不支持 markdown、消息长度限制等），请在 `_PLATFORM_HINTS` 字典中添加一个条目。这会将平台特定的指导信息注入到系统提示中：
 
@@ -154,7 +154,7 @@ _PLATFORM_HINTS = {
 
 并非所有平台都需要提示——只有当 Agent 的行为需要因此改变时才添加。
 
-### 10. 测试
+### 10. 测试 {#10-tests}
 
 创建 `tests/gateway/test_newplat.py`，覆盖以下内容：
 
@@ -163,7 +163,7 @@ _PLATFORM_HINTS = {
 - 发送方法（模拟外部 API）
 - 平台特定功能（加密、路由等）
 
-### 11. 文档
+### 11. 文档 {#11-documentation}
 
 | 文件 | 需要添加的内容 |
 |------|-------------|
@@ -176,7 +176,7 @@ _PLATFORM_HINTS = {
 | `website/docs/developer-guide/architecture.md` | 适配器数量 + 列表 |
 | `website/docs/developer-guide/gateway-internals.md` | 适配器文件列表 |
 
-## 功能对等性审查
+## 功能对等性审查 {#parity-audit}
 
 在将新的平台 PR 标记为完成之前，请对照一个已建立的平台进行一次功能对等性审查：
 
@@ -192,9 +192,9 @@ search_files "newplat" output_mode="files_only" file_glob="*.py"
 
 对 `.md` 和 `.ts` 文件重复此过程。调查每个遗漏点——它是平台枚举（需要更新）还是平台特定的引用（可以跳过）？
 
-## 常见模式
+## 常见模式 {#common-patterns}
 
-### 长轮询适配器
+### 长轮询适配器 {#long-poll-adapters}
 
 如果你的适配器使用长轮询（如 Telegram 或微信），请使用轮询循环任务：
 
@@ -210,7 +210,7 @@ async def _poll_loop(self):
             await self.handle_message(self._build_event(msg))
 ```
 
-### 回调/Webhook 适配器
+### 回调/Webhook 适配器 {#callback-webhook-adapters}
 
 如果平台将消息推送到你的端点（如企业微信回调），请运行一个 HTTP 服务器：
 
@@ -228,7 +228,7 @@ async def _handle_callback(self, request):
 ```
 对于有严格响应时限的平台（例如企业微信的 5 秒限制），务必立即确认，稍后再通过 API 主动发送 Agent 的回复。Agent 会话运行时间为 3 至 30 分钟——在回调响应窗口内进行内联回复是不可行的。
 
-### Token 锁
+### Token 锁 {#token-locks}
 
 如果适配器使用一个唯一的凭证来维持持久连接，请添加一个作用域锁，以防止两个配置文件使用相同的凭证：
 
@@ -245,7 +245,7 @@ async def disconnect(self):
     release_scoped_lock("newplat", self._token)
 ```
 
-## 参考实现
+## 参考实现 {#reference-implementations}
 
 | 适配器 | 模式 | 复杂度 | 适合参考 |
 |---------|---------|------------|-------------------|

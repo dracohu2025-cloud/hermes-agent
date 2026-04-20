@@ -1,165 +1,153 @@
 ---
 title: 图像生成
-description: 使用 FLUX 2 Pro 生成高质量图像，并通过 FAL.ai 自动放大。
+description: 通过 FAL.ai 生成图像 —— 支持 8 种模型，包括 FLUX 2、GPT-Image、Nano Banana Pro、Ideogram、Recraft V4 Pro 等，可通过 `hermes tools` 选择。
 sidebar_label: 图像生成
 sidebar_position: 6
 ---
 
-# 图像生成
+# 图像生成 {#image-generation}
 
-Hermes Agent 可以根据文本提示词生成图像。它使用 FAL.ai 的 **FLUX 2 Pro** 模型，并自动通过 **Clarity Upscaler** 进行 2 倍放大，以提升图像质量。
+Hermes Agent 通过 FAL.ai 从文本提示词生成图像。默认支持八种模型，每种在速度、质量和成本之间有不同的权衡。用户可以通过 `hermes tools` 配置活动模型，该设置会持久保存在 `config.yaml` 中。
 
-## 设置
+## 支持的模型 {#supported-models}
 
-### 获取 FAL API Key
+| 模型 | 速度 | 优势 | 价格 |
+|---|---|---|---|
+| `fal-ai/flux-2/klein/9b` *(默认)* | `&lt;1s` | 快速，文字清晰 | $0.006/MP |
+| `fal-ai/flux-2-pro` | ~6s | 影棚级照片真实感 | $0.03/MP |
+| `fal-ai/z-image/turbo` | ~2s | 双语（英/中），60亿参数 | $0.005/MP |
+| `fal-ai/nano-banana-pro` | ~8s | Gemini 3 Pro，推理深度，文字渲染 | $0.15/张 (1K) |
+| `fal-ai/gpt-image-1.5` | ~15s | 提示词遵循度高 | $0.034/张 |
+| `fal-ai/ideogram/v3` | ~5s | 最佳字体排版 | $0.03–0.09/张 |
+| `fal-ai/recraft/v4/pro/text-to-image` | ~8s | 设计，品牌系统，生产就绪 | $0.25/张 |
+| `fal-ai/qwen-image` | ~12s | 基于 LLM，复杂文本 | $0.02/MP |
 
-1. 在 [fal.ai](https://fal.ai/) 注册账号
-2. 从控制面板生成一个 API key
+价格为撰写本文时 FAL 的定价；请查看 [fal.ai](https://fal.ai/) 获取最新价格。
 
-### 配置 Key
+## 设置 {#setup}
 
-```bash
-# 添加到 ~/.hermes/.env
-FAL_KEY=your-fal-api-key-here
-```
+:::tip Nous 订阅用户
+如果您拥有付费的 [Nous Portal](https://portal.nousresearch.com) 订阅，可以通过 **[工具网关](tool-gateway.md)** 使用图像生成功能，无需 FAL API 密钥。您的模型选择在两种路径下都会保持。
 
-### 安装客户端库
-
-```bash
-pip install fal-client
-```
-
-:::info
-只要设置了 `FAL_KEY`，图像生成工具就会自动启用。无需额外的工具集配置。
+如果托管网关针对特定模型返回 `HTTP 4xx` 错误，表示该模型尚未在门户端代理 —— Agent 会告知您此情况，并提供补救步骤（设置 `FAL_KEY` 以直接访问，或选择其他模型）。
 :::
 
-## 工作原理
+<a id="nous-subscribers"></a>
+### 获取 FAL API 密钥 {#get-a-fal-api-key}
 
-当你要求 Hermes 生成图像时：
+1.  在 [fal.ai](https://fal.ai/) 注册
+2.  从您的控制面板生成 API 密钥
 
-1. **生成** — 你的提示词被发送到 FLUX 2 Pro 模型 (`fal-ai/flux-2-pro`)
-2. **放大** — 生成的图像会自动使用 Clarity Upscaler (`fal-ai/clarity-upscaler`) 进行 2 倍放大
-3. **交付** — 返回放大后的图像 URL
+### 配置并选择模型 {#configure-and-pick-a-model}
 
-如果由于任何原因导致放大失败，系统将返回原始图像作为备选方案。
+运行工具命令：
 
-## 使用方法
-
-只需直接要求 Hermes 创建图像：
-
-```
-生成一张带有樱花的宁静山水景观图
+```bash
+hermes tools
 ```
 
-```
-创作一张栖息在古老树枝上的智慧老猫头鹰肖像
-```
+导航到 **🎨 图像生成**，选择您的后端（Nous 订阅或 FAL.ai），然后选择器会以列对齐的表格显示所有支持的模型 —— 使用方向键导航，按 Enter 键选择：
 
 ```
-给我画一个拥有飞行汽车和霓虹灯的未来主义城市景观
+  Model                          Speed    Strengths                    Price
+  fal-ai/flux-2/klein/9b         &lt;1s      Fast, crisp text             $0.006/MP   ← currently in use
+  fal-ai/flux-2-pro              ~6s      Studio photorealism          $0.03/MP
+  fal-ai/z-image/turbo           ~2s      Bilingual EN/CN, 6B          $0.005/MP
+  ...
 ```
 
-## 参数
+您的选择将保存到 `config.yaml`：
 
-`image_generate_tool` 接受以下参数：
+```yaml
+image_gen:
+  model: fal-ai/flux-2/klein/9b
+  use_gateway: false            # 如果使用 Nous 订阅则为 true
+```
 
-| 参数 | 默认值 | 范围 | 描述 |
-|-----------|---------|-------|-------------|
-| `prompt` | *(必填)* | — | 所需图像的文本描述 |
-| `aspect_ratio` | `"landscape"` | `landscape`, `square`, `portrait` | 图像纵横比 |
-| `num_inference_steps` | `50` | 1–100 | 去噪步数（越多 = 质量越高，速度越慢） |
-| `guidance_scale` | `4.5` | 0.1–20.0 | 遵循提示词的紧密程度 |
-| `num_images` | `1` | 1–4 | 要生成的图像数量 |
-| `output_format` | `"png"` | `png`, `jpeg` | 图像文件格式 |
-| `seed` | *(随机)* | 任何整数 | 用于重现结果的随机种子 |
+### GPT-Image 质量 {#gpt-image-quality}
 
-## 纵横比
+`fal-ai/gpt-image-1.5` 的请求质量固定为 `medium`（约 $0.034/张，1024×1024）。我们没有将 `low` / `high` 等级作为面向用户的选项公开，以便 Nous Portal 的计费对所有用户保持可预测性 —— 不同等级之间的成本差异约为 22 倍。如果您想要更便宜的 GPT-Image 选项，请选择其他模型；如果您想要更高质量，请使用 Klein 9B 或 Imagen 级别的模型。
 
-该工具使用简化的纵横比名称，这些名称会映射到 FLUX 2 Pro 的图像尺寸：
+## 使用方式 {#usage}
 
-| 纵横比 | 映射至 | 最佳用途 |
-|-------------|---------|----------|
-| `landscape` | `landscape_16_9` | 壁纸、横幅、场景 |
-| `square` | `square_hd` | 头像、社交媒体帖子 |
-| `portrait` | `portrait_16_9` | 角色艺术、手机壁纸 |
-
-:::tip
-你也可以直接使用原始的 FLUX 2 Pro 尺寸预设：`square_hd`、`square`、`portrait_4_3`、`portrait_16_9`、`landscape_4_3`、`landscape_16_9`。同时也支持最高 2048x2048 的自定义尺寸。
-:::
-
-## 自动放大
-
-每张生成的图像都会使用 FAL.ai 的 Clarity Upscaler 自动放大 2 倍，设置如下：
-
-| 设置项 | 数值 |
-|---------|-------|
-| 放大倍率 | 2x |
-| 创造力 (Creativity) | 0.35 |
-| 相似度 (Resemblance) | 0.6 |
-| 引导比例 (Guidance Scale) | 4 |
-| 推理步数 (Inference Steps) | 18 |
-| 正向提示词 | `"masterpiece, best quality, highres"` + 你的原始提示词 |
-| 反向提示词 | `"(worst quality, low quality, normal quality:2)"` |
-
-放大器在保持原始构图的同时增强了细节和分辨率。如果放大器失败（网络问题、速率限制），则会自动返回原始分辨率的图像。
-
-## 提示词示例
-
-这里有一些可以尝试的有效提示词：
+面向 Agent 的接口模式有意设计得非常简洁 —— 模型会直接使用您配置好的设置：
 
 ```
-一张街拍照片，一位留着粉色波波头、画着大胆眼线的女性
+生成一幅宁静的山景，带有樱花
 ```
 
 ```
-带有玻璃幕墙的现代建筑，夕阳的光照效果
+创建一张方形肖像，描绘一只睿智的老猫头鹰 —— 使用字体排版模型
 ```
 
 ```
-色彩鲜艳、带有几何图案的抽象艺术
+为我制作一幅未来主义城市景观，横向构图
 ```
 
-```
-栖息在古老树枝上的智慧老猫头鹰肖像
-```
+## 宽高比 {#aspect-ratios}
 
-```
-拥有飞行汽车和霓虹灯的未来主义城市景观
-```
+从 Agent 的角度看，每个模型都接受相同的三种宽高比。在内部，每个模型的原生尺寸规格会自动填充：
 
-## 调试
+| Agent 输入 | image_size (flux/z-image/qwen/recraft/ideogram) | aspect_ratio (nano-banana-pro) | image_size (gpt-image) |
+|---|---|---|---|
+| `landscape` | `landscape_16_9` | `16:9` | `1536x1024` |
+| `square` | `square_hd` | `1:1` | `1024x1024` |
+| `portrait` | `portrait_16_9` | `9:16` | `1024x1536` |
 
-为图像生成启用调试日志：
+这个转换过程在 `_build_fal_payload()` 中完成 —— Agent 代码无需了解每个模型的模式差异。
+
+## 自动超分辨率 {#automatic-upscaling}
+
+通过 FAL 的 **Clarity Upscaler** 进行超分辨率是按模型控制的：
+
+| 模型 | 是否超分？ | 原因 |
+|---|---|---|
+| `fal-ai/flux-2-pro` | ✓ | 向后兼容（曾是选择器出现前的默认设置） |
+| 所有其他模型 | ✗ | 快速模型会失去其亚秒级的价值主张；高分辨率模型不需要它 |
+当执行放大时，会使用以下设置：
+
+| 设置项 | 值 |
+|---|---|
+| 放大倍数 | 2× |
+| 创意度 | 0.35 |
+| 相似度 | 0.6 |
+| 引导尺度 | 4 |
+| 推理步数 | 18 |
+
+如果放大失败（网络问题、速率限制），系统会自动返回原始图像。
+
+## 内部工作原理 {#how-it-works-internally}
+
+1.  **模型解析** — `_resolve_fal_model()` 从 `config.yaml` 读取 `image_gen.model`，回退到 `FAL_IMAGE_MODEL` 环境变量，最后回退到 `fal-ai/flux-2/klein/9b`。
+2.  **载荷构建** — `_build_fal_payload()` 将你的 `aspect_ratio` 转换为模型的原生格式（预设枚举、宽高比枚举或 GPT 字面量），合并模型的默认参数，应用调用方的任何覆盖，然后根据模型的 `supports` 白名单进行过滤，确保不支持的键不会被发送。
+3.  **提交** — `_submit_fal_request()` 通过直接的 FAL 凭证或托管的 Nous 网关进行路由。
+4.  **放大** — 仅当模型的元数据包含 `upscale: True` 时才会运行。
+5.  **交付** — 最终图像 URL 返回给 Agent，Agent 会发出一个 `MEDIA:&lt;url&gt;` 标签，平台适配器会将其转换为原生媒体。
+
+## 调试 {#debugging}
+
+启用调试日志：
 
 ```bash
 export IMAGE_TOOLS_DEBUG=true
 ```
 
-调试日志将保存到 `./logs/image_tools_debug_<session_id>.json`，其中包含每个生成请求的详细信息、参数、耗时以及任何错误。
+调试日志会输出到 `./logs/image_tools_debug_&lt;session_id&gt;.json`，包含每次调用的详细信息（模型、参数、耗时、错误）。
 
-## 安全设置
-
-图像生成工具默认在禁用安全检查的情况下运行（`safety_tolerance: 5`，最宽松的设置）。这是在代码层面配置的，用户不可调节。
-
-## 平台交付
-
-生成的图像根据平台的不同以不同方式交付：
+## 平台交付 {#platform-delivery}
 
 | 平台 | 交付方式 |
-|----------|----------------|
-| **CLI** | 图像 URL 以 Markdown 格式打印 `![description](url)` — 点击可在浏览器中打开 |
-| **Telegram** | 图像作为照片消息发送，提示词作为说明文字 |
-| **Discord** | 图像嵌入在消息中 |
-| **Slack** | 消息中的图像 URL（Slack 会自动展开预览） |
-| **WhatsApp** | 图像作为媒体消息发送 |
-| **其他平台** | 纯文本形式的图像 URL |
+|---|---|
+| **CLI** | 图像 URL 以 Markdown `![](url)` 格式打印 — 点击即可打开 |
+| **Telegram** | 以提示词为标题的图片消息 |
+| **Discord** | 嵌入在消息中 |
+| **Slack** | 由 Slack 展开 URL |
+| **WhatsApp** | 媒体消息 |
+| **其他** | 纯文本 URL |
 
-Agent 在响应中使用 `MEDIA:<url>` 语法，平台适配器会将其转换为相应的格式。
+## 限制 {#limitations}
 
-## 局限性
-
-- **需要 FAL API key** — 图像生成会在你的 FAL.ai 账户中产生 API 费用
-- **不支持图像编辑** — 仅支持文本生成图像（text-to-image），不支持局部重绘（inpainting）或图生图（img2img）
-- **基于 URL 的交付** — 图像以临时的 FAL.ai URL 形式返回，不会保存在本地。URL 会在一段时间后（通常为几小时）失效
-- **放大增加延迟** — 自动 2 倍放大步骤会增加处理时间
-- **单次请求最多 4 张图像** — `num_images` 上限为 4
+-   **需要 FAL 凭证**（直接的 `FAL_KEY` 或 Nous 订阅）
+-   **仅限文生图** — 此工具不支持修复、图生图或编辑
+-   **临时 URL** — FAL 返回的托管 URL 会在数小时/数天后过期；如有需要请保存到本地
+-   **模型特定约束** — 某些模型不支持 `seed`、`num_inference_steps` 等参数。`supports` 过滤器会静默丢弃不支持的参数；这是预期行为

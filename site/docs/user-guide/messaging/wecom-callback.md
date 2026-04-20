@@ -2,7 +2,7 @@
 sidebar_position: 15
 ---
 
-# 企业微信回调（自建应用）
+# 企业微信回调（自建应用） {#wecom-callback-self-built-app}
 
 通过回调/Webhook 模式，将 Hermes 作为自建企业应用连接到企业微信。
 
@@ -12,24 +12,25 @@ Hermes 支持两种企业微信集成模式：
 - **企业微信回调**（本页）— 自建应用模式，接收加密的 XML 回调。在用户的企业微信侧边栏中显示为一等应用。支持多企业路由。
 :::
 
-## 工作原理
+## 工作原理 {#how-it-works}
 
 1.  在企业微信管理后台注册一个自建应用
 2.  企业微信将加密的 XML 推送到你的 HTTP 回调端点
 3.  Hermes 解密消息，将其加入 Agent 处理队列
+<a id="wecom-bot-vs-wecom-callback"></a>
 4.  立即确认（静默 — 用户端不显示任何内容）
 5.  Agent 处理请求（通常需要 3–30 分钟）
 6.  回复通过企业微信 `message/send` API 主动发送
 
-## 前提条件
+## 前提条件 {#prerequisites}
 
 -   拥有管理员权限的企业微信企业账号
 -   `aiohttp` 和 `httpx` Python 包（默认安装已包含）
 -   一个可公开访问的服务器用于回调 URL（或使用 ngrok 等隧道工具）
 
-## 设置
+## 设置 {#setup}
 
-### 1. 在企业微信中创建自建应用
+### 1. 在企业微信中创建自建应用 {#1-create-a-self-built-app-in-wecom}
 
 1.  进入 [企业微信管理后台](https://work.weixin.qq.com/) → **应用管理** → **创建应用**
 2.  记下你的 **企业 ID**（显示在管理后台顶部）
@@ -40,7 +41,7 @@ Hermes 支持两种企业微信集成模式：
     -   Token: 生成一个随机令牌（企业微信会提供一个）
     -   EncodingAESKey: 生成一个密钥（企业微信会提供一个）
 
-### 2. 配置环境变量
+### 2. 配置环境变量 {#2-configure-environment-variables}
 
 添加到你的 `.env` 文件：
 
@@ -57,7 +58,7 @@ WECOM_CALLBACK_PORT=8645
 WECOM_CALLBACK_ALLOWED_USERS=user1,user2
 ```
 
-### 3. 启动网关
+### 3. 启动网关 {#3-start-the-gateway}
 
 ```bash
 hermes gateway start
@@ -65,7 +66,7 @@ hermes gateway start
 
 回调适配器将在配置的端口上启动一个 HTTP 服务器。企业微信将通过 GET 请求验证回调 URL，然后开始通过 POST 发送消息。
 
-## 配置参考
+## 配置参考 {#configuration-reference}
 
 在 `config.yaml` 的 `platforms.wecom_callback.extra` 下设置这些项，或使用环境变量：
 
@@ -80,7 +81,7 @@ hermes gateway start
 | `port` | `8645` | HTTP 回调服务器的端口 |
 | `path` | `/wecom/callback` | 回调端点的 URL 路径 |
 
-## 多应用路由
+## 多应用路由 {#multi-app-routing}
 
 对于运行多个自建应用的企业（例如，跨不同部门或子公司），请在 `config.yaml` 中配置 `apps` 列表：
 
@@ -108,7 +109,7 @@ platforms:
 
 用户通过 `corp_id:user_id` 进行作用域划分，以防止跨企业冲突。当用户发送消息时，适配器会记录他们属于哪个应用（企业），并通过正确的应用的访问令牌路由回复。
 
-## 访问控制
+## 访问控制 {#access-control}
 
 限制哪些用户可以与应用交互：
 
@@ -120,7 +121,7 @@ WECOM_CALLBACK_ALLOWED_USERS=zhangsan,lisi,wangwu
 WECOM_CALLBACK_ALLOW_ALL_USERS=true
 ```
 
-## 端点
+## 端点 {#endpoints}
 
 适配器暴露以下端点：
 
@@ -130,7 +131,7 @@ WECOM_CALLBACK_ALLOW_ALL_USERS=true
 | POST | `/wecom/callback` | 加密消息回调（企业微信将用户消息发送到此） |
 | GET | `/health` | 健康检查 — 返回 `{"status": "ok"}` |
 
-## 加密
+## 加密 {#encryption}
 
 所有回调负载都使用 EncodingAESKey 通过 AES-CBC 加密。适配器处理：
 
@@ -139,7 +140,7 @@ WECOM_CALLBACK_ALLOW_ALL_USERS=true
 
 加密实现与腾讯官方的 WXBizMsgCrypt SDK 兼容。
 
-## 限制
+## 限制 {#limitations}
 
 -   **无流式传输** — 回复在 Agent 处理完成后作为完整消息到达
 -   **无输入状态指示** — 回调模型不支持显示“正在输入”状态

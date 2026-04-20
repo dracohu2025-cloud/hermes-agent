@@ -4,11 +4,11 @@ title: "持久化记忆"
 description: "Hermes Agent 如何跨会话进行记忆 —— MEMORY.md、USER.md 以及会话搜索"
 ---
 
-# 持久化记忆
+# 持久化记忆 {#persistent-memory}
 
 Hermes Agent 拥有受限且经过精选的记忆，这些记忆可以跨会话持久存在。这使得它能够记住你的偏好、你的项目、你的环境以及它所学到的知识。
 
-## 工作原理
+## 工作原理 {#how-it-works}
 
 Agent 的记忆由两个文件组成：
 
@@ -23,7 +23,7 @@ Agent 的记忆由两个文件组成：
 字符限制是为了保持记忆的聚焦。当记忆存满时，Agent 会合并或替换条目，以为新信息腾出空间。
 :::
 
-## 记忆如何出现在系统提示词中
+## 记忆如何出现在系统提示词中 {#how-memory-appears-in-the-system-prompt}
 
 在每个会话开始时，记忆条目会从磁盘加载，并作为冻结块渲染到系统提示词中：
 
@@ -46,7 +46,7 @@ User prefers concise responses, dislikes verbose explanations
 
 **冻结快照模式：** 系统提示词的注入在会话开始时捕获一次，且在会话中途绝不改变。这是有意为之的 —— 它可以保留 LLM 的前缀缓存（prefix cache）以提高性能。当 Agent 在会话期间添加/删除记忆条目时，更改会立即持久化到磁盘，但直到下次会话开始才会出现在系统提示词中。工具的响应始终显示实时状态。
 
-## Memory 工具操作
+## Memory 工具操作 {#memory-tool-actions}
 
 Agent 使用 `memory` 工具执行以下操作：
 
@@ -56,7 +56,7 @@ Agent 使用 `memory` 工具执行以下操作：
 
 没有 `read` 操作 —— 记忆内容在会话开始时会自动注入到系统提示词中。Agent 将其记忆视为对话上下文的一部分。
 
-### 子字符串匹配
+### 子字符串匹配 {#substring-matching}
 
 `replace` 和 `remove` 操作使用简短的唯一子字符串匹配 —— 你不需要提供完整的条目文本。`old_text` 参数只需要是一个能唯一标识该条目的子字符串：
 
@@ -69,9 +69,9 @@ memory(action="replace", target="memory",
 
 如果子字符串匹配到多个条目，则会返回错误，要求提供更具体的匹配项。
 
-## 两个目标的解释
+## 两个目标的解释 {#two-targets-explained}
 
-### `memory` — Agent 的个人笔记
+### `memory` — Agent 的个人笔记 {#memory-agent-s-personal-notes}
 
 用于记录 Agent 需要记住的关于环境、工作流和经验教训的信息：
 
@@ -81,7 +81,7 @@ memory(action="replace", target="memory",
 - 已完成任务的日志条目
 - 行之有效的技能和技术
 
-### `user` — 用户画像
+### `user` — 用户画像 {#user-user-profile}
 
 用于记录关于用户的身份、偏好和沟通风格的信息：
 
@@ -91,9 +91,9 @@ memory(action="replace", target="memory",
 - 工作流习惯
 - 技术水平
 
-## 哪些该存，哪些不该存
+## 哪些该存，哪些不该存 {#what-to-save-vs-skip}
 
-### 存这些（主动存储）
+### 存这些（主动存储） {#save-these-proactively}
 
 Agent 会自动保存 —— 你不需要特意要求。当它学到以下内容时会进行保存：
 
@@ -104,7 +104,7 @@ Agent 会自动保存 —— 你不需要特意要求。当它学到以下内容
 - **已完成的工作：** “2026-01-15 将数据库从 MySQL 迁移到了 PostgreSQL” → 保存到 `memory`
 - **明确的要求：** “记住我的 API 密钥每月轮换一次” → 保存到 `memory`
 
-### 跳过这些
+### 跳过这些 {#skip-these}
 
 - **琐碎/显而易见的信息：** “用户询问了关于 Python 的问题” —— 太模糊，没用
 - **容易重新发现的事实：** “Python 3.12 支持 f-string 嵌套” —— 可以通过网页搜索找到
@@ -112,7 +112,7 @@ Agent 会自动保存 —— 你不需要特意要求。当它学到以下内容
 - **会话特定的临时信息：** 临时文件路径、一次性的调试上下文
 - **已存在于上下文文件中的信息：** SOUL.md 和 AGENTS.md 中的内容
 
-## 容量管理
+## 容量管理 {#capacity-management}
 
 记忆有严格的字符限制，以保持系统提示词的大小受控：
 
@@ -121,7 +121,7 @@ Agent 会自动保存 —— 你不需要特意要求。当它学到以下内容
 | memory | 2,200 字符 | 8-15 条 |
 | user | 1,375 字符 | 5-10 条 |
 
-### 当记忆存满时会发生什么
+### 当记忆存满时会发生什么 {#what-happens-when-memory-is-full}
 
 当你尝试添加一个会超过限制的条目时，工具会返回错误：
 
@@ -142,7 +142,7 @@ Agent 会自动保存 —— 你不需要特意要求。当它学到以下内容
 
 **最佳实践：** 当记忆容量超过 80% 时（在系统提示词页眉可见），在添加新条目之前先合并条目。例如，将三个独立的“项目使用 X”条目合并为一个综合的项目描述条目。
 
-### 优质记忆条目的实际案例
+### 优质记忆条目的实际案例 {#practical-examples-of-good-memory-entries}
 
 **紧凑、信息密集的条目效果最好：**
 
@@ -164,15 +164,15 @@ On January 5th, 2026, the user asked me to look at their project which is
 located at ~/code/api. I discovered it uses Go version 1.22 and...
 ```
 
-## 重复预防
+## 重复预防 {#duplicate-prevention}
 
 记忆系统会自动拒绝完全重复的条目。如果你尝试添加已经存在的内容，它会返回成功并提示“未添加重复项”。
 
-## 安全扫描
+## 安全扫描 {#security-scanning}
 
 由于记忆条目会被注入到系统提示词中，因此在接受之前会扫描是否存在注入和外泄模式。匹配威胁模式（提示词注入、凭据外泄、SSH 后门）或包含不可见 Unicode 字符的内容将被拦截。
 
-## 会话搜索
+## 会话搜索 {#session-search}
 
 除了 MEMORY.md 和 USER.md 之外，Agent 还可以使用 `session_search` 工具搜索其过去的对话：
 
@@ -184,7 +184,7 @@ located at ~/code/api. I discovered it uses Go version 1.22 and...
 hermes sessions list    # 浏览历史会话
 ```
 
-### session_search vs memory
+### session_search vs memory {#sessionsearch-vs-memory}
 
 | 特性 | 持久化记忆 | 会话搜索 |
 |---------|------------------|----------------|
@@ -195,7 +195,7 @@ hermes sessions list    # 浏览历史会话
 | **Token 成本** | 每个会话固定（约 1,300 tokens） | 按需（仅在搜索时产生） |
 **Memory** 用于存储那些应该始终处于上下文中的关键事实。**Session search** 则用于处理类似“我们上周讨论过 X 吗？”这类查询，此时 Agent 需要从过去的对话中召回具体细节。
 
-## Configuration
+## Configuration {#configuration}
 
 ```yaml
 # 在 ~/.hermes/config.yaml 中
@@ -206,7 +206,7 @@ memory:
   user_char_limit: 1375     # 约 500 tokens
 ```
 
-## External Memory Providers
+## External Memory Providers {#external-memory-providers}
 
 为了实现超越 MEMORY.md 和 USER.md 的更深层、持久化的记忆，Hermes 内置了 8 个外部 Memory Provider 插件 —— 包括 Honcho、OpenViking、Mem0、Hindsight、Holographic、RetainDB、ByteRover 和 Supermemory。
 

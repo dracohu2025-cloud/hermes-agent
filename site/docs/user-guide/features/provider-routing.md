@@ -5,13 +5,13 @@ sidebar_label: 供应商路由
 sidebar_position: 7
 ---
 
-# 供应商路由
+# 供应商路由 {#provider-routing}
 
 当使用 [OpenRouter](https://openrouter.ai) 作为你的 LLM 供应商时，Hermes Agent 支持**供应商路由**——即对底层 AI 供应商处理你的请求的方式及其优先级进行细粒度控制。
 
 OpenRouter 会将请求路由到许多供应商（例如 Anthropic、Google、AWS Bedrock、Together AI）。供应商路由功能让你可以针对成本、速度、质量进行优化，或强制执行特定的供应商要求。
 
-## 配置
+## 配置 {#configuration}
 
 在你的 `~/.hermes/config.yaml` 文件中添加一个 `provider_routing` 部分：
 
@@ -29,9 +29,9 @@ provider_routing:
 供应商路由仅在通过 OpenRouter 使用时生效。对于直接连接供应商（例如直接连接 Anthropic API）的情况没有影响。
 :::
 
-## 选项
+## 选项 {#options}
 
-### `sort`
+### `sort` {#sort}
 
 控制 OpenRouter 如何为你的请求对可用供应商进行排序。
 
@@ -46,7 +46,7 @@ provider_routing:
   sort: "price"
 ```
 
-### `only`
+### `only` {#only}
 
 供应商名称的白名单。设置后，**仅**使用这些供应商。所有其他供应商将被排除。
 
@@ -57,7 +57,7 @@ provider_routing:
     - "Google"
 ```
 
-### `ignore`
+### `ignore` {#ignore}
 
 供应商名称的黑名单。这些供应商将**永不**被使用，即使它们提供了最便宜或最快的选项。
 
@@ -68,7 +68,7 @@ provider_routing:
     - "DeepInfra"
 ```
 
-### `order`
+### `order` {#order}
 
 明确的优先级顺序。列在前面的供应商优先使用。未列出的供应商作为后备使用。
 
@@ -80,7 +80,7 @@ provider_routing:
     - "AWS Bedrock"
 ```
 
-### `require_parameters`
+### `require_parameters` {#requireparameters}
 
 当设置为 `true` 时，OpenRouter 将仅路由到支持你请求中**所有**参数（如 `temperature`、`top_p`、`tools` 等）的供应商。这可以避免参数被静默丢弃。
 
@@ -89,7 +89,7 @@ provider_routing:
   require_parameters: true
 ```
 
-### `data_collection`
+### `data_collection` {#datacollection}
 
 控制供应商是否可以将你的提示用于训练。选项为 `"allow"` 或 `"deny"`。
 
@@ -98,9 +98,9 @@ provider_routing:
   data_collection: "deny"
 ```
 
-## 实用示例
+## 实用示例 {#practical-examples}
 
-### 优化成本
+### 优化成本 {#optimize-for-cost}
 
 路由到最便宜的可用供应商。适用于高使用量和开发场景：
 
@@ -109,7 +109,7 @@ provider_routing:
   sort: "price"
 ```
 
-### 优化速度
+### 优化速度 {#optimize-for-speed}
 
 为交互式使用优先选择低延迟供应商：
 
@@ -118,7 +118,7 @@ provider_routing:
   sort: "latency"
 ```
 
-### 优化吞吐量
+### 优化吞吐量 {#optimize-for-throughput}
 
 最适合每秒令牌数很重要的长文本生成：
 
@@ -127,7 +127,7 @@ provider_routing:
   sort: "throughput"
 ```
 
-### 锁定特定供应商
+### 锁定特定供应商 {#lock-to-specific-providers}
 
 确保所有请求都通过特定供应商以获得一致性：
 
@@ -137,7 +137,7 @@ provider_routing:
     - "Anthropic"
 ```
 
-### 避免特定供应商
+### 避免特定供应商 {#avoid-specific-providers}
 
 排除你不想使用的供应商（例如，出于数据隐私考虑）：
 
@@ -149,7 +149,7 @@ provider_routing:
   data_collection: "deny"
 ```
 
-### 带后备的优先顺序
+### 带后备的优先顺序 {#preferred-order-with-fallbacks}
 
 首先尝试你首选的供应商，如果不可用则回退到其他供应商：
 
@@ -161,7 +161,7 @@ provider_routing:
   require_parameters: true
 ```
 
-## 工作原理
+## 工作原理 {#how-it-works}
 
 供应商路由偏好通过每次 API 调用时 `extra_body.provider` 字段传递给 OpenRouter API。这适用于以下两种模式：
 
@@ -191,10 +191,11 @@ provider_routing:
 ```
 :::
 
-## 默认行为
+## 默认行为 {#default-behavior}
 
 当没有配置 `provider_routing` 部分时（默认情况），OpenRouter 使用其自身的默认路由逻辑，通常会自动平衡成本和可用性。
 
+<a id="provider-routing-vs-fallback-models"></a>
 :::tip 供应商路由 vs. 后备模型
 供应商路由控制 OpenRouter 内部的**子供应商**处理你的请求。关于当你的主模型失败时自动故障转移到完全不同的供应商，请参阅[后备供应商](/user-guide/features/fallback-providers)。
 :::
