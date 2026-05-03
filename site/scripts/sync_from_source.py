@@ -16,7 +16,13 @@ TARGET_DOCS_ROOT = REPO_ROOT / "site" / "docs"
 SOURCE_STATIC_ROOT = REPO_ROOT / "website" / "static"
 TARGET_STATIC_ROOT = REPO_ROOT / "site" / "static"
 STATE_FILE = REPO_ROOT / "site" / ".source-sync-state.json"
-DOC_SUFFIXES = {".md", ".json"}
+DOC_SUFFIXES = {".md", ".mdx", ".json"}
+SITE_OWNED_STATIC_FILES = {
+    ".DS_Store",
+    "downloads/hermes-agent-zh-docs.pdf",
+    "llms.txt",
+    "llms-full.txt",
+}
 WATCHED_SOURCE_FILES = {
     "website/sidebars.ts": REPO_ROOT / "website" / "sidebars.ts",
     "website/docusaurus.config.ts": REPO_ROOT / "website" / "docusaurus.config.ts",
@@ -132,7 +138,7 @@ def build_report(state: dict) -> dict:
     )
 
     extra_target_docs = sorted(set(target_docs) - doc_paths)
-    extra_target_static = sorted(set(target_static) - static_paths)
+    extra_target_static = sorted(set(target_static) - static_paths - SITE_OWNED_STATIC_FILES)
 
     return {
         "current_docs": current_docs,

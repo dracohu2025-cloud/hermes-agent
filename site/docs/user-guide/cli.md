@@ -1,15 +1,15 @@
 ---
 sidebar_position: 1
 title: "CLI 界面"
-description: "掌握 Hermes Agent 的终端界面 —— 命令、快捷键、个性化设置等"
+description: "掌握 Hermes Agent 终端界面——命令、快捷键、人格设定等"
 ---
 
 # CLI 界面 {#cli-interface}
 
-Hermes Agent 的 CLI 是一个完整的终端用户界面（TUI），不是 Web 界面。它支持多行编辑、斜杠命令自动补全、对话历史、中断重定向，以及流式工具输出。为常驻终端的人打造。
+Hermes Agent 的 CLI 是一个完整的终端用户界面（TUI），而非 Web UI。它支持多行编辑、斜杠命令自动补全、对话历史、中断与重定向，以及流式工具输出。专为常驻终端的用户打造。
 
 :::tip
-Hermes 还附带了一个现代 TUI，支持模态浮层、鼠标选择和非阻塞输入。用 `hermes --tui` 启动 —— 详见 [TUI](tui.md) 指南。
+Hermes 还提供了一套现代化的 TUI，包含模态覆盖层、鼠标选择和非阻塞输入。使用 `hermes --tui` 启动——详见 [TUI](tui.md) 指南。
 :::
 
 ## 运行 CLI {#running-the-cli}
@@ -19,117 +19,123 @@ Hermes 还附带了一个现代 TUI，支持模态浮层、鼠标选择和非阻
 hermes
 
 # 单次查询模式（非交互式）
-hermes chat -q "Hello"
+hermes chat -q "你好"
 
-# 指定模型
+# 使用特定模型
 hermes chat --model "anthropic/claude-sonnet-4"
 
-# 指定提供商
+# 使用特定提供商
 hermes chat --provider nous        # 使用 Nous Portal
 hermes chat --provider openrouter  # 强制使用 OpenRouter
 
-# 指定工具集
+# 使用特定工具集
 hermes chat --toolsets "web,terminal,skills"
 
 # 启动时预加载一个或多个技能
 hermes -s hermes-agent-dev,github-auth
-hermes chat -s github-pr-workflow -q "open a draft PR"
+hermes chat -s github-pr-workflow -q "创建一个草稿 PR"
 
 # 恢复之前的会话
 hermes --continue             # 恢复最近的 CLI 会话（-c）
-hermes --resume <session_id>  # 按 ID 恢复特定会话（-r）
+hermes --resume <session_id>  # 按 ID 恢复指定会话（-r）
 
 # 详细模式（调试输出）
 hermes chat --verbose
 
-# 隔离的 git worktree（用于并行运行多个 Agent）
-hermes -w                         # worktree 中的交互模式
-hermes -w -q "Fix issue #123"     # worktree 中的单次查询
+# 隔离的 git 工作树（用于并行运行多个 Agent）
+hermes -w                         # 在工作树中交互模式
+hermes -w -q "修复问题 #123"     # 在工作树中单次查询
 ```
 
 ## 界面布局 {#interface-layout}
 
-<img className="docs-terminal-figure" src="/img/docs/cli-layout.svg" alt="Stylized preview of the Hermes CLI layout showing the banner, conversation area, and fixed input prompt." />
-<p className="docs-figure-caption">The Hermes CLI banner, conversation stream, and fixed input prompt rendered as a stable docs figure instead of fragile text art.</p>
+<img className="docs-terminal-figure" src="/img/docs/cli-layout.svg" alt="Hermes CLI 布局的样式化预览，显示横幅、对话区域和固定输入提示。" />
+<p className="docs-figure-caption">Hermes CLI 横幅、对话流和固定输入提示，以稳定的文档图形而非脆弱的文本艺术呈现。</p>
 
-欢迎横幅会一目了然地显示你当前的模型、终端后端、工作目录、可用工具和已安装技能。
+欢迎横幅一目了然地显示你的模型、终端后端、工作目录、可用工具和已安装的技能。
 
 ### 状态栏 {#status-bar}
 
-输入区域上方有一条常驻状态栏，实时更新：
+输入区域上方有一个持久的状态栏，实时更新：
 
 ```
  ⚕ claude-sonnet-4-20250514 │ 12.4K/200K │ [██████░░░░] 6% │ $0.06 │ 15m
 ```
 
-| 元素 | 说明 |
+| 元素 | 描述 |
 |---------|-------------|
-| 模型名称 | 当前模型（超过 26 个字符会截断） |
-| Token 数量 | 已用上下文 Token / 最大上下文窗口 |
-| 上下文条 | 带颜色阈值提示的视觉填充指示器 |
-| 费用 | 预估会话费用（未知或零定价模型显示 `n/a`） |
-| 时长 | 已进行的会话时间 |
+| 模型名称 | 当前模型（超过 26 个字符时截断） |
+| Token 计数 | 已使用的上下文 Token / 最大上下文窗口 |
+| 上下文条 | 视觉填充指示器，带有颜色编码阈值 |
+| 费用 | 预估会话费用（未知/零价格模型显示 `n/a`） |
+| 时长 | 已用会话时间 |
 
-状态栏会根据终端宽度自适应 —— ≥ 76 列显示完整布局，52–75 列紧凑显示，低于 52 列只显示模型和时长。
+状态栏会根据终端宽度自适应——≥ 76 列时显示完整布局，52–75 列时紧凑显示，低于 52 列时仅显示最小内容（模型 + 时长）。
 
 **上下文颜色编码：**
 
 | 颜色 | 阈值 | 含义 |
 |-------|-----------|---------|
-| 绿色 | &lt; 50% | 空间充足 |
-| 黄色 | 50–80% | 开始变满 |
+| 绿色 | < 50% | 空间充足 |
+| 黄色 | 50–80% | 逐渐填满 |
 | 橙色 | 80–95% | 接近上限 |
-| 红色 | ≥ 95% | 即将溢出 —— 考虑使用 `/compress` |
+| 红色 | ≥ 95% | 接近溢出——考虑使用 `/compress` |
 
-用 `/usage` 查看详细分解，包括各类费用（输入 vs 输出 Token）。
+使用 `/usage` 查看详细分解，包括按类别划分的费用（输入 vs 输出 Token）。
 
 ### 会话恢复显示 {#session-resume-display}
 
-恢复之前的会话时（`hermes -c` 或 `hermes --resume &lt;id&gt;`），横幅和输入提示之间会出现"Previous Conversation"面板，以紧凑形式回顾对话历史。详情和配置见 [Sessions — 恢复时的对话回顾](sessions.md#conversation-recap-on-resume)。
-
+当恢复之前的会话时（`hermes -c` 或 `hermes --resume &lt;id&gt;`），横幅和输入提示之间会出现一个“之前的对话”面板，显示对话历史的紧凑摘要。详情和配置请参见 [会话——恢复时的对话摘要](sessions.md#conversation-recap-on-resume)。
 ## 快捷键 {#keybindings}
 
 | 按键 | 操作 |
 |-----|--------|
 | `Enter` | 发送消息 |
 | `Alt+Enter` 或 `Ctrl+J` | 换行（多行输入） |
-| `Alt+V` | 从剪贴板粘贴图片（终端支持时可用） |
-| `Ctrl+V` | 粘贴文本，并自动附加剪贴板中的图片 |
-| `Ctrl+B` | 开始/停止语音录制（语音模式启用时，`voice.record_key`，默认：`ctrl+b`） |
-| `Ctrl+C` | 中断 Agent（2 秒内连按两次强制退出） |
+| `Alt+V` | 在终端支持时从剪贴板粘贴图片 |
+| `Ctrl+V` | 粘贴文本并尝试附加剪贴板中的图片 |
+| `Ctrl+B` | 启用语音模式时开始/停止录音（`voice.record_key`，默认：`ctrl+b`） |
+| `Ctrl+G` | 在 `$EDITOR`（vim/nvim/nano/VS Code 等）中打开当前输入缓冲区。保存并退出后，编辑后的文本将作为下一条提示发送——适合编写长段落或多段提示。 |
+| `Ctrl+X Ctrl+E` | Emacs 风格的外部编辑器备用绑定（行为与 `Ctrl+G` 相同）。 |
+| `Ctrl+C` | 中断 Agent（2 秒内双击强制退出） |
 | `Ctrl+D` | 退出 |
 | `Ctrl+Z` | 将 Hermes 挂起到后台（仅 Unix）。在 shell 中运行 `fg` 恢复。 |
-| `Tab` | 接受自动建议（幽灵文本）或补全斜杠命令 |
+| `Tab` | 接受自动建议（幽灵文本）或自动补全斜杠命令 |
+
+**多行粘贴预览。** 当粘贴多行文本块时，CLI 会回显一个紧凑的单行预览（`[pasted: 47 lines, 1,842 chars — press Enter to send]`），而不是将整个内容倾泻到回滚缓冲区中。实际发送的仍然是完整内容；这只是显示上的优化。
+
+**最终回复中的 Markdown 剥离。** CLI 会从 *最终* Agent 回复中剥离最冗长的 Markdown 代码块标记以及 `**粗体**` / `*斜体*` 包裹符，使其在终端中呈现为可读的纯文本，而非原始源码。代码块和列表会被保留。这不会影响网关平台或工具结果——它们会保留 Markdown 以便原生渲染。
 
 ## 斜杠命令 {#slash-commands}
 
-输入 `/` 查看自动补全下拉菜单。Hermes 支持大量 CLI 斜杠命令、动态技能命令，以及用户自定义的快速命令。
-常用示例：
+输入 `/` 即可看到自动补全下拉列表。Hermes 支持大量 CLI 斜杠命令、动态技能命令以及用户自定义的快速命令。
 
-| 命令 | 说明 |
+常见示例：
+
+| 命令 | 描述 |
 |---------|-------------|
 | `/help` | 显示命令帮助 |
-| `/model` | 显示或切换当前模型 |
-| `/tools` | 列出当前可用工具 |
-| `/skills browse` | 浏览技能中心和官方可选技能 |
-| `/background &lt;prompt&gt;` | 在独立的后台会话中运行提示词 |
+| `/model` | 显示或更改当前模型 |
+| `/tools` | 列出当前可用的工具 |
+| `/skills browse` | 浏览技能中心及官方可选技能 |
+| `/background &lt;prompt&gt;` | 在独立的后台会话中运行提示 |
 | `/skin` | 显示或切换当前 CLI 皮肤 |
-| `/voice on` | 开启 CLI 语音模式（按 `Ctrl+B` 录音） |
-| `/voice tts` | 开关 Hermes 回复的语音朗读 |
+| `/voice on` | 启用 CLI 语音模式（按 `Ctrl+B` 录音） |
+| `/voice tts` | 切换 Hermes 回复的语音播放 |
 | `/reasoning high` | 提高推理强度 |
 | `/title My Session` | 为当前会话命名 |
 
-完整的内置 CLI 和消息指令列表，请参阅 [斜杠命令参考](../reference/slash-commands.md)。
+完整的 CLI 内置命令和消息列表，请参见 [斜杠命令参考](../reference/slash-commands.md)。
 
-关于设置、提供商、静音调优以及消息/Discord 语音使用，请参阅 [语音模式](features/voice-mode.md)。
+关于设置、提供商、静音调节以及消息/Discord 语音使用，请参见 [语音模式](features/voice-mode.md)。
 
 :::tip
-命令不区分大小写——`/HELP` 和 `/help` 效果相同。已安装的技能也会自动变成斜杠命令。
+命令不区分大小写——`/HELP` 与 `/help` 效果相同。已安装的技能也会自动成为斜杠命令。
 :::
 
-## 快捷命令 {#quick-commands}
+## 快速命令 {#quick-commands}
 
-你可以定义自定义命令，让它们直接执行 shell 命令，无需调用 LLM。这在 CLI 和消息平台（Telegram、Discord 等）中都有效。
+你可以定义自定义命令，在不调用 LLM 的情况下立即执行 shell 命令。这些命令在 CLI 和消息平台（Telegram、Discord 等）中均可使用。
 
 ```yaml
 # ~/.hermes/config.yaml
@@ -140,35 +146,37 @@ quick_commands:
   gpu:
     type: exec
     command: nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader
+  restart:
+    type: alias
+    target: /gateway restart
 ```
-
-然后在任意聊天中输入 `/status` 或 `/gpu` 即可。更多示例请参阅 [配置指南](/user-guide/configuration#quick-commands)。
+在任意聊天中输入 `/status`、`/gpu` 或 `/restart`。更多示例请参阅[配置指南](/user-guide/configuration#quick-commands)。
 
 ## 启动时预加载技能 {#preloading-skills-at-launch}
 
-如果你已经知道会话中需要哪些技能，可以在启动时直接传入：
+如果你已经知道本次会话需要启用哪些技能，可以在启动时传入：
 
 ```bash
 hermes -s hermes-agent-dev,github-auth
 hermes chat -s github-pr-workflow -s github-auth
 ```
 
-Hermes 会在第一轮对话前，将每个指定技能加载到会话提示词中。这个参数在交互模式和单次查询模式下都有效。
+Hermes 会在第一轮对话前将每个命名的技能加载到会话提示中。该标志在交互模式和单次查询模式下均有效。
 
 ## 技能斜杠命令 {#skill-slash-commands}
 
-`~/.hermes/skills/` 中每个已安装的技能都会自动注册为斜杠命令。技能名称就是命令名：
+`~/.hermes/skills/` 目录下安装的每个技能都会自动注册为斜杠命令。技能名称即命令名：
 
 ```
 /gif-search funny cats
 /axolotl help me fine-tune Llama 3 on my dataset
 /github-pr-workflow create a PR for the auth refactor
 
-# 只输入技能名会加载它，并让 Agent 询问你需要什么：
+# 仅输入技能名称即可加载它，让 Agent 询问你的需求：
 /excalidraw
 ```
 
-## 人格 {#personalities}
+## 人格设定 {#personalities}
 
 设置预定义人格来改变 Agent 的语气：
 
@@ -180,7 +188,7 @@ Hermes 会在第一轮对话前，将每个指定技能加载到会话提示词�
 
 内置人格包括：`helpful`、`concise`、`technical`、`creative`、`teacher`、`kawaii`、`catgirl`、`pirate`、`shakespeare`、`surfer`、`noir`、`uwu`、`philosopher`、`hype`。
 
-你也可以在 `~/.hermes/config.yaml` 中自定义人格：
+你也可以在 `~/.hermes/config.yaml` 中定义自定义人格：
 
 ```yaml
 personalities:
@@ -194,8 +202,8 @@ personalities:
 
 有两种方式输入多行消息：
 
-1. **`Alt+Enter` 或 `Ctrl+J`** —— 插入新行
-2. **反斜杠续行** —— 在行尾输入 `\` 继续：
+1. **`Alt+Enter` 或 `Ctrl+J`** — 插入新行
+2. **反斜杠续行** — 以 `\` 结尾的行会继续：
 
 ```
 ❯ Write a function that:\
@@ -204,192 +212,207 @@ personalities:
 ```
 
 :::info
-支持粘贴多行文本——使用 `Alt+Enter` 或 `Ctrl+J` 插入换行，或者直接粘贴内容。
+支持粘贴多行文本 — 使用 `Alt+Enter` 或 `Ctrl+J` 插入换行，或直接粘贴内容。
 :::
 
 ## 中断 Agent {#interrupting-the-agent}
 
 你可以随时中断 Agent：
 
-- **输入新消息 + 回车** —— 在 Agent 工作时发送，会中断当前操作并处理你的新指令
-- **`Ctrl+C`** —— 中断当前操作（2 秒内按两次强制退出）
-- 进行中的终端命令会立即终止（先 SIGTERM，1 秒后 SIGKILL）
-- 中断期间输入的多条消息会合并为一个提示词
+- **在 Agent 工作时输入新消息 + Enter** — 会中断当前操作并处理你的新指令
+- **`Ctrl+C`** — 中断当前操作（2 秒内按两次强制退出）
+- 正在进行的终端命令会立即被终止（先发 SIGTERM，1 秒后发 SIGKILL）
+- 中断期间输入的多个消息会合并为一个提示
 
 ### 忙碌输入模式 {#busy-input-mode}
 
-`display.busy_input_mode` 配置项控制你在 Agent 工作时按回车的行为：
+`display.busy_input_mode` 配置键控制当 Agent 工作时按 Enter 键的行为：
 
 | 模式 | 行为 |
 |------|----------|
 | `"interrupt"`（默认） | 你的消息会中断当前操作并立即处理 |
-| `"queue"` | 你的消息会被静默排队，Agent 完成后作为下一轮发送 |
+| `"queue"` | 你的消息会被静默排队，在 Agent 完成后作为下一轮发送 |
+| `"steer"` | 你的消息通过 `/steer` 注入到当前运行中，在下次工具调用后到达 Agent — 不会中断，也不会产生新轮次 |
+
 ```yaml
 # ~/.hermes/config.yaml
 display:
-  busy_input_mode: "queue"   # 或 "interrupt"（默认）
+  busy_input_mode: "steer"   # 或 "queue" 或 "interrupt"（默认）
 ```
 
-Queue 模式适合你想提前准备后续消息，又不想意外打断正在执行的任务。如果填了不认识的值，会自动回退到 `"interrupt"`。
+`"queue"` 模式在你想要准备后续消息而不意外取消进行中的工作时非常有用。`"steer"` 模式在你想要在不中断的情况下中途重定向 Agent 时非常有用 — 例如，在它仍在编辑代码时说"实际上，也检查一下测试"。未知值会回退到 `"interrupt"`。
+`"steer"` 有两种自动回退行为：如果 Agent 尚未启动，或者附带了图片，消息会回退到 `"queue"` 行为，从而不会丢失任何内容。
+
+你也可以在 CLI 中更改它：
+
+```text
+/busy queue
+/busy steer
+/busy interrupt
+/busy status
+```
+
+<a id="first-touch-hint"></a>
+:::tip 首次提示
+当 Hermes 正在工作时，你第一次按下 Enter 键，Hermes 会打印一行提示，提醒你 `/busy` 这个开关（`"(tip) 你的消息打断了当前运行……"`）。每个安装只会触发一次——`config.yaml` 中 `onboarding.seen.busy_input_prompt` 下的一个标志会锁定它。删除该键即可再次看到提示。
+:::
 
 ### 挂起到后台 {#suspending-to-background}
 
-在 Unix 系统上，按 **`Ctrl+Z`** 就能把 Hermes 挂起到后台——和普通终端进程一样。Shell 会打印确认信息：
+在 Unix 系统上，按 **`Ctrl+Z`** 可将 Hermes 挂起到后台——就像任何终端进程一样。Shell 会打印一条确认信息：
 
 ```
-Hermes Agent has been suspended. Run `fg` to bring Hermes Agent back.
+Hermes Agent 已被挂起。运行 `fg` 可将 Hermes Agent 带回前台。
 ```
 
-在 Shell 里输入 `fg` 即可恢复到之前离开的位置。Windows 不支持这个功能。
+在 shell 中输入 `fg` 即可从你离开的地方精确恢复会话。Windows 上不支持此功能。
 
-## 工具进度展示 {#tool-progress-display}
+## 工具进度显示 {#tool-progress-display}
 
-CLI 会在 Agent 工作时显示动态反馈：
+CLI 会在 Agent 工作时显示动画反馈：
 
 **思考动画**（API 调用期间）：
 ```
-  ◜ (｡•́︿•̀｡) pondering... (1.2s)
-  ◠ (⊙_⊙) contemplating... (2.4s)
-  ✧٩(ˊᗜˋ*)و✧ got it! (3.1s)
+  ◜ (｡•́︿•̀｡) 思考中... (1.2s)
+  ◠ (⊙_⊙) 沉思中... (2.4s)
+  ✧٩(ˊᗜˋ*)و✧ 搞定！ (3.1s)
 ```
 
 **工具执行流：**
 ```
-  ┊ 💻 terminal `ls -la` (0.3s)
+  ┊ 💻 终端 `ls -la` (0.3s)
   ┊ 🔍 web_search (1.2s)
   ┊ 📄 web_extract (2.1s)
 ```
 
-用 `/verbose` 可以循环切换显示模式：`off → new → all → verbose`。这个命令也能在消息平台上启用——详见 [配置](/user-guide/configuration#display-settings)。
+使用 `/verbose` 循环切换显示模式：`off → new → all → verbose`。此命令也可在消息平台上启用——参见[配置](/user-guide/configuration#display-settings)。
 
 ### 工具预览长度 {#tool-preview-length}
 
-`display.tool_preview_length` 配置项控制工具调用预览行的最大字符数（比如文件路径、终端命令）。默认是 `0`，表示不限制——完整路径和命令都会显示。
+`display.tool_preview_length` 配置键控制工具调用预览行中显示的最大字符数（例如文件路径、终端命令）。默认值为 `0`，表示无限制——显示完整路径和命令。
 
 ```yaml
 # ~/.hermes/config.yaml
 display:
-  tool_preview_length: 80   # 工具预览截断到 80 个字符（0 = 不限制）
+  tool_preview_length: 80   # 将工具预览截断为 80 个字符（0 = 无限制）
 ```
 
-终端比较窄，或者工具参数里包含很长的文件路径时，这个设置很有用。
+这在窄终端或工具参数包含非常长的文件路径时很有用。
 
 ## 会话管理 {#session-management}
 
 ### 恢复会话 {#resuming-sessions}
 
-退出 CLI 会话时，会打印恢复命令：
+当你退出 CLI 会话时，会打印一条恢复命令：
 
 ```
-Resume this session with:
+使用以下命令恢复此会话：
   hermes --resume 20260225_143052_a1b2c3
 
-Session:        20260225_143052_a1b2c3
-Duration:       12m 34s
-Messages:       28 (5 user, 18 tool calls)
+会话：        20260225_143052_a1b2c3
+持续时间：    12m 34s
+消息数：      28（5 条用户消息，18 次工具调用）
 ```
 
 恢复选项：
 
 ```bash
 hermes --continue                          # 恢复最近的 CLI 会话
-hermes -c                                  # 简写形式
-hermes -c "my project"                     # 按名称恢复会话（该系列中最新的）
-hermes --resume 20260225_143052_a1b2c3     # 按 ID 恢复指定会话
+hermes -c                                  # 短格式
+hermes -c "my project"                     # 恢复指定名称的会话（同一系列中最新的）
+hermes --resume 20260225_143052_a1b2c3     # 按 ID 恢复特定会话
 hermes --resume "refactoring auth"         # 按标题恢复
-hermes -r 20260225_143052_a1b2c3           # 简写形式
+hermes -r 20260225_143052_a1b2c3           # 短格式
 ```
 
-恢复时会从 SQLite 中还原完整的对话历史。Agent 能看到之前的所有消息、工具调用和回复——就像你从未离开过一样。
+恢复操作会从 SQLite 中还原完整的对话历史。Agent 可以看到所有先前的消息、工具调用和响应——就像你从未离开过一样。
 
-在聊天中用 `/title My Session Name` 可以给当前会话命名，或者在命令行用 `hermes sessions rename &lt;id&gt; &lt;title&gt;`。用 `hermes sessions list` 可以浏览历史会话。
-
+在聊天中使用 `/title My Session Name` 为当前会话命名，或者从命令行使用 `hermes sessions rename &lt;id&gt; &lt;title&gt;`。使用 `hermes sessions list` 浏览过去的会话。
 ### 会话存储 {#session-storage}
 
-CLI 会话保存在 Hermes 的 SQLite 状态数据库中，路径是 `~/.hermes/state.db`。数据库存储：
+CLI 会话存储在 Hermes 的 SQLite 状态数据库中，路径为 `~/.hermes/state.db`。该数据库保存：
 
-- 会话元数据（ID、标题、时间戳、token 计数器）
+- 会话元数据（ID、标题、时间戳、令牌计数器）
 - 消息历史
-- 压缩/恢复会话之间的关联关系
+- 跨压缩/恢复会话的谱系
 - `session_search` 使用的全文搜索索引
 
-部分消息适配器还会按平台单独保存对话记录文件，但 CLI 本身是从 SQLite 会话存储中恢复的。
+某些消息适配器还会在数据库旁边保存按平台划分的转录文件，但 CLI 本身是从 SQLite 会话存储中恢复的。
 
 ### 上下文压缩 {#context-compression}
 
-对话太长、接近上下文上限时，会自动触发总结：
+当接近上下文限制时，长对话会自动进行摘要：
 
 ```yaml
 # 在 ~/.hermes/config.yaml 中
 compression:
   enabled: true
-  threshold: 0.50    # 默认在达到上下文上限的 50% 时压缩
+  threshold: 0.50    # 默认在上下文限制的 50% 时进行压缩
 
-# 总结模型在 auxiliary 下配置：
+# 在 auxiliary 下配置摘要模型：
 auxiliary:
   compression:
-    model: "google/gemini-3-flash-preview"  # 用于总结的模型
+    model: "google/gemini-3-flash-preview"  # 用于摘要的模型
 ```
 
-压缩触发时，中间的对话轮次会被总结，但最开始的 3 轮和最后的 4 轮始终保留。
+当触发压缩时，中间轮次会被摘要，而前 3 轮和后 20 轮始终保留。
 
-<a id="background-sessions"></a>
 ## 后台会话 {#background-sessions}
 
-可以在独立的后台会话中运行提示词，同时继续用 CLI 做其他事：
+在单独的后台会话中运行提示，同时继续使用 CLI 进行其他工作：
 
 ```
-/background Analyze the logs in /var/log and summarize any errors from today
+/background 分析 /var/log 中的日志，并总结今天的所有错误
 ```
 
-Hermes 会立即确认任务，然后把提示符还给你：
+Hermes 会立即确认任务，并返回提示：
 
 ```
-🔄 Background task #1 started: "Analyze the logs in /var/log and summarize..."
-   Task ID: bg_143022_a1b2c3
+🔄 后台任务 #1 已启动："分析 /var/log 中的日志并总结..."
+   任务 ID: bg_143022_a1b2c3
 ```
+
 ### 工作原理 {#how-it-works}
 
-每个 `/background` 提示都会在守护线程中启动一个**完全独立的 Agent 会话**：
+每个 `/background` 提示都会在守护线程中生成一个**完全独立的 Agent 会话**：
 
-- **对话隔离** — 后台 Agent 不知道你当前会话的历史。它只收到你提供的提示。
-- **配置相同** — 后台 Agent 继承当前会话的模型、提供商、工具集、推理设置和备用模型。
-- **非阻塞** — 你的前台会话保持完全交互。你可以聊天、运行命令，甚至启动更多后台任务。
-- **多任务并行** — 你可以同时运行多个后台任务。每个任务都会分配一个数字 ID。
+- **隔离的对话** — 后台 Agent 不知道当前会话的历史。它只接收你提供的提示。
+- **相同的配置** — 后台 Agent 继承当前会话的模型、提供商、工具集、推理设置和备用模型。
+- **非阻塞** — 前台会话保持完全交互。你可以聊天、运行命令，甚至启动更多后台任务。
+- **多个任务** — 你可以同时运行多个后台任务。每个任务都有一个编号 ID。
 
 ### 结果 {#results}
 
-后台任务完成后，结果会以面板形式出现在你的终端中：
+当后台任务完成时，结果会以面板形式显示在终端中：
 
 ```
-╭─ ⚕ Hermes (background #1) ──────────────────────────────────╮
-│ Found 3 errors in syslog from today:                         │
-│ 1. OOM killer invoked at 03:22 — killed process nginx        │
-│ 2. Disk I/O error on /dev/sda1 at 07:15                      │
-│ 3. Failed SSH login attempts from 192.168.1.50 at 14:30      │
-╰──────────────────────────────────────────────────────────────╯
+╭─ ⚕ Hermes (后台 #1) ──────────────────────────────────╮
+│ 从今天的系统日志中发现 3 个错误：                         │
+│ 1. OOM killer 在 03:22 被调用 — 杀死了进程 nginx        │
+│ 2. 07:15 在 /dev/sda1 上发生磁盘 I/O 错误               │
+│ 3. 14:30 来自 192.168.1.50 的 SSH 登录尝试失败          │
+╰──────────────────────────────────────────────────────────╯
 ```
 
 如果任务失败，你会看到错误通知。如果配置中启用了 `display.bell_on_complete`，任务完成时终端会响铃。
 
 ### 使用场景 {#use-cases}
 
-- **长时间研究** — 一边写代码，一边 `/background research the latest developments in quantum error correction`
-- **文件处理** — 一边继续对话，一边 `/background analyze all Python files in this repo and list any security issues`
-- **并行调查** — 同时启动多个后台任务，从不同角度探索问题
-
+- **长时间运行的研究** — 在处理代码时使用 "/background 研究量子纠错的最新进展"
+- **文件处理** — 在继续对话时使用 "/background 分析此仓库中的所有 Python 文件并列出任何安全问题"
+- **并行调查** — 启动多个后台任务，同时探索不同角度
 :::info
-后台会话不会出现在你的主对话历史中。它们是独立的会话，有自己的任务 ID（例如 `bg_143022_a1b2c3`）。
+后台会话不会出现在您的主对话历史中。它们是独立的会话，拥有自己的任务 ID（例如 `bg_143022_a1b2c3`）。
 :::
 
 ## 静默模式 {#quiet-mode}
 
-默认情况下，CLI 以静默模式运行，它会：
-- 抑制工具的冗余日志
-- 启用 kawaii 风格的动画反馈
-- 保持输出简洁、友好
+默认情况下，CLI 以静默模式运行，该模式会：
+- 抑制工具产生的详细日志
+- 启用 kawaii 风格动画反馈
+- 保持输出简洁且用户友好
 
-如需查看调试输出：
+如需调试输出：
 ```bash
 hermes chat --verbose
 ```

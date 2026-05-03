@@ -22,8 +22,7 @@ WhatsApp 会定期更新其 Web 协议，这可能会暂时破坏与第三方桥
 在 WhatsApp 更新后停止工作，请拉取最新的 Hermes 版本并重新配对。
 :::
 
-<a id="two-modes"></a>
-## 两种模式 {#unofficial-api-ban-risk}
+## 两种模式 {#two-modes}
 
 | 模式 | 工作原理 | 最适合 |
 |------|-------------|----------|

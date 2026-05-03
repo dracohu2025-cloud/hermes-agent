@@ -451,8 +451,7 @@ mcp_servers:
 - 你希望有一个单一的 MCP 服务器，能同时桥接到 Hermes 所有已连接的消息平台
 - 你已经有一个正在运行且连接了平台的 Hermes 网关
 
-<a id="quick-start"></a>
-### 快速开始
+### 快速开始 {#quick-start}
 
 ```bash
 hermes mcp serve

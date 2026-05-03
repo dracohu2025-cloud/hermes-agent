@@ -142,23 +142,19 @@ curl -s http://localhost:8080/v1/models | jq '.data[].id'
 
 [omlx](https://omlx.ai) 是一款 macOS 原生应用，用于管理和运行 MLX 模型。MLX 是苹果自家的机器学习框架，专门针对 Apple Silicon 的统一内存架构进行了优化。
 
-<a id="install"></a>
-### 安装
+### 安装 {#install}
 
 从 [omlx.ai](https://omlx.ai) 下载并安装。它提供了用于模型管理的图形界面和内置服务器。
 
-<a id="download-the-model"></a>
-### 下载模型
+### 下载模型 {#download-the-model}
 
 使用 omlx 应用浏览并下载模型。搜索 `Qwen3.5-9B-mlx-lm-mxfp4` 并下载。模型存储在本地（通常位于 `~/.omlx/models/`）。
 
-<a id="start-the-server"></a>
-### 启动服务器
+### 启动服务器 {#start-the-server}
 
 omlx 默认在 `http://127.0.0.1:8000` 上提供服务。通过应用界面启动服务，或者在可用时使用 CLI。
 
-<a id="test-it"></a>
-### 测试
+### 测试 {#test-it}
 
 ```bash
 curl -s http://127.0.0.1:8000/v1/chat/completions \

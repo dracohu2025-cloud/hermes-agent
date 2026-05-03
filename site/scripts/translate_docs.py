@@ -14,7 +14,7 @@ from typing import Iterable
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SOURCE_DOCS_ROOT = REPO_ROOT / "website" / "docs"
 TARGET_DOCS_ROOT = REPO_ROOT / "site" / "docs"
-TRANSLATABLE_SUFFIXES = {".md", ".json"}
+TRANSLATABLE_SUFFIXES = {".md", ".mdx", ".json"}
 
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -135,14 +135,19 @@ def resolve_transport(base_url: str | None, explicit: str | None) -> str:
 
 
 def build_client(transport: str, api_key: str, base_url: str | None):
+    timeout_seconds = float(os.getenv("HERMES_DOCS_TRANSLATION_TIMEOUT", "120"))
+
     if transport == "anthropic":
         from agent.anthropic_adapter import build_anthropic_client
 
-        return build_anthropic_client(api_key, base_url)
+        client = build_anthropic_client(api_key, base_url)
+        if hasattr(client, "with_options"):
+            return client.with_options(timeout=timeout_seconds)
+        return client
 
     from openai import OpenAI
 
-    kwargs = {"api_key": api_key}
+    kwargs = {"api_key": api_key, "timeout": timeout_seconds, "max_retries": 0}
     if base_url:
         kwargs["base_url"] = base_url
     return OpenAI(**kwargs)
@@ -661,13 +666,6 @@ def normalize_leading_anchor_heading_ids(text: str) -> str:
             index += 1
             continue
 
-        if heading_match.group(2):
-            normalized_lines.append(line)
-            normalized_lines.append(heading_line)
-            seen_ids.add(heading_match.group(2))
-            index += 2
-            continue
-
         normalized_lines.append(f"{heading_match.group(1)} {{#{anchor_id}}}")
         seen_ids.add(anchor_id)
         index += 2
@@ -753,8 +751,12 @@ def inject_source_anchor_aliases(source_text: str, translated_text: str) -> str:
 
 
 STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
+    "developer-guide/adding-platform-adapters.md": {
+        "## 分步检查清单（内置路径）": "step-by-step-checklist",
+    },
     "developer-guide/creating-skills.md": {
         "### 配置项（config.yaml）": "config-settings-configyaml",
+        "### 配置设置 (config.yaml)": "config-settings-configyaml",
     },
     "developer-guide/memory-provider-plugin.md": {
         "## 添加 CLI 命令": "adding-cli-commands",
@@ -777,6 +779,9 @@ STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
     "reference/slash-commands.md": {
         "## 说明": "notes",
     },
+    "reference/environment-variables.md": {
+        "### observability/langfuse": "observabilitylangfuse",
+    },
     "user-guide/cli.md": {
         "## 后台会话": "background-sessions",
     },
@@ -798,6 +803,34 @@ STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
     "user-guide/features/hooks.md": {
         "## 网关事件钩子": "gateway-event-hooks",
         "## 插件钩子": "plugin-hooks",
+        "### `pre_tool_call`": "pre_tool_call",
+        "### `post_tool_call`": "post_tool_call",
+        "### `pre_llm_call`": "pre_llm_call",
+        "### `post_llm_call`": "post_llm_call",
+        "### `on_session_start`": "on_session_start",
+        "### `on_session_end`": "on_session_end",
+        "### `on_session_finalize`": "on_session_finalize",
+        "### `on_session_reset`": "on_session_reset",
+        "### `subagent_stop`": "subagent_stop",
+        "### `pre_gateway_dispatch`": "pre_gateway_dispatch",
+        "### `pre_approval_request`": "pre_approval_request",
+        "### `post_approval_response`": "post_approval_response",
+        "### `transform_tool_result`": "transform_tool_result",
+        "### `transform_terminal_output`": "transform_terminal_output",
+    },
+    "user-guide/features/browser.md": {
+        "### `browser_dialog`": "browser_dialog",
+    },
+    "user-guide/features/built-in-plugins.md": {
+        "### observability/langfuse": "observabilitylangfuse",
+    },
+    "user-guide/features/extending-the-dashboard.md": {
+        "### 快速上手 — 你的第一个主题": "quick-start--your-first-theme",
+        "### 快速开始——你的第一个插件": "quick-start--your-first-plugin",
+        "### 替换内置页面（`tab.override`）": "replacing-built-in-pages-taboverride",
+        "### 仅插槽插件（`tab.hidden`）": "slot-only-plugins-tabhidden",
+        "### 插件发现与重载": "plugin-discovery--reload",
+        "## 组合主题 + 插件演示": "combined-theme--plugin-demo",
     },
     "user-guide/features/mcp.md": {
         "### 动态工具发现": "dynamic-tool-discovery",
@@ -808,6 +841,10 @@ STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
     },
     "user-guide/features/skills.md": {
         "## 外部技能目录": "external-skill-directories",
+        "## Agent 管理的技能（skill_manage 工具）": "agent-managed-skills-skill_manage-tool",
+    },
+    "user-guide/features/vision.md": {
+        "## SSH 与远程会话": "ssh--remote-sessions",
     },
     "user-guide/messaging/discord.md": {
         "### Discord 中的会话模型": "session-model-in-discord",
@@ -823,6 +860,10 @@ STABLE_HEADING_IDS: dict[str, dict[str, str]] = {
     "user-guide/messaging/telegram.md": {
         "## 步骤 3：隐私模式（对群组至关重要）": "step-3-privacy-mode-critical-for-groups",
         "## 私聊话题 (Bot API 9.4)": "private-chat-topics-bot-api-94",
+        "## 私聊话题（Bot API 9.4）": "private-chat-topics-bot-api-94",
+    },
+    "user-guide/messaging/teams.md": {
+        "## 生产部署": "production-deployment",
     },
     "user-guide/security.md": {
         "### DM 配对系统": "dm-pairing-system",
@@ -854,6 +895,12 @@ STABLE_HEADING_REWRITES: dict[str, dict[str, str]] = {
         "### `on_session_end` {#onsessionend}": "### `on_session_end` {#on_session_end}",
         "### `on_session_finalize` {#onsessionfinalize}": "### `on_session_finalize` {#on_session_finalize}",
         "### `on_session_reset` {#onsessionreset}": "### `on_session_reset` {#on_session_reset}",
+        "### `subagent_stop` {#subagentstop}": "### `subagent_stop` {#subagent_stop}",
+        "### `pre_gateway_dispatch` {#pregatewaydispatch}": "### `pre_gateway_dispatch` {#pre_gateway_dispatch}",
+        "### `pre_approval_request` {#preapprovalrequest}": "### `pre_approval_request` {#pre_approval_request}",
+        "### `post_approval_response` {#postapprovalresponse}": "### `post_approval_response` {#post_approval_response}",
+        "### `transform_tool_result` {#transformtoolresult}": "### `transform_tool_result` {#transform_tool_result}",
+        "### `transform_terminal_output` {#transformterminaloutput}": "### `transform_terminal_output` {#transform_terminal_output}",
     },
 }
 
@@ -876,6 +923,7 @@ def apply_stable_heading_ids(relative_path: Path, source_text: str, text: str) -
             re.MULTILINE,
         )
         if heading_with_any_id.search(updated):
+            updated = heading_with_any_id.sub(anchored_heading, updated, count=1)
             continue
 
         plain_heading_line = re.compile(rf"^{re.escape(heading)}$", re.MULTILINE)
@@ -1232,7 +1280,7 @@ def translate_path(
     chunk_size: int = 8000,
     validate: bool = True,
 ) -> None:
-    if source_path.suffix == ".md":
+    if source_path.suffix in {".md", ".mdx"}:
         translate_markdown_file(
             client,
             transport,

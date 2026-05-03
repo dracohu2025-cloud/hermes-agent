@@ -2,13 +2,11 @@
 sidebar_position: 7
 ---
 
-<a id="profile-commands-reference"></a>
-# 配置文件命令参考
+# 配置文件命令参考 {#profile-commands-reference}
 
 本页涵盖了所有与 [Hermes 配置文件](../user-guide/profiles.md) 相关的命令。关于通用 CLI 命令，请参阅 [CLI 命令参考](./cli-commands.md)。
 
-<a id="hermes-profile"></a>
-## `hermes profile`
+## `hermes profile` {#hermes-profile}
 
 ```bash
 hermes profile <子命令>
@@ -28,8 +26,7 @@ hermes profile <子命令>
 | `export` | 将配置文件导出为 tar.gz 归档文件。 |
 | `import` | 从 tar.gz 归档文件导入配置文件。 |
 
-<a id="hermes-profile-list"></a>
-## `hermes profile list`
+## `hermes profile list` {#hermes-profile-list}
 
 ```bash
 hermes profile list
@@ -49,8 +46,7 @@ $ hermes profile list
 
 无选项。
 
-<a id="hermes-profile-use"></a>
-## `hermes profile use`
+## `hermes profile use` {#hermes-profile-use}
 
 ```bash
 hermes profile use <名称>
@@ -69,8 +65,7 @@ hermes profile use work
 hermes profile use default
 ```
 
-<a id="hermes-profile-create"></a>
-## `hermes profile create`
+## `hermes profile create` {#hermes-profile-create}
 
 ```bash
 hermes profile create <名称> [选项]
@@ -103,8 +98,7 @@ hermes profile create backup --clone-all
 # 从指定配置文件克隆配置
 hermes profile create work2 --clone --clone-from work
 ```
-<a id="hermes-profile-delete"></a>
-## `hermes profile delete`
+## `hermes profile delete` {#hermes-profile-delete}
 
 ```bash
 hermes profile delete <name> [options]
@@ -128,8 +122,7 @@ hermes profile delete mybot --yes
 此操作将永久删除该配置文件的整个目录，包括所有配置、记忆、会话和技能。无法删除当前正在使用的配置文件。
 :::
 
-<a id="hermes-profile-show"></a>
-## `hermes profile show`
+## `hermes profile show` {#hermes-profile-show}
 
 ```bash
 hermes profile show <name>
@@ -157,8 +150,7 @@ SOUL.md: 存在
 别名:   ~/.local/bin/work
 ```
 
-<a id="hermes-profile-alias"></a>
-## `hermes profile alias`
+## `hermes profile alias` {#hermes-profile-alias}
 
 ```bash
 hermes profile alias <name> [options]
@@ -185,8 +177,7 @@ hermes profile alias work --remove
 # 移除包装脚本
 ```
 
-<a id="hermes-profile-rename"></a>
-## `hermes profile rename`
+## `hermes profile rename` {#hermes-profile-rename}
 
 ```bash
 hermes profile rename <old-name> <new-name>
@@ -207,8 +198,7 @@ hermes profile rename mybot assistant
 # ~/.local/bin/mybot → ~/.local/bin/assistant
 ```
 
-<a id="hermes-profile-export"></a>
-## `hermes profile export`
+## `hermes profile export` {#hermes-profile-export}
 
 ```bash
 hermes profile export <name> [options]
@@ -229,8 +219,7 @@ hermes profile export work
 hermes profile export work -o ./work-2026-03-29.tar.gz
 ```
 
-<a id="hermes-profile-import"></a>
-## `hermes profile import`
+## `hermes profile import` {#hermes-profile-import}
 
 ```bash
 hermes profile import <archive> [options]
@@ -252,8 +241,7 @@ hermes profile import ./work-2026-03-29.tar.gz
 hermes profile import ./work-2026-03-29.tar.gz --name work-restored
 ```
 
-<a id="hermes-p-hermes-profile"></a>
-## `hermes -p` / `hermes --profile`
+## `hermes -p` / `hermes --profile` {#hermes-p-hermes-profile}
 
 ```bash
 hermes -p <name> <command> [options]
@@ -275,8 +263,7 @@ hermes -p personal skills list
 hermes -p work config edit
 ```
 
-<a id="hermes-completion"></a>
-## `hermes completion`
+## `hermes completion` {#hermes-completion}
 
 ```bash
 hermes completion <shell>
@@ -304,8 +291,7 @@ source ~/.bashrc
 - `hermes profile use &lt;TAB&gt;` — 配置文件名称
 - `hermes -p &lt;TAB&gt;` — 配置文件名称
 
-<a id="see-also"></a>
-## 另请参阅
+## 另请参阅 {#see-also}
 
 - [配置文件用户指南](../user-guide/profiles.md)
 - [CLI 命令参考](./cli-commands.md)

@@ -73,8 +73,7 @@ else:
 
 ---
 
-<a id="pattern-2-weekly-report"></a>
-## 模式 2：每周报告 {#the-silent-trick}
+## 模式 2：每周报告 {#pattern-2-weekly-report}
 
 将来自多个来源的信息编译成格式化的摘要。这个任务每周运行一次，并发送到你的主频道。
 

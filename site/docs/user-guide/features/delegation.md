@@ -1,82 +1,82 @@
 ---
 sidebar_position: 7
-title: "Subagent 任务委派"
-description: "使用 delegate_task 生成隔离的子 Agent 以处理并行工作流"
+title: "子Agent委派"
+description: "通过 delegate_task 生成隔离的子Agent，用于并行工作流"
 ---
 
-# Subagent 任务委派 {#subagent-delegation}
+# 子Agent委派 {#subagent-delegation}
 
-`delegate_task` 工具可以生成具有隔离上下文、受限工具集和独立终端会话的子 AIAgent 实例。每个子 Agent 都会开启一段全新的对话并独立工作 —— 只有其最终生成的总结会进入父 Agent 的上下文。
+`delegate_task` 工具会生成独立的子 AIAgent 实例，每个实例拥有隔离的上下文、受限的工具集以及自己的终端会话。每个子 Agent 获得全新的对话并独立工作——只有其最终摘要会进入父 Agent 的上下文。
 
 ## 单个任务 {#single-task}
 
 ```python
 delegate_task(
-    goal="排查测试失败的原因",
-    context="错误信息：test_foo.py 第 42 行断言失败",
+    goal="Debug why tests fail",
+    context="Error: assertion in test_foo.py line 42",
     toolsets=["terminal", "file"]
 )
 ```
 
-## 并行批处理 {#parallel-batch}
+## 并行批量 {#parallel-batch}
 
-最多支持 3 个并发运行的 Subagent：
+默认最多 3 个并发子 Agent（可配置，无硬上限）：
 
 ```python
 delegate_task(tasks=[
-    {"goal": "研究主题 A", "toolsets": ["web"]},
-    {"goal": "研究主题 B", "toolsets": ["web"]},
-    {"goal": "修复构建错误", "toolsets": ["terminal", "file"]}
+    {"goal": "Research topic A", "toolsets": ["web"]},
+    {"goal": "Research topic B", "toolsets": ["web"]},
+    {"goal": "Fix the build", "toolsets": ["terminal", "file"]}
 ])
 ```
 
-## Subagent 上下文工作原理 {#how-subagent-context-works}
+## 子Agent上下文如何工作 {#how-subagent-context-works}
 
-:::warning 重要提示：Subagent 没有任何先验知识
-Subagent 启动时使用的是**完全全新的对话**。它们对父 Agent 的对话历史、之前的工具调用或委派前讨论的任何内容一无所知。Subagent 唯一的上下文来源是你提供的 `goal` 和 `context` 字段。
+:::warning 关键：子Agent一无所知
+子Agent从**完全全新的对话**开始。它们对父 Agent 的对话历史、之前的工具调用或委派前讨论的任何内容一无所知。子Agent的唯一上下文来自父 Agent 在调用 `delegate_task` 时填充的 `goal` 和 `context` 字段。
 :::
+<a id="critical-subagents-know-nothing"></a>
 
-这意味着你必须传递 Subagent 所需的**所有信息**：
+这意味着父 Agent 必须在调用中传递子 Agent 所需的**所有内容**：
 
 ```python
-# 错误做法 - Subagent 不知道“那个错误”是什么
-delegate_task(goal="修复那个错误")
+# 不好 - 子Agent不知道"那个错误"是什么
+delegate_task(goal="Fix the error")
 
-# 正确做法 - Subagent 拥有所需的全部上下文
+# 好 - 子Agent拥有所需的所有上下文
 delegate_task(
-<a id="critical-subagents-know-nothing"></a>
-    goal="修复 api/handlers.py 中的 TypeError",
-    context="""文件 api/handlers.py 第 47 行出现 TypeError：
-    'NoneType' object has no attribute 'get'。
-    process_request() 函数从 parse_body() 接收一个字典，
-    但当 Content-Type 缺失时，parse_body() 会返回 None。
-    项目路径为 /home/user/myproject，使用 Python 3.11。"""
+    goal="Fix the TypeError in api/handlers.py",
+    context="""The file api/handlers.py has a TypeError on line 47:
+    'NoneType' object has no attribute 'get'.
+    The function process_request() receives a dict from parse_body(),
+    but parse_body() returns None when Content-Type is missing.
+    The project is at /home/user/myproject and uses Python 3.11."""
 )
 ```
 
-Subagent 会收到一个根据你的目标和上下文构建的专注型系统提示词，指示其完成任务并提供一份结构化的总结，内容包括：做了什么、发现了什么、修改了哪些文件以及遇到了哪些问题。
+子Agent会收到一个聚焦的系统提示，该提示由你的 goal 和 context 构建而成，指示它完成任务并提供结构化摘要，说明它做了什么、发现了什么、修改了哪些文件以及遇到了哪些问题。
 
-## 实际案例 {#practical-examples}
+## 实际示例 {#practical-examples}
 
 ### 并行研究 {#parallel-research}
 
-同时研究多个主题并收集总结：
+同时研究多个主题并收集摘要：
 
 ```python
 delegate_task(tasks=[
     {
-        "goal": "研究 2025 年 WebAssembly 的现状",
-        "context": "重点关注：浏览器支持、非浏览器运行时、语言支持",
+        "goal": "Research the current state of WebAssembly in 2025",
+        "context": "Focus on: browser support, non-browser runtimes, language support",
         "toolsets": ["web"]
     },
     {
-        "goal": "研究 2025 年 RISC-V 的采用现状",
-        "context": "重点关注：服务器芯片、嵌入式系统、软件生态系统",
+        "goal": "Research the current state of RISC-V adoption in 2025",
+        "context": "Focus on: server chips, embedded systems, software ecosystem",
         "toolsets": ["web"]
     },
     {
-        "goal": "研究 2025 年量子计算的进展",
-        "context": "重点关注：纠错技术的突破、实际应用、主要参与者",
+        "goal": "Research quantum computing progress in 2025",
+        "context": "Focus on: error correction breakthroughs, practical applications, key players",
         "toolsets": ["web"]
     }
 ])
@@ -84,139 +84,197 @@ delegate_task(tasks=[
 
 ### 代码审查 + 修复 {#code-review-fix}
 
-将“审查并修复”工作流委派给一个全新的上下文：
+将审查与修复工作流委派给全新的上下文：
 
 ```python
 delegate_task(
-    goal="审查身份验证模块的安全问题并修复发现的任何漏洞",
-    context="""项目路径：/home/user/webapp。
-    认证模块文件：src/auth/login.py, src/auth/jwt.py, src/auth/middleware.py。
-    项目使用 Flask, PyJWT 和 bcrypt。
-    重点关注：SQL 注入、JWT 验证、密码处理、会话管理。
-    修复发现的所有问题并运行测试套件 (pytest tests/auth/)。""",
+    goal="Review the authentication module for security issues and fix any found",
+    context="""Project at /home/user/webapp.
+    Auth module files: src/auth/login.py, src/auth/jwt.py, src/auth/middleware.py.
+    The project uses Flask, PyJWT, and bcrypt.
+    Focus on: SQL injection, JWT validation, password handling, session management.
+    Fix any issues found and run the test suite (pytest tests/auth/).""",
     toolsets=["terminal", "file"]
 )
 ```
-
 ### 多文件重构 {#multi-file-refactoring}
 
-委派一个大型重构任务，避免其产生的日志淹没父 Agent 的上下文：
+将可能撑爆父级上下文的大型重构任务委托出去：
 
 ```python
 delegate_task(
-    goal="重构 src/ 下的所有 Python 文件，将 print() 替换为正式的 logging",
-    context="""项目路径：/home/user/myproject。
-    使用 'logging' 模块，定义为 logger = logging.getLogger(__name__)。
-    将 print() 调用替换为相应的日志级别：
+    goal="将 src/ 下所有 Python 文件中的 print() 替换为合适的日志记录",
+    context="""项目位于 /home/user/myproject。
+    使用 'logging' 模块，logger = logging.getLogger(__name__)。
+    将 print() 调用替换为对应的日志级别：
     - print(f"Error: ...") -> logger.error(...)
     - print(f"Warning: ...") -> logger.warning(...)
     - print(f"Debug: ...") -> logger.debug(...)
     - 其他 print -> logger.info(...)
-    不要更改测试文件或 CLI 输出中的 print()。
-    完成后运行 pytest 以验证功能正常。""",
+    不要修改测试文件或 CLI 输出中的 print()。
+    完成后运行 pytest 确保一切正常。""",
     toolsets=["terminal", "file"]
 )
 ```
 
-## 批处理模式详情 {#batch-mode-details}
+## 批量模式详情 {#batch-mode-details}
 
-当你提供 `tasks` 数组时，Subagent 会通过线程池**并行**运行：
+当你提供 `tasks` 数组时，子 Agent 会使用线程池**并行**运行：
 
-- **最大并发数：** 3 个任务（如果数组更长，`tasks` 数组将被截断为 3 个）
-- **线程池：** 使用 `ThreadPoolExecutor`，配置 `MAX_CONCURRENT_CHILDREN = 3` 个工作线程
-- **进度显示：** 在 CLI 模式下，树状视图会实时显示每个 Subagent 的工具调用情况，并带有每个任务的完成状态行。在 Gateway 模式下，进度会被批量处理并转发给父 Agent 的进度回调函数
-- **结果排序：** 结果按任务索引排序，以确保无论完成顺序如何，都能与输入顺序匹配
-- **中断传播：** 中断父 Agent（例如发送新消息）会同时中断所有活跃的子 Agent
+- **最大并发数：** 默认 3 个任务（可通过 `delegation.max_concurrent_children` 或环境变量 `DELEGATION_MAX_CONCURRENT_CHILDREN` 配置；最小值为 1，无硬性上限）。超过限制的批次会返回工具错误，而不会静默截断。
+- **线程池：** 使用 `ThreadPoolExecutor`，最大工作线程数等于配置的并发限制。
+- **进度显示：** 在 CLI 模式下，树形视图会实时显示每个子 Agent 的工具调用，并附带每个任务的完成行。在网关模式下，进度会分批传递给父级的进度回调。
+- **结果排序：** 结果按任务索引排序，以匹配输入顺序，无论完成顺序如何。
+- **中断传播：** 中断父级（例如发送新消息）会中断所有活跃的子级。
 
-单任务委派直接运行，没有线程池开销。
+单任务委托直接运行，没有线程池开销。
 
-## 模型覆盖 (Model Override) {#model-override}
+## 模型覆盖 {#model-override}
 
-你可以通过 `config.yaml` 为 Subagent 配置不同的模型 —— 这对于将简单任务委派给更便宜/更快的模型非常有用：
+你可以通过 `config.yaml` 为子 Agent 配置不同的模型——适用于将简单任务委托给更便宜/更快的模型：
 
 ```yaml
 # 在 ~/.hermes/config.yaml 中
 delegation:
-  model: "google/gemini-flash-2.0"    # 为 Subagent 使用更便宜的模型
-  provider: "openrouter"              # 可选：将 Subagent 路由到不同的供应商
+  model: "google/gemini-flash-2.0"    # 子 Agent 使用更便宜的模型
+  provider: "openrouter"              # 可选：将子 Agent 路由到不同的提供商
 ```
 
-如果省略此配置，Subagent 将使用与父 Agent 相同的模型。
+如果省略，子 Agent 将使用与父级相同的模型。
 
 ## 工具集选择建议 {#toolset-selection-tips}
 
-`toolsets` 参数控制 Subagent 可以访问哪些工具。请根据任务进行选择：
+`toolsets` 参数控制子 Agent 可以访问哪些工具。根据任务选择：
 
 | 工具集模式 | 使用场景 |
 |----------------|----------|
 | `["terminal", "file"]` | 代码工作、调试、文件编辑、构建 |
-| `["web"]` | 研究、事实核查、查阅文档 |
+| `["web"]` | 研究、事实核查、文档查阅 |
 | `["terminal", "file", "web"]` | 全栈任务（默认） |
 | `["file"]` | 只读分析、无需执行的代码审查 |
 | `["terminal"]` | 系统管理、进程管理 |
 
-无论你如何指定，某些工具集对 Subagent 始终是**屏蔽**的：
-- `delegation` — 禁止递归委派（防止无限生成）
-- `clarify` — Subagent 无法与用户交互
-- `memory` — 禁止写入共享的持久化记忆
-- `code_execution` — 子 Agent 应该进行逐步推理
-- `send_message` — 禁止跨平台副作用（例如发送 Telegram 消息）
+无论你指定什么，某些工具集对子 Agent 是禁止的：
+- `delegation` — 对叶子子 Agent 禁止（默认）。对于 `role="orchestrator"` 的子级保留，受 `max_spawn_depth` 限制——请参阅下面的[深度限制与嵌套编排](#depth-limit-and-nested-orchestration)。
+- `clarify` — 子 Agent 不能与用户交互
+- `memory` — 不能写入共享持久内存
+- `code_execution` — 子级应逐步推理
+- `send_message` — 不能产生跨平台副作用（例如发送 Telegram 消息）
+## 最大迭代次数 {#max-iterations}
 
-## 最大迭代次数 (Max Iterations) {#max-iterations}
-
-每个 Subagent 都有一个迭代限制（默认：50），控制其可以进行的工具调用轮数：
+每个子 Agent 都有一个迭代次数限制（默认值：50），用于控制它可以执行多少轮工具调用：
 
 ```python
 delegate_task(
-    goal="快速文件检查",
-    context="检查 /etc/nginx/nginx.conf 是否存在并打印其前 10 行",
+    goal="Quick file check",
+    context="Check if /etc/nginx/nginx.conf exists and print its first 10 lines",
     max_iterations=10  # 简单任务，不需要太多轮次
 )
 ```
 
-## 层级深度限制 {#depth-limit}
+## 子任务超时 {#child-timeout}
 
-委派具有 **2 层的深度限制** —— 父 Agent（深度 0）可以生成子 Agent（深度 1），但子 Agent 不能进一步委派。这可以防止失控的递归委派链。
+如果子 Agent 在 `delegation.child_timeout_seconds` 配置的墙上时钟秒数内没有动静，就会被视为卡死并终止。默认值为 **600**（10 分钟）——相比早期版本的 300 秒有所增加，因为高推理模型在复杂研究任务时，可能会在思考中途被杀死。你可以按需调整：
 
-## 核心特性 {#key-properties}
+```yaml
+delegation:
+  child_timeout_seconds: 600   # 默认值
+```
 
-- 每个 Subagent 拥有**自己的终端会话**（与父 Agent 隔离）
-- **禁止嵌套委派** —— 子 Agent 不能进一步委派（没有孙子 Agent）
-- Subagent **不能**调用：`delegate_task`、`clarify`、`memory`、`send_message`、`execute_code`
-- **中断传播** —— 中断父 Agent 会中断所有活跃的子 Agent
-- 只有最终总结会进入父 Agent 的上下文，保持 Token 使用的高效性
-- Subagent 继承父 Agent 的 **API 密钥、供应商配置和凭据池**（支持在触发速率限制时进行密钥轮换）
+对于快速的本地模型可以降低该值；对于处理难题的慢速推理模型可以调高。每次子任务发起 API 调用或工具调用时，计时器都会重置——只有真正空闲的工作者才会触发终止。
 
-## Delegation vs execute_code {#delegation-vs-executecode}
+:::tip 零调用超时时的诊断转储
+如果子 Agent 在 **零** API 调用的情况下超时（通常是：提供者不可达、认证失败或工具模式被拒绝），`delegate_task` 会向 `~/.hermes/logs/subagent-timeout-<会话ID>-<时间戳>.log` 写入一份结构化诊断信息，其中包含子 Agent 的配置快照、凭据解析轨迹以及任何早期错误消息。相比之前静默超时的行为，这更容易定位根因。
+<a id="diagnostic-dump-on-zero-call-timeout"></a>
+:::
 
-| 维度 | delegate_task | execute_code |
-|--------|--------------|-------------|
-| **推理能力** | 完整的 LLM 推理循环 | 仅 Python 代码执行 |
-| **上下文** | 全新隔离的对话 | 无对话，仅脚本 |
-| **工具访问** | 带有推理能力的所有非屏蔽工具 | 通过 RPC 访问 7 个工具，无推理 |
-| **并行性** | 最多 3 个并发 Subagent | 单个脚本 |
-| **适用场景** | 需要判断力的复杂任务 | 机械化的多步骤流水线 |
-| **Token 成本** | 较高（完整的 LLM 循环） | 较低（仅返回标准输出） |
-| **用户交互** | 无（Subagent 无法澄清问题） | 无 |
+## 监控运行中的子 Agent（`/agents`） {#monitoring-running-subagents-agents}
 
-**经验法则：** 当子任务需要推理、判断或多步骤解决问题时，使用 `delegate_task`。当你需要机械化的数据处理或脚本化工作流时，使用 `execute_code`。
+TUI 提供了一个 `/agents` 覆盖页面（别名 `/tasks`），将递归的 `delegate_task` 扇出行为转化为一流的审计界面：
 
-## 配置项 {#configuration}
+- 运行中和刚完成的子 Agent 的实时树状视图，按父级分组
+- 每个分支的成本、令牌数和访问文件汇总
+- 终止和暂停控制——可以在飞行途中取消某个特定子 Agent，而不影响其兄弟任务
+- 事后审查：即使在子 Agent 返回父级后，仍可逐步查看每个子 Agent 的逐轮历史记录
+
+经典 CLI 只会将 `/agents` 打印为文本摘要；TUI 才是该覆盖大放异彩的地方。请参见 [TUI — 斜杠命令](/user-guide/tui#slash-commands)。
+
+## 深度限制与嵌套编排 {#depth-limit-and-nested-orchestration}
+
+默认情况下，委派是 **扁平** 的：父级（深度 0）生成子级（深度 1），这些子级不能进一步委派。这可以防止失控的递归委派。
+
+对于多阶段工作流（研究 → 综合，或针对子问题的并行编排），父级可以生成 **编排器** 子 Agent，这些子 Agent *可以* 委派自己的工人：
+
+```python
+delegate_task(
+    goal="Survey three code review approaches and recommend one",
+    role="orchestrator",  # 允许此子级生成自己的工人
+    context="...",
+)
+```
+
+- `role="leaf"`（默认）：子级不能进一步委派——与扁平委派行为相同。
+- `role="orchestrator"`：子级保留 `delegation` 工具集。受 `delegation.max_spawn_depth` 限制（默认 **1** = 扁平，因此在默认设置下 `role="orchestrator"` 是无效的）。将 `max_spawn_depth` 提高到 2，以允许编排器子级生成叶子孙级；提高到 3 则允许三级（上限）。
+- `delegation.orchestrator_enabled: false`：全局开关，强制所有子级变为 `leaf`，忽略 `role` 参数。
+**费用警告：** 当 `max_spawn_depth: 3` 且 `max_concurrent_children: 3` 时，树形结构最多可达 3×3×3 = 27 个并发叶子 Agent。每增加一层，费用都会成倍增长——请有意地调高 `max_spawn_depth`。
+
+## 生命周期与持久性 {#lifetime-and-durability}
+
+:::warning delegate_task 是同步的——不具备持久性
+`delegate_task` 在**父节点的当前轮次内**执行。它会阻塞父节点，直到所有子节点完成（或被取消）。它**不是**后台任务队列：
+
+<a id="delegatetask-is-synchronous-not-durable"></a>
+- 如果父节点被中断（用户发送新消息、`/stop`、`/new`），所有活跃的子节点都会被取消，并返回 `status="interrupted"`。它们正在进行的工作会被丢弃。
+- 子节点在父节点轮次结束后**不会**继续运行。
+- 被取消的子节点会返回结构化结果（`status="interrupted"`，`exit_reason="interrupted"`），但由于父节点也被中断了，该结果通常永远不会出现在用户可见的回复中。
+
+对于需要抵御中断或超出当前轮次的**持久性长时间运行工作**，请使用：
+
+- `cronjob`（`action=create`）——调度一个独立的 Agent 运行；不受父节点轮次中断的影响。
+- `terminal(background=True, notify_on_complete=True)`——长时间运行的 shell 命令，Agent 在干其他事的同时，命令会继续运行。
+:::
+
+## 关键特性 {#key-properties}
+
+- 每个子 Agent 拥有**自己的终端会话**（与父节点独立）
+- **嵌套委托是自愿的**——只有 `role="orchestrator"` 的子节点才能进一步委托，并且只有当 `max_spawn_depth` 从默认值 1（扁平）调高时才行。可通过 `orchestrator_enabled: false` 全局禁用。
+- 叶子子 Agent **不能**调用：`delegate_task`、`clarify`、`memory`、`send_message`、`execute_code`。Orchestrator 子 Agent 保留 `delegate_task`，但仍不能使用其他四个。
+- **中断传播**——中断父节点会中断所有活跃的子节点（包括 orchestrator 下的孙节点）
+- 只有最终的摘要会进入父节点的上下文，从而高效使用 tokens
+- 子 Agent 继承父节点的 **API key、provider 配置和凭据池**（支持在速率限制时进行 key 轮换）
+
+## Delegation 与 execute_code 对比 {#delegation-vs-executecode}
+
+| 因素 | delegate_task | execute_code |
+|------|---------------|--------------|
+| **推理** | 完整的 LLM 推理循环 | 仅 Python 代码执行 |
+| **上下文** | 全新的隔离对话 | 无对话，仅脚本 |
+| **工具访问** | 所有未被阻止的工具，带推理 | 通过 RPC 的 7 个工具，无推理 |
+| **并行性** | 默认 3 个并发子 Agent（可配置） | 单个脚本 |
+| **最佳用途** | 需要判断的复杂任务 | 机械化的多步骤流程 |
+| **Token 成本** | 较高（完整的 LLM 循环） | 较低（仅返回 stdout） |
+| **用户交互** | 无（子 Agent 无法澄清） | 无 |
+
+**经验法则：** 当子任务需要推理、判断或多步骤问题解决时，使用 `delegate_task`。当需要机械化的数据处理或脚本化工作流时，使用 `execute_code`。
+
+## 配置 {#configuration}
 
 ```yaml
 # 在 ~/.hermes/config.yaml 中
 delegation:
-  max_iterations: 50                        # 每个子 Agent 的最大轮次（默认：50）
-  default_toolsets: ["terminal", "file", "web"]  # 默认工具集
-  model: "google/gemini-3-flash-preview"             # 可选：覆盖供应商/模型
-  provider: "openrouter"                             # 可选：内置供应商
+  max_iterations: 50                        # 每个子节点的最大轮次（默认：50）
+  # max_concurrent_children: 3              # 每批并行子节点数（默认：3）
+  # max_spawn_depth: 1                      # 树深度（1-3，默认 1 = 扁平）。设为 2 可允许 orchestrator 子节点生成叶子；设为 3 为三层。
+  # orchestrator_enabled: true              # 设为 false 强制所有子节点为叶子角色。
+  model: "google/gemini-3-flash-preview"             # 可选的 provider/model 覆盖
+  provider: "openrouter"                             # 可选的内置 provider
 
-# 或者直接使用自定义端点而非供应商：
+# 或者使用直接的自定义端点替代 provider：
 delegation:
   model: "qwen2.5-coder"
   base_url: "http://localhost:1234/v1"
   api_key: "local-key"
 ```
 :::tip
-Agent 会根据任务的复杂程度自动处理任务委派。你不需要显式地要求它进行委派 —— 当它认为有必要时，会自动执行此操作。
+Agent 会根据任务复杂度自动处理委托。你无需明确要求它进行委托——当有必要时，它会自行处理。
 :::

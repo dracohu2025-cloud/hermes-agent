@@ -1,0 +1,347 @@
+---
+title: "Huggingface Accelerate — 最简单的分布式训练 API"
+sidebar_label: "Huggingface Accelerate"
+description: "最简单的分布式训练 API"
+---
+
+{/* 此页面由 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
+
+# Huggingface Accelerate {#huggingface-accelerate}
+
+最简单的分布式训练 API。只需 4 行代码即可为任何 PyTorch 脚本添加分布式支持。统一的 DeepSpeed/FSDP/Megatron/DDP API。自动设备分配，混合精度（FP16/BF16/FP8）。交互式配置，单命令启动。HuggingFace 生态系统标准。
+
+## 技能元数据 {#skill-metadata}
+
+| | |
+|---|---|
+| 来源 | 可选 — 使用 `hermes skills install official/mlops/accelerate` 安装 |
+| 路径 | `optional-skills/mlops/accelerate` |
+| 版本 | `1.0.0` |
+| 作者 | Orchestra Research |
+| 许可证 | MIT |
+| 依赖 | `accelerate`, `torch`, `transformers` |
+| 标签 | `分布式训练`, `HuggingFace`, `Accelerate`, `DeepSpeed`, `FSDP`, `混合精度`, `PyTorch`, `DDP`, `统一 API`, `简单` |
+
+## 参考：完整 SKILL.md {#reference-full-skill-md}
+
+:::info
+以下是 Hermes 在触发此技能时加载的完整技能定义。这是 Agent 在技能激活时看到的指令。
+:::
+
+# HuggingFace Accelerate - 统一分布式训练 {#huggingface-accelerate-unified-distributed-training}
+
+## 快速开始 {#quick-start}
+
+Accelerate 将分布式训练简化为 4 行代码。
+
+**安装**：
+```bash
+pip install accelerate
+```
+
+**转换 PyTorch 脚本**（4 行）：
+```python
+import torch
++ from accelerate import Accelerator
+
++ accelerator = Accelerator()
+
+  model = torch.nn.Transformer()
+  optimizer = torch.optim.Adam(model.parameters())
+  dataloader = torch.utils.data.DataLoader(dataset)
+
++ model, optimizer, dataloader = accelerator.prepare(model, optimizer, dataloader)
+
+  for batch in dataloader:
+      optimizer.zero_grad()
+      loss = model(batch)
+-     loss.backward()
++     accelerator.backward(loss)
+      optimizer.step()
+```
+
+**运行**（单命令）：
+```bash
+accelerate launch train.py
+```
+
+## 常见工作流 {#common-workflows}
+
+### 工作流 1：从单 GPU 到多 GPU {#workflow-1-from-single-gpu-to-multi-gpu}
+
+**原始脚本**：
+```python
+# train.py
+import torch
+
+model = torch.nn.Linear(10, 2).to('cuda')
+optimizer = torch.optim.Adam(model.parameters())
+dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
+
+for epoch in range(10):
+    for batch in dataloader:
+        batch = batch.to('cuda')
+        optimizer.zero_grad()
+        loss = model(batch).mean()
+        loss.backward()
+        optimizer.step()
+```
+
+**使用 Accelerate**（添加 4 行）：
+```python
+# train.py
+import torch
+from accelerate import Accelerator  # +1
+
+accelerator = Accelerator()  # +2
+
+model = torch.nn.Linear(10, 2)
+optimizer = torch.optim.Adam(model.parameters())
+dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
+
+model, optimizer, dataloader = accelerator.prepare(model, optimizer, dataloader)  # +3
+
+for epoch in range(10):
+    for batch in dataloader:
+        # 不再需要 .to('cuda') - 自动处理！
+        optimizer.zero_grad()
+        loss = model(batch).mean()
+        accelerator.backward(loss)  # +4
+        optimizer.step()
+```
+
+**配置**（交互式）：
+```bash
+accelerate config
+```
+**问题**：
+- 使用哪台机器？（单/多 GPU/TPU/CPU）
+- 使用多少台机器？（1）
+- 混合精度？（无/fp16/bf16/fp8）
+- DeepSpeed？（否/是）
+
+**启动**（适用于任何配置）：
+```bash
+# 单 GPU
+accelerate launch train.py
+
+# 多 GPU（8 张 GPU）
+accelerate launch --multi_gpu --num_processes 8 train.py
+
+# 多节点
+accelerate launch --multi_gpu --num_processes 16 \
+  --num_machines 2 --machine_rank 0 \
+  --main_process_ip $MASTER_ADDR \
+  train.py
+```
+
+### 工作流 2：混合精度训练 {#workflow-2-mixed-precision-training}
+
+**启用 FP16/BF16**：
+```python
+from accelerate import Accelerator
+
+# FP16（带梯度缩放）
+accelerator = Accelerator(mixed_precision='fp16')
+
+# BF16（无缩放，更稳定）
+accelerator = Accelerator(mixed_precision='bf16')
+
+# FP8（H100+）
+accelerator = Accelerator(mixed_precision='fp8')
+
+model, optimizer, dataloader = accelerator.prepare(model, optimizer, dataloader)
+
+# 其余一切自动处理！
+for batch in dataloader:
+    with accelerator.autocast():  # 可选，自动完成
+        loss = model(batch)
+    accelerator.backward(loss)
+```
+
+### 工作流 3：DeepSpeed ZeRO 集成 {#workflow-3-deepspeed-zero-integration}
+
+**启用 DeepSpeed ZeRO-2**：
+```python
+from accelerate import Accelerator
+
+accelerator = Accelerator(
+    mixed_precision='bf16',
+    deepspeed_plugin={
+        "zero_stage": 2,  # ZeRO-2
+        "offload_optimizer": False,
+        "gradient_accumulation_steps": 4
+    }
+)
+
+# 代码与之前相同！
+model, optimizer, dataloader = accelerator.prepare(model, optimizer, dataloader)
+```
+
+**或通过配置文件**：
+```bash
+accelerate config
+# 选择：DeepSpeed → ZeRO-2
+```
+
+**deepspeed_config.json**：
+```json
+{
+    "fp16": {"enabled": false},
+    "bf16": {"enabled": true},
+    "zero_optimization": {
+        "stage": 2,
+        "offload_optimizer": {"device": "cpu"},
+        "allgather_bucket_size": 5e8,
+        "reduce_bucket_size": 5e8
+    }
+}
+```
+
+**启动**：
+```bash
+accelerate launch --config_file deepspeed_config.json train.py
+```
+
+### 工作流 4：FSDP（全分片数据并行） {#workflow-4-fsdp-fully-sharded-data-parallel}
+
+**启用 FSDP**：
+```python
+from accelerate import Accelerator, FullyShardedDataParallelPlugin
+
+fsdp_plugin = FullyShardedDataParallelPlugin(
+    sharding_strategy="FULL_SHARD",  # 相当于 ZeRO-3
+    auto_wrap_policy="TRANSFORMER_AUTO_WRAP",
+    cpu_offload=False
+)
+
+accelerator = Accelerator(
+    mixed_precision='bf16',
+    fsdp_plugin=fsdp_plugin
+)
+
+model, optimizer, dataloader = accelerator.prepare(model, optimizer, dataloader)
+```
+
+**或通过配置文件**：
+```bash
+accelerate config
+# 选择：FSDP → Full Shard → No CPU Offload
+```
+
+### 工作流 5：梯度累积 {#workflow-5-gradient-accumulation}
+
+**累积梯度**：
+```python
+from accelerate import Accelerator
+
+accelerator = Accelerator(gradient_accumulation_steps=4)
+
+model, optimizer, dataloader = accelerator.prepare(model, optimizer, dataloader)
+
+for batch in dataloader:
+    with accelerator.accumulate(model):  # 处理累积
+        optimizer.zero_grad()
+        loss = model(batch)
+        accelerator.backward(loss)
+        optimizer.step()
+```
+
+**有效批量大小**：`batch_size * num_gpus * gradient_accumulation_steps`
+## 何时使用 vs 替代方案 {#when-to-use-vs-alternatives}
+
+**使用 Accelerate 的场景**：
+- 需要最简单的分布式训练
+- 只需一份脚本就能适配任意硬件
+- 使用 HuggingFace 生态
+- 需要灵活性（DDP / DeepSpeed / FSDP / Megatron）
+- 需要快速原型开发
+
+**主要优势**：
+- **4 行代码**：改动量极小
+- **统一 API**：同一份代码可运行 DDP、DeepSpeed、FSDP、Megatron
+- **自动化**：设备分配、混合精度、分片自动处理
+- **交互式配置**：无需手动设置启动器
+- **单次启动**：随处可用
+
+**考虑使用替代方案**：
+- **PyTorch Lightning**：需要回调、高级抽象
+- **Ray Train**：多节点编排、超参数调优
+- **DeepSpeed**：直接 API 控制、高级特性
+- **原生 DDP**：最大控制、最少抽象
+
+## 常见问题 {#common-issues}
+
+**问题：设备分配错误**
+
+不要手动将数据移到设备：
+```python
+# 错误
+batch = batch.to('cuda')
+
+# 正确
+# Accelerate 会在 prepare() 之后自动处理
+```
+
+**问题：梯度累积无效**
+
+使用上下文管理器：
+```python
+# 正确
+with accelerator.accumulate(model):
+    optimizer.zero_grad()
+    accelerator.backward(loss)
+    optimizer.step()
+```
+
+**问题：分布式训练中的检查点**
+
+使用 accelerator 的方法：
+```python
+# 只在主进程保存
+if accelerator.is_main_process:
+    accelerator.save_state('checkpoint/')
+
+# 所有进程加载
+accelerator.load_state('checkpoint/')
+```
+
+**问题：使用 FSDP 时结果不一致**
+
+确保随机种子相同：
+```python
+from accelerate.utils import set_seed
+set_seed(42)
+```
+
+## 高级主题 {#advanced-topics}
+
+**Megatron 集成**：关于张量并行、流水线并行和序列并行的设置，请参阅 [references/megatron-integration.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/accelerate/references/megatron-integration.md)。
+
+**自定义插件**：关于创建自定义分布式插件和高级配置，请参阅 [references/custom-plugins.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/accelerate/references/custom-plugins.md)。
+
+**性能调优**：关于性能分析、内存优化和最佳实践，请参阅 [references/performance.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/accelerate/references/performance.md)。
+
+## 硬件要求 {#hardware-requirements}
+
+- **CPU**：支持（速度慢）
+- **单 GPU**：支持
+- **多 GPU**：DDP（默认）、DeepSpeed 或 FSDP
+- **多节点**：DDP、DeepSpeed、FSDP、Megatron
+- **TPU**：支持
+- **Apple MPS**：支持
+
+**启动器要求**：
+- **DDP**：`torch.distributed.run`（内置）
+- **DeepSpeed**：`deepspeed`（`pip install deepspeed`）
+- **FSDP**：PyTorch 1.12+（内置）
+- **Megatron**：自定义设置
+
+## 资源 {#resources}
+
+- 文档：https://huggingface.co/docs/accelerate
+- GitHub：https://github.com/huggingface/accelerate
+- 版本：1.11.0+
+- 教程："Accelerate your scripts"
+- 示例：https://github.com/huggingface/accelerate/tree/main/examples
+- 被以下项目使用：HuggingFace Transformers、TRL、PEFT 及所有 HF 库

@@ -1,0 +1,8 @@
+# Hermes Agent 中文文档
+
+完整中文文档站位于：https://hermes-doc.aigc.green/
+
+如需离线阅读，请下载 PDF：https://hermes-doc.aigc.green/downloads/hermes-agent-zh-docs.pdf
+
+本文件随中文文档站部署，用于满足站点首页的 `/llms-full.txt` 链接。
+

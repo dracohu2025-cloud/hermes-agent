@@ -5,8 +5,7 @@ title: "使用 Webhook 实现自动化 GitHub PR 评论"
 description: "将 Hermes 连接到 GitHub，使其能自动获取 PR 差异、审查代码变更并发布评论——由 webhook 触发，无需手动操作"
 ---
 
-<a id="automated-github-pr-comments-with-webhooks"></a>
-# 使用 Webhook 实现自动化 GitHub PR 评论
+# 使用 Webhook 实现自动化 GitHub PR 评论 {#automated-github-pr-comments-with-webhooks}
 
 本指南将引导你将 Hermes Agent 连接到 GitHub，使其能自动获取拉取请求的差异、分析代码变更并发布评论——由 webhook 事件触发，无需手动操作。
 
@@ -29,8 +28,7 @@ Webhook 负载包含攻击者控制的数据——PR 标题、提交信息和描
 
 ---
 
-<a id="prerequisites"></a>
-## 先决条件
+## 先决条件 {#prerequisites}
 
 - 已安装并运行 Hermes Agent (`hermes gateway`)
 - 网关主机上已安装并认证 [`gh` CLI](https://cli.github.com/) (`gh auth login`)
@@ -39,8 +37,7 @@ Webhook 负载包含攻击者控制的数据——PR 标题、提交信息和描
 
 ---
 
-<a id="step-1-enable-the-webhook-platform"></a>
-## 步骤 1 — 启用 webhook 平台
+## 步骤 1 — 启用 webhook 平台 {#step-1-enable-the-webhook-platform}
 
 将以下内容添加到你的 `~/.hermes/config.yaml` 中：
 
@@ -99,8 +96,7 @@ GitHub webhook 负载包含 PR 元数据（标题、描述、分支名、URL）�
 <a id="the-payload-does-not-contain-code"></a>
 ---
 
-<a id="step-2-start-the-gateway"></a>
-## 步骤 2 — 启动网关
+## 步骤 2 — 启动网关 {#step-2-start-the-gateway}
 
 ```bash
 hermes gateway
@@ -121,8 +117,7 @@ curl http://localhost:8644/health
 
 ---
 
-<a id="step-3-register-the-webhook-on-github"></a>
-## 步骤 3 — 在 GitHub 上注册 webhook
+## 步骤 3 — 在 GitHub 上注册 webhook {#step-3-register-the-webhook-on-github}
 
 1.  进入你的仓库 → **Settings** → **Webhooks** → **Add webhook**
 2.  填写：
@@ -136,8 +131,7 @@ GitHub 会立即发送一个 `ping` 事件来确认连接。该事件会被安�
 
 ---
 
-<a id="step-4-open-a-test-pr"></a>
-## 步骤 4 — 打开一个测试 PR
+## 步骤 4 — 打开一个测试 PR {#step-4-open-a-test-pr}
 
 创建一个分支，推送一个更改，并打开一个 PR。在 30–90 秒内（取决于 PR 大小和模型），Hermes 应该会发布一条审查评论。
 
@@ -189,8 +183,7 @@ tail -f "${HERMES_HOME:-$HOME/.hermes}/logs/gateway.log"
 
 ---
 
-<a id="filtering-to-specific-actions"></a>
-## 筛选特定操作
+## 筛选特定操作 {#filtering-to-specific-actions}
 
 GitHub 会为许多操作发送 `pull_request` 事件：`opened`、`synchronize`、`reopened`、`closed`、`labeled` 等。`events` 列表仅通过 `X-GitHub-Event` 头部值进行筛选——它无法在路由级别按操作子类型进行过滤。
 
@@ -294,8 +287,7 @@ platforms:
 ```
 ---
 
-<a id="what-s-next"></a>
-## 下一步？
+## 下一步？ {#what-s-next}
 
 - **[基于 Cron 的 PR 审查](./github-pr-review-agent.md)** — 按计划轮询 PR，无需公共端点
 - **[Webhook 参考文档](/user-guide/messaging/webhooks)** — webhook 平台的完整配置参考

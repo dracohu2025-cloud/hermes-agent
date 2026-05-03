@@ -1,0 +1,8 @@
+# Hermes Agent 中文文档
+
+这份文件用于给 LLM 和自动化工具提供中文文档站入口。
+
+- 站点首页：https://hermes-doc.aigc.green/
+- 完整文档：https://hermes-doc.aigc.green/docs/
+- PDF 下载：https://hermes-doc.aigc.green/downloads/hermes-agent-zh-docs.pdf
+

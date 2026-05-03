@@ -27,8 +27,7 @@ description: "发送邮件、管理日历事件、搜索云端硬盘、读写表
 
 ## Gmail {#gmail}
 
-<a id="searching"></a>
-### 搜索 {#email-only-users}
+### 搜索 {#searching}
 
 ```bash
 $GAPI gmail search "is:unread" --max 10

@@ -10,6 +10,7 @@ description: "通过 Twilio 将 Hermes Agent 设置为短信聊天机器人"
 Hermes 通过 [Twilio](https://www.twilio.com/) API 连接到短信服务。人们向你的 Twilio 电话号码发送短信，即可获得 AI 回复 —— 与 Telegram 或 Discord 相同的对话体验，但通过标准短信实现。
 
 :::info 共享凭据
+<a id="shared-credentials"></a>
 短信网关与可选的[电话技能](/reference/skills-catalog)共享凭据。如果你已经为语音通话或一次性短信设置了 Twilio，那么网关可以使用相同的 `TWILIO_ACCOUNT_SID`、`TWILIO_AUTH_TOKEN` 和 `TWILIO_PHONE_NUMBER`。
 :::
 
@@ -24,8 +25,8 @@ Hermes 通过 [Twilio](https://www.twilio.com/) API 连接到短信服务。人�
 
 ---
 
-<a id="shared-credentials"></a>
-## 步骤 1：获取你的 Twilio 凭据 {#step-1-get-your-twilio-credentials}
+<a id="step-1-get-your-twilio-credentials"></a>
+## 步骤 1：获取你的 Twilio 凭据 {#shared-credentials}
 
 1.  前往 [Twilio 控制台](https://console.twilio.com/)
 2.  从仪表板复制你的 **Account SID** 和 **Auth Token**
