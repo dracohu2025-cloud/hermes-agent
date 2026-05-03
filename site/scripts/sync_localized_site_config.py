@@ -69,8 +69,6 @@ DEPLOYMENT_BLOCK = """const deploymentUrl =
   ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
   ?? 'https://hermes-doc.aigc.green';
 
-const pdfDownloadUrl = `${deploymentUrl}/downloads/hermes-agent-zh-docs.pdf`;
-
 """
 
 CUSTOM_CSS_IMPORT_TARGET = (
@@ -144,17 +142,6 @@ def sync_docusaurus_config(source_root: Path, target_root: Path) -> Path:
         count=1,
         flags=re.S,
     )
-    if "href: pdfDownloadUrl" not in text:
-        text = text.replace(
-            "        {\n          type: 'docSidebar',\n          sidebarId: 'docs',\n          position: 'left',\n          label: '文档',\n        },",
-            "        {\n          type: 'docSidebar',\n          sidebarId: 'docs',\n          position: 'left',\n          label: '文档',\n        },\n        {\n          href: pdfDownloadUrl,\n          label: 'PDF',\n          position: 'left',\n        },",
-            1,
-        )
-        text = text.replace(
-            "            { label: '参考资料', to: '/reference/cli-commands' },",
-            "            { label: '参考资料', to: '/reference/cli-commands' },\n            { label: 'PDF 下载', href: pdfDownloadUrl },",
-            1,
-        )
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(text, encoding="utf-8")
     return target_path

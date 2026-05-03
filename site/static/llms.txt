@@ -4,5 +4,3 @@
 
 - 站点首页：https://hermes-doc.aigc.green/
 - 完整文档：https://hermes-doc.aigc.green/docs/
-- PDF 下载：https://hermes-doc.aigc.green/downloads/hermes-agent-zh-docs.pdf
-
