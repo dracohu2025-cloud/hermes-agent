@@ -6,33 +6,39 @@ description: "用于 LLM 对齐的简单偏好优化"
 
 {/* 此页面由 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
 
-# Simpo 训练 {#simpo-training}
+<a id="simpo-training"></a>
+# Simpo 训练
 
 用于 LLM 对齐的简单偏好优化。无需参考模型的 DPO 替代方案，性能更优（在 AlpacaEval 2.0 上提升 +6.4 分）。无需参考模型，比 DPO 更高效。当需要比 DPO/PPO 更简单、更快速的训练时，可用于偏好对齐。
 
-## 技能元数据 {#skill-metadata}
+<a id="skill-metadata"></a>
+## 技能元数据
 
 | | |
 |---|---|
-| 来源 | 可选 — 通过 `hermes skills install official/mlops/simpo` 安装 |
+| 来源 | 可选 — 使用 `hermes skills install official/mlops/simpo` 安装 |
 | 路径 | `optional-skills/mlops/simpo` |
 | 版本 | `1.0.0` |
 | 作者 | Orchestra Research |
 | 许可证 | MIT |
 | 依赖项 | `torch`, `transformers`, `datasets`, `trl`, `accelerate` |
+| 平台 | linux, macos, windows |
 | 标签 | `Post-Training`, `SimPO`, `Preference Optimization`, `Alignment`, `DPO Alternative`, `Reference-Free`, `LLM Alignment`, `Efficient Training` |
 
-## 参考：完整 SKILL.md {#reference-full-skill-md}
+<a id="reference-full-skill-md"></a>
+## 参考：完整 SKILL.md
 
 :::info
-以下是 Hermes 在触发此技能时加载的完整技能定义。当技能激活时，Agent 会将其视为指令。
+以下是 Hermes 在触发此技能时加载的完整技能定义。这是 Agent 在技能激活时看到的指令。
 :::
 
-# SimPO - 简单偏好优化 {#simpo-simple-preference-optimization}
+<a id="simpo-simple-preference-optimization"></a>
+# SimPO - 简单偏好优化
 
-## 快速开始 {#quick-start}
+<a id="quick-start"></a>
+## 快速开始
 
-SimPO 是一种无需参考模型的偏好优化方法，在不需要参考模型的情况下性能优于 DPO。
+SimPO 是一种无需参考模型的偏好优化方法，无需参考模型即可超越 DPO 的性能。
 
 **安装**：
 ```bash
@@ -59,9 +65,11 @@ ACCELERATE_LOG_LEVEL=info accelerate launch \
   training_configs/mistral-7b-base-simpo.yaml
 ```
 
-## 常见工作流 {#common-workflows}
+<a id="common-workflows"></a>
+## 常见工作流
 
-### 工作流 1：从基础模型训练（Mistral 7B） {#workflow-1-train-from-base-model-mistral-7b}
+<a id="workflow-1-train-from-base-model-mistral-7b"></a>
+### 工作流 1：从基础模型训练（Mistral 7B）
 
 **配置**（`mistral-7b-base-simpo.yaml`）：
 ```yaml
@@ -98,7 +106,8 @@ accelerate launch --config_file accelerate_configs/deepspeed_zero3.yaml \
   scripts/run_simpo.py training_configs/mistral-7b-base-simpo.yaml
 ```
 
-### 工作流 2：微调指令模型（Llama 3 8B） {#workflow-2-fine-tune-instruct-model-llama-3-8b}
+<a id="workflow-2-fine-tune-instruct-model-llama-3-8b"></a>
+### 工作流 2：微调指令模型（Llama 3 8B）
 
 **配置**（`llama3-8b-instruct-simpo.yaml`）：
 ```yaml
@@ -123,18 +132,19 @@ accelerate launch --config_file accelerate_configs/deepspeed_zero3.yaml \
   scripts/run_simpo.py training_configs/llama3-8b-instruct-simpo.yaml
 ```
 
-### 工作流 3：推理密集型任务（较低学习率） {#workflow-3-reasoning-intensive-tasks-lower-lr}
+<a id="workflow-3-reasoning-intensive-tasks-lower-lr"></a>
+### 工作流3：推理密集型任务（较低学习率）
 
-**针对数学/代码任务**：
+**用于数学/代码任务**：
 ```yaml
 model_name_or_path: deepseek-ai/deepseek-math-7b-base
 
 dataset_mixer:
   argilla/distilabel-math-preference-dpo: 1.0
 
-beta: 5.0                   # 更高值以增强信号
-gamma_beta_ratio: 0.7       # 更大间隔
-learning_rate: 3e-7         # 推理任务使用较低学习率
+beta: 5.0                   # 更高值以增强信号强度
+gamma_beta_ratio: 0.7       # 更大的间隔
+learning_rate: 3e-7         # 推理场景使用较低学习率
 sft_weight: 0.0
 
 num_train_epochs: 1
@@ -142,27 +152,29 @@ per_device_train_batch_size: 1
 gradient_accumulation_steps: 16
 ```
 
-## 何时使用 vs 替代方案 {#when-to-use-vs-alternatives}
+<a id="when-to-use-vs-alternatives"></a>
+## 何时使用 vs 替代方案
 
 **使用 SimPO 的场景**：
-- 想要比 DPO 更简单的训练（无需参考模型）
-- 拥有偏好数据（chosen/rejected 对）
+- 希望训练比 DPO 更简单（无参考模型）
+- 拥有偏好数据（好/差样本对）
 - 需要比 DPO 更好的性能
 - 计算资源有限
-- 单节点训练即可满足需求
+- 单节点训练已足够
 
 **算法选择**：
-- **SimPO**：最简单，性能最佳，无需参考模型
+- **SimPO**：最简单、性能最佳、无参考模型
 - **DPO**：需要参考模型基线，更保守
 - **PPO**：最大控制力，需要奖励模型，设置复杂
-- **GRPO**：内存高效的强化学习，无需 critic
+- **GRPO**：内存高效的强化学习，无 critic
 
-**改用替代方案**：
+**使用替代方案**：
 - **OpenRLHF**：多节点分布式训练，支持 PPO/GRPO
-- **TRL**：需要在同一框架中使用多种方法
-- **DPO**：成熟的基线对比
+- **TRL**：需要在同一框架中集成多种方法
+- **DPO**：成熟的基线对比方法
 
-## 常见问题 {#common-issues}
+<a id="common-issues"></a>
+## 常见问题
 
 **问题：损失发散**
 
@@ -176,22 +188,22 @@ learning_rate: 3e-7  # 从 5e-7 降低
 beta: 1.0  # 从 2.0 降低
 ```
 
-**问题：模型遗忘能力**
+**问题：模型遗忘已有能力**
 
 添加 SFT 正则化：
 ```yaml
 sft_weight: 0.1  # 添加 SFT 损失分量
 ```
 
-**问题：偏好区分度差**
+**问题：偏好分离效果差**
 
-增加 beta 和间隔：
+增大 beta 和间隔：
 ```yaml
-beta: 5.0            # 从 2.0 增加
-gamma_beta_ratio: 0.8  # 从 0.5 增加
+beta: 5.0            # 从 2.0 增大
+gamma_beta_ratio: 0.8  # 从 0.5 增大
 ```
 
-**问题：训练时 OOM**
+**问题：训练时显存不足（OOM）**
 
 减小批次大小：
 ```yaml
@@ -204,31 +216,34 @@ gradient_accumulation_steps: 16  # 保持有效批次大小
 gradient_checkpointing: true
 ```
 
-## 进阶主题 {#advanced-topics}
+<a id="advanced-topics"></a>
+## 进阶主题
 
-**损失函数**：参见 [references/loss-functions.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/simpo/references/loss-functions.md) 了解 sigmoid 与 hinge 损失、数学公式以及各自适用场景。
+**损失函数**：参见 [references/loss-functions.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/simpo/references/loss-functions.md)，了解 sigmoid 与 hinge 损失、数学公式以及各自适用场景。
 
-**超参数调优**：参见 [references/hyperparameters.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/simpo/references/hyperparameters.md) 了解 beta、gamma、学习率选择指南以及针对不同模型大小的建议。
+**超参数调优**：参见 [references/hyperparameters.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/simpo/references/hyperparameters.md)，了解 beta、gamma、学习率选择指南及按模型规模推荐参数。
 
-**数据集准备**：参见 [references/datasets.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/simpo/references/datasets.md) 了解偏好数据格式、质量过滤和自定义数据集创建。
+**数据集准备**：参见 [references/datasets.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/simpo/references/datasets.md)，了解偏好数据格式、质量过滤及自定义数据集创建方法。
 
-## 硬件要求 {#hardware-requirements}
+<a id="hardware-requirements"></a>
+## 硬件要求
 
-- **GPU**：推荐 NVIDIA A100/H100
+- **GPU**：建议使用 NVIDIA A100/H100
 - **显存**：
   - 7B 模型：1× A100 40GB（DeepSpeed ZeRO-3）
   - 8B 模型：2× A100 40GB
   - 70B 模型：8× A100 80GB
 - **单节点**：DeepSpeed ZeRO-3 足够
-- **混合精度**：推荐 BF16
+- **混合精度**：建议使用 BF16
 **内存优化**：
 - DeepSpeed ZeRO-3（默认配置）
-- 梯度检查点（Gradient checkpointing）
+- 梯度检查点
 - Flash Attention 2
 
-## 资源 {#resources}
+<a id="resources"></a>
+## 资源
 
-- 论文：https://arxiv.org/abs/2405.14734 (NeurIPS 2024)
+- 论文：https://arxiv.org/abs/2405.14734（NeurIPS 2024）
 - GitHub：https://github.com/princeton-nlp/SimPO
 - 模型：https://huggingface.co/princeton-nlp
 - Alignment Handbook：https://github.com/huggingface/alignment-handbook

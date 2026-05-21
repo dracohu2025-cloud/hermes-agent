@@ -4,13 +4,15 @@ sidebar_label: "Blackbox"
 description: "将编码任务委托给 Blackbox AI CLI Agent"
 ---
 
-{/* 此页面由 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
+{/* 此页面由网站脚本 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非本页面。 */}
 
-# Blackbox {#blackbox}
+<a id="blackbox"></a>
+# Blackbox
 
-将编码任务委托给 Blackbox AI CLI Agent。这是一个多模型 Agent，内置评判机制，可通过多个 LLM 运行任务并选出最佳结果。需要安装 blackbox CLI 并拥有 Blackbox AI API 密钥。
+将编码任务委托给 Blackbox AI CLI Agent。这是一个多模型 Agent，内置判断机制，能通过多个 LLM 执行任务并选出最佳结果。需要 blackbox CLI 和 Blackbox AI API 密钥。
 
-## 技能元数据 {#skill-metadata}
+<a id="skill-metadata"></a>
+## 技能元数据
 
 | | |
 |---|---|
@@ -19,22 +21,26 @@ description: "将编码任务委托给 Blackbox AI CLI Agent"
 | 版本 | `1.0.0` |
 | 作者 | Hermes Agent (Nous Research) |
 | 许可证 | MIT |
+| 平台 | linux, macos, windows |
 | 标签 | `Coding-Agent`, `Blackbox`, `Multi-Agent`, `Judge`, `Multi-Model` |
 | 相关技能 | [`claude-code`](/user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-claude-code), [`codex`](/user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-codex), [`hermes-agent`](/user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-hermes-agent) |
 
-## 参考：完整 SKILL.md {#reference-full-skill-md}
+<a id="reference-full-skill-md"></a>
+## 参考：完整 SKILL.md
 
 :::info
-以下是 Hermes 在触发此技能时加载的完整技能定义。当技能激活时，Agent 会将其视为指令。
+以下是 Hermes 在触发此技能时加载的完整技能定义。这即是在技能激活时 Agent 所看到指令。
 :::
 
-# Blackbox CLI {#blackbox-cli}
+<a id="blackbox-cli"></a>
+# Blackbox CLI
 
-通过 Hermes 终端将编码任务委托给 [Blackbox AI](https://www.blackbox.ai/)。Blackbox 是一个多模型编码 Agent CLI，可将任务分发给多个 LLM（Claude、Codex、Gemini、Blackbox Pro），并使用评判机制选择最佳实现。
+通过 Hermes 终端将编码任务委托给 [Blackbox AI](https://www.blackbox.ai/)。Blackbox 是一个多模型编码 Agent CLI，它可以将任务分派给多个 LLM（Claude、Codex、Gemini、Blackbox Pro），并使用判断机制选择最佳实现方案。
 
-该 CLI 是[开源的](https://github.com/blackboxaicode/cli)（GPL-3.0，TypeScript，从 Gemini CLI 分支而来），支持交互式会话、非交互式一次性任务、检查点、MCP 以及视觉模型切换。
+该 CLI 是[开源的](https://github.com/blackboxaicode/cli)（GPL-3.0，TypeScript，从 Gemini CLI 复刻而来），支持交互式会话、非交互式一次性任务、检查点、MCP 以及视觉模型切换。
 
-## 前提条件 {#prerequisites}
+<a id="prerequisites"></a>
+## 前置要求
 
 - 已安装 Node.js 20+
 - 已安装 Blackbox CLI：`npm install -g @blackboxai/cli`
@@ -45,9 +51,10 @@ description: "将编码任务委托给 Blackbox AI CLI Agent"
   ```
 - 从 [app.blackbox.ai/dashboard](https://app.blackbox.ai/dashboard) 获取 API 密钥
 - 配置：运行 `blackbox configure` 并输入你的 API 密钥
-- 在终端调用中使用 `pty=true` — Blackbox CLI 是一个交互式终端应用
+- 在终端调用中使用 `pty=true` —— Blackbox CLI 是一个交互式终端应用
 
-## 一次性任务 {#one-shot-tasks}
+<a id="one-shot-tasks"></a>
+## 一次性任务
 
 ```
 terminal(command="blackbox --prompt '为 Express API 添加带有刷新令牌的 JWT 认证'", workdir="/path/to/project", pty=true)
@@ -55,16 +62,17 @@ terminal(command="blackbox --prompt '为 Express API 添加带有刷新令牌的
 
 快速临时任务：
 ```
-terminal(command="cd $(mktemp -d) && git init && blackbox --prompt '使用 SQLite 构建一个待办事项 REST API'", pty=true)
+terminal(command="cd $(mktemp -d) && git init && blackbox --prompt '用 SQLite 构建一个待办事项 REST API'", pty=true)
 ```
 
-## 后台模式（长时间任务） {#background-mode-long-tasks}
+<a id="background-mode-long-tasks"></a>
+## 后台模式（长时间任务）
 
-对于需要几分钟的任务，使用后台模式以便监控进度：
+对于需要几分钟才能完成的任务，使用后台模式以便你监控进度：
 
 ```
 # 在后台启动，使用 PTY
-terminal(command="blackbox --prompt '将认证模块重构为使用 OAuth 2.0'", workdir="~/project", background=true, pty=true)
+terminal(command="blackbox --prompt '重构认证模块以使用 OAuth 2.0'", workdir="~/project", background=true, pty=true)
 # 返回 session_id
 
 # 监控进度
@@ -74,55 +82,61 @@ process(action="log", session_id="<id>")
 # 如果 Blackbox 提问，发送输入
 process(action="submit", session_id="<id>", data="yes")
 
-# 如果需要，终止任务
+# 如果需要，终止进程
 process(action="kill", session_id="<id>")
 ```
-## 检查点与恢复 {#checkpoints-resume}
+<a id="checkpoints-resume"></a>
+## 检查点与恢复
 
 Blackbox CLI 内置了检查点支持，可以暂停和恢复任务：
 
 ```
 # 任务完成后，Blackbox 会显示一个检查点标签
 # 通过后续任务恢复：
-terminal(command="blackbox --resume-checkpoint 'task-abc123-2026-03-06' --prompt 'Now add rate limiting to the endpoints'", workdir="~/project", pty=true)
+terminal(command="blackbox --resume-checkpoint 'task-abc123-2026-03-06' --prompt '现在给端点添加限流功能'", workdir="~/project", pty=true)
 ```
 
-## 会话命令 {#session-commands}
+<a id="session-commands"></a>
+## 会话命令
 
 在交互式会话中，可以使用以下命令：
 
 | 命令 | 作用 |
 |---------|--------|
 | `/compress` | 压缩对话历史以节省 token |
-| `/clear` | 清空历史，重新开始 |
+| `/clear` | 清除历史记录，重新开始 |
 | `/stats` | 查看当前 token 使用量 |
 | `Ctrl+C` | 取消当前操作 |
 
-## PR 审查 {#pr-reviews}
+<a id="pr-reviews"></a>
+## PR 审查
 
 克隆到临时目录，避免修改工作树：
 
 ```
-terminal(command="REVIEW=$(mktemp -d) && git clone https://github.com/user/repo.git $REVIEW && cd $REVIEW && gh pr checkout 42 && blackbox --prompt 'Review this PR against main. Check for bugs, security issues, and code quality.'", pty=true)
+terminal(command="REVIEW=$(mktemp -d) && git clone https://github.com/user/repo.git $REVIEW && cd $REVIEW && gh pr checkout 42 && blackbox --prompt '对照 main 分支审查这个 PR。检查是否存在 bug、安全问题和代码质量问题。'", pty=true)
 ```
 
-## 并行任务 {#parallel-work}
+<a id="parallel-work"></a>
+## 并行工作
 
 为独立任务启动多个 Blackbox 实例：
 
 ```
-terminal(command="blackbox --prompt 'Fix the login bug'", workdir="/tmp/issue-1", background=true, pty=true)
-terminal(command="blackbox --prompt 'Add unit tests for auth'", workdir="/tmp/issue-2", background=true, pty=true)
+terminal(command="blackbox --prompt '修复登录 bug'", workdir="/tmp/issue-1", background=true, pty=true)
+terminal(command="blackbox --prompt '为认证模块添加单元测试'", workdir="/tmp/issue-2", background=true, pty=true)
 
 # 监控所有任务
 process(action="list")
 ```
 
-## 多模型模式 {#multi-model-mode}
+<a id="multi-model-mode"></a>
+## 多模型模式
 
-Blackbox 的独特功能是让多个模型运行同一任务并评判结果。通过 `blackbox configure` 配置要使用的模型——选择多个提供商即可启用 Chairman/judge 工作流，CLI 会评估不同模型的输出并选出最佳结果。
+Blackbox 的独特功能是让多个模型运行同一个任务，并对结果进行评判。通过 `blackbox configure` 配置要使用的模型——选择多个提供商即可启用 Chairman/评判工作流，CLI 会评估不同模型的输出并选出最佳结果。
 
-## 关键标志 {#key-flags}
+<a id="key-flags"></a>
+## 关键标志
 
 | 标志 | 作用 |
 |------|--------|
@@ -133,14 +147,16 @@ Blackbox 的独特功能是让多个模型运行同一任务并评判结果。�
 | `blackbox configure` | 更改设置、提供商、模型 |
 | `blackbox info` | 显示系统信息 |
 
-## 视觉支持 {#vision-support}
+<a id="vision-support"></a>
+## 视觉支持
 
 Blackbox 会自动检测输入中的图像，并可切换到多模态分析。VLM 模式：
-- `"once"` — 仅当前查询切换模型
-- `"session"` — 整个会话切换
+- `"once"` — 仅对当前查询切换模型
+- `"session"` — 对整个会话切换模型
 - `"persist"` — 保持当前模型（不切换）
 
-## Token 限制 {#token-limits}
+<a id="token-limits"></a>
+## Token 限制
 
 通过 `.blackboxcli/settings.json` 控制 token 使用量：
 ```json
@@ -149,12 +165,13 @@ Blackbox 会自动检测输入中的图像，并可切换到多模态分析。VL
 }
 ```
 
-## 规则 {#rules}
+<a id="rules"></a>
+## 规则
 
-1. **始终使用 `pty=true`** — Blackbox CLI 是交互式终端应用，没有 PTY 会挂起
+1. **始终使用 `pty=true`** — Blackbox CLI 是一个交互式终端应用，没有 PTY 会挂起
 2. **使用 `workdir`** — 让 Agent 专注于正确的目录
-3. **长时间任务使用后台** — 使用 `background=true` 并通过 `process` 工具监控
+3. **长时间任务使用后台模式** — 使用 `background=true` 并通过 `process` 工具监控
 4. **不要干扰** — 使用 `poll`/`log` 监控，不要因为任务慢就终止会话
-5. **报告结果** — 完成后检查变更并总结给用户
-6. **积分需要花钱** — Blackbox 使用积分制；多模型模式消耗积分更快
-7. **检查前提条件** — 在尝试委派之前，确认 `blackbox` CLI 已安装
+5. **报告结果** — 完成后，检查发生了什么变化，并为用户总结
+6. **积分需要花钱** — Blackbox 使用基于积分的系统；多模型模式消耗积分更快
+7. **检查前置条件** — 在尝试委派任务前，确认 `blackbox` CLI 已安装

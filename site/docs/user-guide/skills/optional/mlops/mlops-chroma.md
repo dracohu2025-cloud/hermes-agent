@@ -6,11 +6,13 @@ description: "面向 AI 应用的开源嵌入数据库"
 
 {/* 此页面由 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
 
-# Chroma {#chroma}
+<a id="chroma"></a>
+# Chroma
 
-面向 AI 应用的开源嵌入数据库。存储嵌入向量和元数据，执行向量搜索和全文搜索，按元数据过滤。提供简单的 4 函数 API。可从笔记本扩展到生产集群。适用于语义搜索、RAG 应用或文档检索。最适合本地开发和开源项目。
+面向 AI 应用的开源嵌入数据库。存储嵌入向量和元数据，执行向量搜索和全文搜索，按元数据过滤。简单的 4 函数 API。从笔记本扩展到生产集群。适用于语义搜索、RAG 应用或文档检索。最适合本地开发和开源项目。
 
-## 技能元数据 {#skill-metadata}
+<a id="skill-metadata"></a>
+## 技能元数据
 
 | | |
 |---|---|
@@ -20,21 +22,25 @@ description: "面向 AI 应用的开源嵌入数据库"
 | 作者 | Orchestra Research |
 | 许可证 | MIT |
 | 依赖项 | `chromadb`, `sentence-transformers` |
+| 平台 | linux, macos, windows |
 | 标签 | `RAG`, `Chroma`, `Vector Database`, `Embeddings`, `Semantic Search`, `Open Source`, `Self-Hosted`, `Document Retrieval`, `Metadata Filtering` |
 
-## 参考：完整 SKILL.md {#reference-full-skill-md}
+<a id="reference-full-skill-md"></a>
+## 参考：完整 SKILL.md
 
 :::info
-以下是该技能被触发时 Hermes 加载的完整技能定义。这是 Agent 在技能激活时看到的指令。
+以下是 Hermes 在触发此技能时加载的完整技能定义。这是 Agent 在技能激活时看到的指令。
 :::
 
-# Chroma - 开源嵌入数据库 {#chroma-open-source-embedding-database}
+<a id="chroma-open-source-embedding-database"></a>
+# Chroma - 开源嵌入数据库
 
 用于构建带记忆的 LLM 应用的 AI 原生数据库。
 
-## 何时使用 Chroma {#when-to-use-chroma}
+<a id="when-to-use-chroma"></a>
+## 何时使用 Chroma
 
-**在以下情况下使用 Chroma：**
+**在以下场景使用 Chroma：**
 - 构建 RAG（检索增强生成）应用
 - 需要本地/自托管向量数据库
 - 想要开源解决方案（Apache 2.0）
@@ -48,15 +54,17 @@ description: "面向 AI 应用的开源嵌入数据库"
 - **v1.3.3**（稳定版，每周发布）
 - **Apache 2.0 许可证**
 
-**改用其他替代方案**：
-- **Pinecone**：托管云服务，自动扩缩
+**替代方案**：
+- **Pinecone**：托管云，自动扩缩
 - **FAISS**：纯相似度搜索，无元数据
 - **Weaviate**：生产级 ML 原生数据库
 - **Qdrant**：高性能，基于 Rust
 
-## 快速开始 {#quick-start}
+<a id="quick-start"></a>
+## 快速开始
 
-### 安装 {#installation}
+<a id="installation"></a>
+### 安装
 
 ```bash
 # Python
@@ -66,7 +74,8 @@ pip install chromadb
 npm install chromadb @chroma-core/default-embed
 ```
 
-### 基本用法（Python） {#basic-usage-python}
+<a id="basic-usage-python"></a>
+### 基本用法（Python）
 
 ```python
 import chromadb
@@ -93,9 +102,11 @@ results = collection.query(
 print(results)
 ```
 
-## 核心操作 {#core-operations}
+<a id="core-operations"></a>
+## 核心操作
 
-### 1. 创建集合 {#1-create-collection}
+<a id="1-create-collection"></a>
+### 1. 创建集合
 
 ```python
 # 简单集合
@@ -120,10 +131,11 @@ collection = client.get_collection("my_docs")
 # 删除集合
 client.delete_collection("my_docs")
 ```
-### 2. 添加文档 {#2-add-documents}
+<a id="2-add-documents"></a>
+### 2. 添加文档
 
 ```python
-# Add with auto-generated IDs
+# 使用自动生成的 ID 添加
 collection.add(
     documents=["Doc 1", "Doc 2", "Doc 3"],
     metadatas=[
@@ -134,7 +146,7 @@ collection.add(
     ids=["id1", "id2", "id3"]
 )
 
-# Add with custom embeddings
+# 使用自定义嵌入向量添加
 collection.add(
     embeddings=[[0.1, 0.2, ...], [0.3, 0.4, ...]],
     documents=["Doc 1", "Doc 2"],
@@ -142,23 +154,24 @@ collection.add(
 )
 ```
 
-### 3. 查询（相似度搜索） {#3-query-similarity-search}
+<a id="3-query-similarity-search"></a>
+### 3. 查询（相似度搜索）
 
 ```python
-# Basic query
+# 基本查询
 results = collection.query(
     query_texts=["machine learning tutorial"],
     n_results=5
 )
 
-# Query with filters
+# 带过滤条件的查询
 results = collection.query(
     query_texts=["Python programming"],
     n_results=3,
     where={"source": "web"}
 )
 
-# Query with metadata filters
+# 带元数据过滤条件的查询
 results = collection.query(
     query_texts=["advanced topics"],
     where={
@@ -169,35 +182,37 @@ results = collection.query(
     }
 )
 
-# Access results
-print(results["documents"])      # List of matching documents
-print(results["metadatas"])      # Metadata for each doc
-print(results["distances"])      # Similarity scores
-print(results["ids"])            # Document IDs
+# 访问结果
+print(results["documents"])      # 匹配的文档列表
+print(results["metadatas"])      # 每个文档的元数据
+print(results["distances"])      # 相似度分数
+print(results["ids"])            # 文档 ID
 ```
 
-### 4. 获取文档 {#4-get-documents}
+<a id="4-get-documents"></a>
+### 4. 获取文档
 
 ```python
-# Get by IDs
+# 按 ID 获取
 docs = collection.get(
     ids=["id1", "id2"]
 )
 
-# Get with filters
+# 带过滤条件获取
 docs = collection.get(
     where={"category": "tutorial"},
     limit=10
 )
 
-# Get all documents
+# 获取所有文档
 docs = collection.get()
 ```
 
-### 5. 更新文档 {#5-update-documents}
+<a id="5-update-documents"></a>
+### 5. 更新文档
 
 ```python
-# Update document content
+# 更新文档内容
 collection.update(
     ids=["id1"],
     documents=["Updated content"],
@@ -205,44 +220,49 @@ collection.update(
 )
 ```
 
-### 6. 删除文档 {#6-delete-documents}
+<a id="6-delete-documents"></a>
+### 6. 删除文档
 
 ```python
-# Delete by IDs
+# 按 ID 删除
 collection.delete(ids=["id1", "id2"])
 
-# Delete with filter
+# 按过滤条件删除
 collection.delete(
     where={"source": "outdated"}
 )
 ```
 
-## 持久化存储 {#persistent-storage}
+<a id="persistent-storage"></a>
+## 持久化存储
 
 ```python
-# Persist to disk
+# 持久化到磁盘
 client = chromadb.PersistentClient(path="./chroma_db")
 
 collection = client.create_collection("my_docs")
 collection.add(documents=["Doc 1"], ids=["id1"])
 
-# Data persisted automatically
-# Reload later with same path
+# 数据自动持久化
+# 稍后使用相同路径重新加载
 client = chromadb.PersistentClient(path="./chroma_db")
 collection = client.get_collection("my_docs")
 ```
 
-## 嵌入函数 {#embedding-functions}
+<a id="embedding-functions"></a>
+## 嵌入函数
 
-### 默认（Sentence Transformers） {#default-sentence-transformers}
+<a id="default-sentence-transformers"></a>
+### 默认（Sentence Transformers）
 
 ```python
-# Uses sentence-transformers by default
+# 默认使用 sentence-transformers
 collection = client.create_collection("my_docs")
-# Default model: all-MiniLM-L6-v2
+# 默认模型：all-MiniLM-L6-v2
 ```
 
-### OpenAI {#openai}
+<a id="openai"></a>
+### OpenAI
 
 ```python
 from chromadb.utils import embedding_functions
@@ -258,7 +278,8 @@ collection = client.create_collection(
 )
 ```
 
-### HuggingFace {#huggingface}
+<a id="huggingface"></a>
+### HuggingFace
 
 ```python
 huggingface_ef = embedding_functions.HuggingFaceEmbeddingFunction(
@@ -272,14 +293,15 @@ collection = client.create_collection(
 )
 ```
 
-### 自定义嵌入函数 {#custom-embedding-function}
+<a id="custom-embedding-function"></a>
+### 自定义嵌入函数
 
 ```python
 from chromadb import Documents, EmbeddingFunction, Embeddings
 
 class MyEmbeddingFunction(EmbeddingFunction):
     def __call__(self, input: Documents) -> Embeddings:
-        # Your embedding logic
+        # 你的嵌入逻辑
         return embeddings
 
 my_ef = MyEmbeddingFunction()
@@ -288,7 +310,8 @@ collection = client.create_collection(
     embedding_function=my_ef
 )
 ```
-## 元数据过滤 {#metadata-filtering}
+<a id="metadata-filtering"></a>
+## 元数据过滤
 
 ```python
 # 精确匹配
@@ -311,7 +334,7 @@ results = collection.query(
             {"category": "tutorial"},
             {"difficulty": {"$lte": 3}}
         ]
-    }  # 也支持：$or
+    }  # 此外还有 $or
 )
 
 # 包含关系
@@ -321,7 +344,8 @@ results = collection.query(
 )
 ```
 
-## LangChain 集成 {#langchain-integration}
+<a id="langchain-integration"></a>
+## LangChain 集成
 
 ```python
 from langchain_chroma import Chroma
@@ -346,7 +370,8 @@ results = vectorstore.similarity_search("machine learning", k=3)
 retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
 ```
 
-## LlamaIndex 集成 {#llamaindex-integration}
+<a id="llamaindex-integration"></a>
+## LlamaIndex 集成
 
 ```python
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -372,13 +397,14 @@ query_engine = index.as_query_engine()
 response = query_engine.query("What is machine learning?")
 ```
 
-## 服务端模式 {#server-mode}
+<a id="server-mode"></a>
+## 服务器模式
 
 ```python
-# 运行 Chroma 服务端
-# 终端：chroma run --path ./chroma_db --port 8000
+# 运行 Chroma 服务器
+# 终端: chroma run --path ./chroma_db --port 8000
 
-# 连接到服务端
+# 连接服务器
 import chromadb
 from chromadb.config import Settings
 
@@ -392,30 +418,33 @@ client = chromadb.HttpClient(
 collection = client.get_or_create_collection("my_docs")
 ```
 
-## 最佳实践 {#best-practices}
+<a id="best-practices"></a>
+## 最佳实践
 
-1. **使用持久化客户端** - 重启后数据不丢失
-2. **添加元数据** - 支持过滤和追踪
-3. **批量操作** - 一次性添加多个文档
-4. **选择合适的嵌入模型** - 平衡速度与质量
+1. **使用持久化客户端** - 重启不丢失数据
+2. **添加元数据** - 支持数据过滤与追踪
+3. **批量操作** - 一次添加多个文档
+4. **选择合适的嵌入模型** - 在速度与质量之间取得平衡
 5. **使用过滤器** - 缩小搜索范围
 6. **使用唯一 ID** - 避免冲突
 7. **定期备份** - 复制 chroma_db 目录
-8. **监控集合大小** - 必要时扩容
+8. **监控集合大小** - 必要时进行扩容
 9. **测试嵌入函数** - 确保质量
-10. **生产环境使用服务端模式** - 更适合多用户场景
+10. **生产环境使用服务器模式** - 更适合多用户场景
 
-## 性能 {#performance}
+<a id="performance"></a>
+## 性能
 
-| 操作 | 延迟 | 说明 |
+| 操作 | 延迟 | 备注 |
 |-----------|---------|-------|
-| 添加 100 个文档 | ~1-3 秒 | 包含嵌入计算 |
-| 查询（前 10 条） | ~50-200 毫秒 | 取决于集合大小 |
-| 元数据过滤 | ~10-50 毫秒 | 正确索引后速度很快 |
-## 资源 {#resources}
+| 添加 100 个文档 | ~1-3s | 包含嵌入 |
+| 查询（前 10 条） | ~50-200ms | 取决于集合大小 |
+| 元数据过滤 | ~10-50ms | 使用正确索引时速度更快 |
+<a id="resources"></a>
+## 资源
 
-- **GitHub**: https://github.com/chroma-core/chroma ⭐ 24,300+
-- **文档**: https://docs.trychroma.com
-- **Discord**: https://discord.gg/MMeYNTmh3x
-- **版本**: 1.3.3+
-- **许可证**: Apache 2.0
+- **GitHub**：https://github.com/chroma-core/chroma ⭐ 24,300+
+- **文档**：https://docs.trychroma.com
+- **Discord**：https://discord.gg/MMeYNTmh3x
+- **版本**：1.3.3+
+- **许可证**：Apache 2.0

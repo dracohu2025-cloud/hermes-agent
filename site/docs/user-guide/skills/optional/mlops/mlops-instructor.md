@@ -1,62 +1,71 @@
 ---
 title: "Instructor"
 sidebar_label: "Instructor"
-description: "使用 Pydantic 验证从 LLM 响应中提取结构化数据，自动重试失败的提取，安全地解析复杂 JSON，并通过 Instructor（久经考验的结构化输出库）流式传输部分结果。"
+description: "从 LLM 响应中提取结构化数据，提供 Pydantic 验证、自动重试失败提取、类型安全解析复杂 JSON，以及流式传输部分结果。"
 ---
 
-{/* 此页面由网站脚本 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
+{/* This page is auto-generated from the skill's SKILL.md by website/scripts/generate-skill-docs.py. Edit the source SKILL.md, not this page. */}
 
-# Instructor {#instructor}
+<a id="instructor"></a>
+# Instructor
 
-使用 Pydantic 验证从 LLM 响应中提取结构化数据，自动重试失败的提取，安全地解析复杂 JSON，并通过 Instructor（久经考验的结构化输出库）流式传输部分结果。
+从 LLM 响应中提取结构化数据，提供 Pydantic 验证、自动重试失败提取、类型安全解析复杂 JSON，以及流式传输部分结果 —— 使用久经考验的结构化输出库 Instructor。
 
-## 技能元数据 {#skill-metadata}
+<a id="skill-metadata"></a>
+## Skill metadata
 
 | | |
 |---|---|
-| 来源 | 可选 — 使用 `hermes skills install official/mlops/instructor` 安装 |
-| 路径 | `optional-skills/mlops/instructor` |
-| 版本 | `1.0.0` |
-| 作者 | Orchestra Research |
-| 许可证 | MIT |
-| 依赖项 | `instructor`, `pydantic`, `openai`, `anthropic` |
-| 标签 | `Prompt Engineering`, `Instructor`, `Structured Output`, `Pydantic`, `Data Extraction`, `JSON Parsing`, `Type Safety`, `Validation`, `Streaming`, `OpenAI`, `Anthropic` |
+| Source | 可选 — 安装命令：`hermes skills install official/mlops/instructor` |
+| Path | `optional-skills/mlops/instructor` |
+| Version | `1.0.0` |
+| Author | Orchestra Research |
+| License | MIT |
+| Dependencies | `instructor`, `pydantic`, `openai`, `anthropic` |
+| Platforms | linux, macos, windows |
+| Tags | `Prompt Engineering`, `Instructor`, `Structured Output`, `Pydantic`, `Data Extraction`, `JSON Parsing`, `Type Safety`, `Validation`, `Streaming`, `OpenAI`, `Anthropic` |
 
-## 参考：完整 SKILL.md {#reference-full-skill-md}
+<a id="reference-full-skill-md"></a>
+## 参考：完整 SKILL.md
 
 :::info
-以下是该技能被触发时 Hermes 加载的完整技能定义。当技能激活时，Agent 会将其视为指令。
+以下是 Hermes 在该技能触发时加载的完整技能定义。这就是技能激活时 Agent 看到的指令。
 :::
 
-# Instructor：结构化 LLM 输出 {#instructor-structured-llm-outputs}
+<a id="instructor-structured-llm-outputs"></a>
+# Instructor：结构化 LLM 输出
 
-## 何时使用此技能 {#when-to-use-this-skill}
+<a id="when-to-use-this-skill"></a>
+## 何时使用该技能
 
-在以下场景使用 Instructor：
-- **可靠地从 LLM 响应中提取结构化数据**
+当您需要以下功能时，请使用 Instructor：
+- **从 LLM 响应中可靠地提取结构化数据**
 - **根据 Pydantic 模式自动验证输出**
-- **自动重试失败的提取**，并带有错误处理
-- **安全地解析复杂 JSON**，具备类型安全和验证
-- **流式传输部分结果**，用于实时处理
-- **支持多个 LLM 提供商**，API 保持一致
+- **通过自动错误处理重试失败的提取**
+- **以类型安全的方式解析复杂 JSON**
+- **流式传输部分结果以实现实时处理**
+- **支持多个 LLM 提供商，API 保持一致**
 
-**GitHub Stars**：15,000+ | **久经考验**：100,000+ 开发者
+**GitHub Stars**: 15,000+ | **久经考验**：100,000 多名开发者
 
-## 安装 {#installation}
+<a id="installation"></a>
+## 安装
 
 ```bash
 # 基础安装
 pip install instructor
 
-# 使用特定提供商
+# 搭配特定提供商安装
 pip install "instructor[anthropic]"  # Anthropic Claude
 pip install "instructor[openai]"     # OpenAI
 pip install "instructor[all]"        # 所有提供商
 ```
 
-## 快速开始 {#quick-start}
+<a id="quick-start"></a>
+## 快速开始
 
-### 基本示例：提取用户数据 {#basic-example-extract-user-data}
+<a id="basic-example-extract-user-data"></a>
+### 基本示例：提取用户数据
 
 ```python
 import instructor
@@ -88,7 +97,8 @@ print(user.age)    # 30
 print(user.email)  # "john@example.com"
 ```
 
-### 使用 OpenAI {#with-openai}
+<a id="with-openai"></a>
+### 搭配 OpenAI 使用
 
 ```python
 from openai import OpenAI
@@ -102,22 +112,24 @@ user = client.chat.completions.create(
 )
 ```
 
-## 核心概念 {#core-concepts}
+<a id="core-concepts"></a>
+## 核心概念
 
-### 1. 响应模型（Pydantic） {#1-response-models-pydantic}
+<a id="1-response-models-pydantic"></a>
+### 1. 响应模型（Pydantic）
 
 响应模型定义了 LLM 输出的结构和验证规则。
 
-#### 基本模型 {#basic-model}
-
+<a id="basic-model"></a>
+#### 基本模型
 ```python
 from pydantic import BaseModel, Field
 
 class Article(BaseModel):
-    title: str = Field(description="文章标题")
-    author: str = Field(description="作者姓名")
-    word_count: int = Field(description="字数", gt=0)
-    tags: list[str] = Field(description="相关标签列表")
+    title: str = Field(description="Article title")
+    author: str = Field(description="Author name")
+    word_count: int = Field(description="Number of words", gt=0)
+    tags: list[str] = Field(description="List of relevant tags")
 
 article = client.messages.create(
     model="claude-sonnet-4-5-20250929",
@@ -129,13 +141,15 @@ article = client.messages.create(
     response_model=Article
 )
 ```
-**好处：**
-- 通过 Python 类型提示实现类型安全
-- 自动验证（`word_count > 0`）
-- 借助 Field 描述实现自文档化
+
+**优势：**
+- 借助 Python 类型提示获得类型安全
+- 自动校验（word_count > 0）
+- 通过 Field 描述实现自文档化
 - IDE 自动补全支持
 
-#### 嵌套模型 {#nested-models}
+<a id="nested-models"></a>
+#### 嵌套模型
 
 ```python
 class Address(BaseModel):
@@ -146,7 +160,7 @@ class Address(BaseModel):
 class Person(BaseModel):
     name: str
     age: int
-    address: Address  # 嵌套模型
+    address: Address  # Nested model
 
 person = client.messages.create(
     model="claude-sonnet-4-5-20250929",
@@ -161,7 +175,8 @@ person = client.messages.create(
 print(person.address.city)  # "Boston"
 ```
 
-#### 可选字段 {#optional-fields}
+<a id="optional-fields"></a>
+#### 可选字段
 
 ```python
 from typing import Optional
@@ -169,13 +184,14 @@ from typing import Optional
 class Product(BaseModel):
     name: str
     price: float
-    discount: Optional[float] = None  # 可选字段
-    description: str = Field(default="No description")  # 默认值
+    discount: Optional[float] = None  # Optional
+    description: str = Field(default="No description")  # Default value
 
-# 大模型无需提供 discount 或 description
+# LLM doesn't need to provide discount or description
 ```
 
-#### 使用枚举限定取值 {#enums-for-constraints}
+<a id="enums-for-constraints"></a>
+#### 枚举约束
 
 ```python
 from enum import Enum
@@ -187,7 +203,7 @@ class Sentiment(str, Enum):
 
 class Review(BaseModel):
     text: str
-    sentiment: Sentiment  # 仅允许这 3 个值
+    sentiment: Sentiment  # Only these 3 values allowed
 
 review = client.messages.create(
     model="claude-sonnet-4-5-20250929",
@@ -202,11 +218,13 @@ review = client.messages.create(
 print(review.sentiment)  # Sentiment.POSITIVE
 ```
 
-### 2. 验证 {#2-validation}
+<a id="2-validation"></a>
+### 2. 校验
 
-Pydantic 会自动验证大模型输出。如果验证失败，Instructor 会自动重试。
+Pydantic 会自动校验 LLM 的输出。如果校验失败，Instructor 会重试。
 
-#### 内置验证器 {#built-in-validators}
+<a id="built-in-validators"></a>
+#### 内置校验器
 
 ```python
 from pydantic import Field, EmailStr, HttpUrl
@@ -214,13 +232,14 @@ from pydantic import Field, EmailStr, HttpUrl
 class Contact(BaseModel):
     name: str = Field(min_length=2, max_length=100)
     age: int = Field(ge=0, le=120)  # 0 <= age <= 120
-    email: EmailStr  # 验证邮箱格式
-    website: HttpUrl  # 验证 URL 格式
+    email: EmailStr  # Validates email format
+    website: HttpUrl  # Validates URL format
 
-# 如果大模型提供了无效数据，Instructor 会自动重试
+# If LLM provides invalid data, Instructor retries automatically
 ```
 
-#### 自定义验证器 {#custom-validators}
+<a id="custom-validators"></a>
+#### 自定义校验器
 
 ```python
 from pydantic import field_validator
@@ -232,21 +251,21 @@ class Event(BaseModel):
 
     @field_validator('date')
     def validate_date(cls, v):
-        """确保日期格式为 YYYY-MM-DD"""
+        """Ensure date is in YYYY-MM-DD format."""
         import re
         if not re.match(r'\d{4}-\d{2}-\d{2}', v):
-            raise ValueError('日期必须为 YYYY-MM-DD 格式')
+            raise ValueError('Date must be YYYY-MM-DD format')
         return v
 
     @field_validator('attendees')
     def validate_attendees(cls, v):
-        """确保参会人数为正数"""
+        """Ensure positive attendees."""
         if v < 1:
-            raise ValueError('参会人数至少为 1')
+            raise ValueError('Must have at least 1 attendee')
         return v
 ```
-
-#### 模型级别验证 {#model-level-validation}
+<a id="model-level-validation"></a>
+#### 模型级别验证
 
 ```python
 from pydantic import model_validator
@@ -257,21 +276,23 @@ class DateRange(BaseModel):
 
     @model_validator(mode='after')
     def check_dates(self):
-        """确保 end_date 在 start_date 之后"""
+        """Ensure end_date is after start_date."""
         from datetime import datetime
         start = datetime.strptime(self.start_date, '%Y-%m-%d')
         end = datetime.strptime(self.end_date, '%Y-%m-%d')
 
         if end < start:
-            raise ValueError('end_date 必须在 start_date 之后')
+            raise ValueError('end_date must be after start_date')
         return self
 ```
-### 3. 自动重试 {#3-automatic-retrying}
+
+<a id="3-automatic-retrying"></a>
+### 3. 自动重试
 
 当验证失败时，Instructor 会自动重试，并向 LLM 提供错误反馈。
 
 ```python
-# 如果验证失败，最多重试 3 次
+# Retries up to 3 times if validation fails
 user = client.messages.create(
     model="claude-sonnet-4-5-20250929",
     max_tokens=1024,
@@ -280,26 +301,28 @@ user = client.messages.create(
         "content": "Extract user from: John, age unknown"
     }],
     response_model=User,
-    max_retries=3  # 默认值为 3
+    max_retries=3  # Default is 3
 )
 
-# 如果无法提取年龄，Instructor 会告诉 LLM：
+# If age can't be extracted, Instructor tells the LLM:
 # "Validation error: age - field required"
-# LLM 会带着错误反馈再次尝试提取
+# LLM tries again with better extraction
 ```
 
 **工作原理：**
 1. LLM 生成输出
 2. Pydantic 进行验证
 3. 如果无效：将错误信息发送回 LLM
-4. LLM 根据错误反馈再次尝试
-5. 重复直到达到 max_retries 上限
+4. LLM 根据错误反馈重新尝试
+5. 重复直到达到 max_retries
 
-### 4. 流式处理 {#4-streaming}
+<a id="4-streaming"></a>
+### 4. 流式处理
 
-流式输出部分结果，实现实时处理。
+流式输出部分结果，用于实时处理。
 
-#### 流式输出部分对象 {#streaming-partial-objects}
+<a id="streaming-partial-objects"></a>
+#### 流式输出部分对象
 
 ```python
 from instructor import Partial
@@ -309,7 +332,7 @@ class Story(BaseModel):
     content: str
     tags: list[str]
 
-# 随着 LLM 生成，流式输出部分更新
+# Stream partial updates as LLM generates
 for partial_story in client.messages.create_partial(
     model="claude-sonnet-4-5-20250929",
     max_tokens=1024,
@@ -321,17 +344,18 @@ for partial_story in client.messages.create_partial(
 ):
     print(f"Title: {partial_story.title}")
     print(f"Content so far: {partial_story.content[:100]}...")
-    # 实时更新 UI
+    # Update UI in real-time
 ```
 
-#### 流式输出可迭代对象 {#streaming-iterables}
+<a id="streaming-iterables"></a>
+#### 流式输出可迭代对象
 
 ```python
 class Task(BaseModel):
     title: str
     priority: str
 
-# 随着生成，流式输出列表项
+# Stream list items as they're generated
 tasks = client.messages.create_iterable(
     model="claude-sonnet-4-5-20250929",
     max_tokens=1024,
@@ -344,12 +368,14 @@ tasks = client.messages.create_iterable(
 
 for task in tasks:
     print(f"- {task.title} ({task.priority})")
-    # 每项到达时立即处理
+    # Process each task as it arrives
 ```
 
-## 提供商配置 {#provider-configuration}
+<a id="provider-configuration"></a>
+## 提供者配置
 
-### Anthropic Claude {#anthropic-claude}
+<a id="anthropic-claude"></a>
+### Anthropic Claude
 
 ```python
 import instructor
@@ -359,7 +385,7 @@ client = instructor.from_anthropic(
     Anthropic(api_key="your-api-key")
 )
 
-# 与 Claude 模型一起使用
+# Use with Claude models
 response = client.messages.create(
     model="claude-sonnet-4-5-20250929",
     max_tokens=1024,
@@ -368,7 +394,8 @@ response = client.messages.create(
 )
 ```
 
-### OpenAI {#openai}
+<a id="openai"></a>
+### OpenAI
 
 ```python
 from openai import OpenAI
@@ -383,17 +410,17 @@ response = client.chat.completions.create(
     messages=[...]
 )
 ```
-
-### 本地模型（Ollama） {#local-models-ollama}
+<a id="local-models-ollama"></a>
+### 本地模型 (Ollama)
 
 ```python
 from openai import OpenAI
 
-# 指向本地 Ollama 服务器
+# Point to local Ollama server
 client = instructor.from_openai(
     OpenAI(
         base_url="http://localhost:11434/v1",
-        api_key="ollama"  # 必填但会被忽略
+        api_key="ollama"  # Required but ignored
     ),
     mode=instructor.Mode.JSON
 )
@@ -405,9 +432,11 @@ response = client.chat.completions.create(
 )
 ```
 
-## 常见模式 {#common-patterns}
+<a id="common-patterns"></a>
+## 常见模式
 
-### 模式 1：从文本中提取数据 {#pattern-1-data-extraction-from-text}
+<a id="pattern-1-data-extraction-from-text"></a>
+### 模式一：从文本中提取数据
 
 ```python
 class CompanyInfo(BaseModel):
@@ -433,7 +462,9 @@ company = client.messages.create(
     response_model=CompanyInfo
 )
 ```
-### 模式 2：分类 {#pattern-2-classification}
+
+<a id="pattern-2-classification"></a>
+### 模式二：分类
 
 ```python
 class Category(str, Enum):
@@ -459,7 +490,8 @@ classification = client.messages.create(
 )
 ```
 
-### 模式 3：多实体提取 {#pattern-3-multi-entity-extraction}
+<a id="pattern-3-multi-entity-extraction"></a>
+### 模式三：多实体提取
 
 ```python
 class Person(BaseModel):
@@ -491,7 +523,8 @@ for person in entities.people:
     print(f"{person.name} - {person.role}")
 ```
 
-### 模式 4：结构化分析 {#pattern-4-structured-analysis}
+<a id="pattern-4-structured-analysis"></a>
+### 模式四：结构化分析
 
 ```python
 class SentimentAnalysis(BaseModel):
@@ -514,7 +547,8 @@ analysis = client.messages.create(
 )
 ```
 
-### 模式 5：批量处理 {#pattern-5-batch-processing}
+<a id="pattern-5-batch-processing"></a>
+### 模式五：批量处理
 
 ```python
 def extract_person(text: str) -> Person:
@@ -536,10 +570,11 @@ texts = [
 
 people = [extract_person(text) for text in texts]
 ```
+<a id="advanced-features"></a>
+## 高级功能
 
-## 高级特性 {#advanced-features}
-
-### 联合类型 {#union-types}
+<a id="union-types"></a>
+### 联合类型
 
 ```python
 from typing import Union
@@ -555,17 +590,18 @@ class ImageContent(BaseModel):
 
 class Post(BaseModel):
     title: str
-    content: Union[TextContent, ImageContent]  # Either type
+    content: Union[TextContent, ImageContent]  # 两种类型均可
 
-# LLM chooses appropriate type based on content
+# LLM 会根据内容自动选择合适的类型
 ```
 
-### 动态模型 {#dynamic-models}
+<a id="dynamic-models"></a>
+### 动态模型
 
 ```python
 from pydantic import create_model
 
-# Create model at runtime
+# 在运行时创建模型
 DynamicUser = create_model(
     'User',
     name=(str, ...),
@@ -580,7 +616,9 @@ user = client.messages.create(
     response_model=DynamicUser
 )
 ```
-### 自定义模式 {#custom-modes}
+
+<a id="custom-modes"></a>
+### 自定义模式
 
 ```python
 # 对于不支持原生结构化输出的提供商
@@ -595,7 +633,8 @@ client = instructor.from_anthropic(
 # - Mode.TOOLS（OpenAI 工具）
 ```
 
-### 上下文管理 {#context-management}
+<a id="context-management"></a>
+### 上下文管理
 
 ```python
 # 单次使用客户端
@@ -609,9 +648,11 @@ with instructor.from_anthropic(Anthropic()) as client:
     # 客户端自动关闭
 ```
 
-## 错误处理 {#error-handling}
+<a id="error-handling"></a>
+## 错误处理
 
-### 处理验证错误 {#handling-validation-errors}
+<a id="handling-validation-errors"></a>
+### 处理验证错误
 
 ```python
 from pydantic import ValidationError
@@ -625,19 +666,20 @@ try:
         max_retries=3
     )
 except ValidationError as e:
-    print(f"重试后仍失败: {e}")
+    print(f"重试后仍然失败：{e}")
     # 优雅处理
 
 except Exception as e:
-    print(f"API 错误: {e}")
+    print(f"API 错误：{e}")
 ```
 
-### 自定义错误消息 {#custom-error-messages}
+<a id="custom-error-messages"></a>
+### 自定义错误消息
 
 ```python
 class ValidatedUser(BaseModel):
     name: str = Field(description="全名，2-100 个字符")
-    age: int = Field(description="年龄，0 到 120 之间", ge=0, le=120)
+    age: int = Field(description="年龄在 0 到 120 之间", ge=0, le=120)
     email: EmailStr = Field(description="有效的电子邮件地址")
 
     class Config:
@@ -653,37 +695,41 @@ class ValidatedUser(BaseModel):
         }
 ```
 
-## 最佳实践 {#best-practices}
+<a id="best-practices"></a>
+## 最佳实践
 
-### 1. 清晰的字段描述 {#1-clear-field-descriptions}
+<a id="1-clear-field-descriptions"></a>
+### 1. 清晰的字段描述
 
 ```python
-# ❌ 不好：模糊
+# ❌ 不好：描述模糊
 class Product(BaseModel):
     name: str
     price: float
 
 # ✅ 好：描述清晰
 class Product(BaseModel):
-    name: str = Field(description="文本中的产品名称")
-    price: float = Field(description="价格（美元，不含货币符号）")
+    name: str = Field(description="从文本中提取的产品名称")
+    price: float = Field(description="美元价格，不含货币符号")
 ```
 
-### 2. 使用合适的验证 {#2-use-appropriate-validation}
+<a id="2-use-appropriate-validation"></a>
+### 2. 使用合适的验证
 
 ```python
 # ✅ 好：约束值范围
 class Rating(BaseModel):
     score: int = Field(ge=1, le=5, description="1 到 5 星的评分")
-    review: str = Field(min_length=10, description="评价文本，至少 10 个字符")
+    review: str = Field(min_length=10, description="评论内容，至少 10 个字符")
 ```
 
-### 3. 在提示中提供示例 {#3-provide-examples-in-prompts}
+<a id="3-provide-examples-in-prompts"></a>
+### 3. 在提示词中提供示例
 
 ```python
 messages = [{
     "role": "user",
-    "content": """从以下内容提取人员信息："张三，30岁，工程师"
+    "content": """从以下内容中提取个人信息："张三，30岁，工程师"
 
 示例格式：
 {
@@ -693,21 +739,22 @@ messages = [{
 }"""
 }]
 ```
-
-### 4. 对固定类别使用枚举 {#4-use-enums-for-fixed-categories}
+<a id="4-use-enums-for-fixed-categories"></a>
+### 4. 使用枚举定义固定类别
 
 ```python
-# ✅ 好：枚举确保有效值
+# ✅ Good: Enum ensures valid values
 class Status(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
 
 class Application(BaseModel):
-    status: Status  # LLM 必须从枚举中选择
+    status: Status  # LLM must choose from enum
 ```
 
-### 5. 优雅处理缺失数据 {#5-handle-missing-data-gracefully}
+<a id="5-handle-missing-data-gracefully"></a>
+### 5. 优雅处理缺失数据
 
 ```python
 class PartialData(BaseModel):
@@ -715,39 +762,43 @@ class PartialData(BaseModel):
     optional_field: Optional[str] = None
     default_field: str = "default_value"
 
-# LLM 只需要提供 required_field
+# LLM only needs to provide required_field
 ```
 
-## 与替代方案的对比 {#comparison-to-alternatives}
+<a id="comparison-to-alternatives"></a>
+## 与其他方案对比
 
 | 特性 | Instructor | 手动 JSON | LangChain | DSPy |
 |---------|------------|-------------|-----------|------|
-| 类型安全 | ✅ 是 | ❌ 否 | ⚠️ 部分 | ✅ 是 |
+| 类型安全 | ✅ 是 | ❌ 否 | ⚠️ 部分支持 | ✅ 是 |
 | 自动验证 | ✅ 是 | ❌ 否 | ❌ 否 | ⚠️ 有限 |
 | 自动重试 | ✅ 是 | ❌ 否 | ❌ 否 | ✅ 是 |
 | 流式输出 | ✅ 是 | ❌ 否 | ✅ 是 | ❌ 否 |
-| 多提供商 | ✅ 是 | ⚠️ 手动 | ✅ 是 | ✅ 是 |
-| 学习曲线 | 低 | 低 | 中 | 高 |
+| 多提供商支持 | ✅ 是 | ⚠️ 手动 | ✅ 是 | ✅ 是 |
+| 学习曲线 | 低 | 低 | 中等 | 高 |
+
 **何时选择 Instructor：**
-- 需要结构化、可验证的输出
-- 想要类型安全与 IDE 支持
-- 需要自动重试机制
+- 需要结构化、经过验证的输出
+- 希望获得类型安全和 IDE 支持
+- 需要自动重试
 - 构建数据提取系统
 
 **何时选择其他方案：**
-- DSPy：需要提示词优化
-- LangChain：构建复杂链式流程
-- 手动方式：简单、一次性提取
+- DSPy：需要提示优化
+- LangChain：构建复杂链式操作
+- 手动：简单、一次性的提取
 
-## 资源 {#resources}
+<a id="resources"></a>
+## 资源
 
 - **文档**：https://python.useinstructor.com
-- **GitHub**：https://github.com/jxnl/instructor（15k+ 星标）
+- **GitHub**：https://github.com/jxnl/instructor（15k+ Star）
 - **示例手册**：https://python.useinstructor.com/examples
 - **Discord**：提供社区支持
 
-## 参见 {#see-also}
+<a id="see-also"></a>
+## 相关参考
 
 - `references/validation.md` - 高级验证模式
 - `references/providers.md` - 特定提供商的配置
-- `references/examples.md` - 真实使用案例
+- `references/examples.md` - 真实世界用例

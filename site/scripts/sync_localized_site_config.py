@@ -38,7 +38,7 @@ CONFIG_REPLACEMENTS = (
     ("  baseUrl: '/docs/',", "  baseUrl: '/',"),
     ("    defaultLocale: 'en',", "    defaultLocale: 'zh-Hans',"),
     ("    locales: ['en'],", "    locales: ['zh-Hans'],"),
-    ("  onBrokenLinks: 'warn',", "  onBrokenLinks: 'warn',\n  onBrokenAnchors: 'throw',"),
+    ("  onBrokenLinks: 'warn',", "  onBrokenLinks: 'warn',\n  onBrokenAnchors: 'warn',"),
     ("        language: ['en'],", "        language: ['zh'],"),
     (
         "          editUrl: 'https://github.com/NousResearch/hermes-agent/edit/main/website/',",

@@ -6,11 +6,13 @@ description: "最简单的分布式训练 API"
 
 {/* 此页面由 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
 
-# Huggingface Accelerate {#huggingface-accelerate}
+<a id="huggingface-accelerate"></a>
+# Huggingface Accelerate
 
 最简单的分布式训练 API。只需 4 行代码即可为任何 PyTorch 脚本添加分布式支持。统一的 DeepSpeed/FSDP/Megatron/DDP API。自动设备分配，混合精度（FP16/BF16/FP8）。交互式配置，单命令启动。HuggingFace 生态系统标准。
 
-## 技能元数据 {#skill-metadata}
+<a id="skill-metadata"></a>
+## 技能元数据
 
 | | |
 |---|---|
@@ -19,18 +21,22 @@ description: "最简单的分布式训练 API"
 | 版本 | `1.0.0` |
 | 作者 | Orchestra Research |
 | 许可证 | MIT |
-| 依赖 | `accelerate`, `torch`, `transformers` |
+| 依赖项 | `accelerate`, `torch`, `transformers` |
+| 平台 | linux, macos, windows |
 | 标签 | `分布式训练`, `HuggingFace`, `Accelerate`, `DeepSpeed`, `FSDP`, `混合精度`, `PyTorch`, `DDP`, `统一 API`, `简单` |
 
-## 参考：完整 SKILL.md {#reference-full-skill-md}
+<a id="reference-full-skill-md"></a>
+## 参考：完整 SKILL.md
 
 :::info
 以下是 Hermes 在触发此技能时加载的完整技能定义。这是 Agent 在技能激活时看到的指令。
 :::
 
-# HuggingFace Accelerate - 统一分布式训练 {#huggingface-accelerate-unified-distributed-training}
+<a id="huggingface-accelerate-unified-distributed-training"></a>
+# HuggingFace Accelerate - 统一分布式训练
 
-## 快速开始 {#quick-start}
+<a id="quick-start"></a>
+## 快速开始
 
 Accelerate 将分布式训练简化为 4 行代码。
 
@@ -65,9 +71,11 @@ import torch
 accelerate launch train.py
 ```
 
-## 常见工作流 {#common-workflows}
+<a id="common-workflows"></a>
+## 常见工作流
 
-### 工作流 1：从单 GPU 到多 GPU {#workflow-1-from-single-gpu-to-multi-gpu}
+<a id="workflow-1-from-single-gpu-to-multi-gpu"></a>
+### 工作流 1：从单 GPU 到多 GPU
 
 **原始脚本**：
 ```python
@@ -109,23 +117,23 @@ for epoch in range(10):
         accelerator.backward(loss)  # +4
         optimizer.step()
 ```
-
-**配置**（交互式）：
+**Configure**（交互式）：
 ```bash
 accelerate config
 ```
+
 **问题**：
-- 使用哪台机器？（单/多 GPU/TPU/CPU）
-- 使用多少台机器？（1）
-- 混合精度？（无/fp16/bf16/fp8）
-- DeepSpeed？（否/是）
+- 使用哪类机器？（单/多 GPU/TPU/CPU）
+- 机器数量？（1）
+- 混合精度？（no/fp16/bf16/fp8）
+- DeepSpeed？（no/yes）
 
 **启动**（适用于任何配置）：
 ```bash
 # 单 GPU
 accelerate launch train.py
 
-# 多 GPU（8 张 GPU）
+# 多 GPU（8 块 GPU）
 accelerate launch --multi_gpu --num_processes 8 train.py
 
 # 多节点
@@ -135,7 +143,8 @@ accelerate launch --multi_gpu --num_processes 16 \
   train.py
 ```
 
-### 工作流 2：混合精度训练 {#workflow-2-mixed-precision-training}
+<a id="workflow-2-mixed-precision-training"></a>
+### 工作流 2：混合精度训练
 
 **启用 FP16/BF16**：
 ```python
@@ -152,14 +161,15 @@ accelerator = Accelerator(mixed_precision='fp8')
 
 model, optimizer, dataloader = accelerator.prepare(model, optimizer, dataloader)
 
-# 其余一切自动处理！
+# 其他一切自动处理！
 for batch in dataloader:
-    with accelerator.autocast():  # 可选，自动完成
+    with accelerator.autocast():  # 可选，默认自动完成
         loss = model(batch)
     accelerator.backward(loss)
 ```
 
-### 工作流 3：DeepSpeed ZeRO 集成 {#workflow-3-deepspeed-zero-integration}
+<a id="workflow-3-deepspeed-zero-integration"></a>
+### 工作流 3：DeepSpeed ZeRO 集成
 
 **启用 DeepSpeed ZeRO-2**：
 ```python
@@ -203,14 +213,15 @@ accelerate config
 accelerate launch --config_file deepspeed_config.json train.py
 ```
 
-### 工作流 4：FSDP（全分片数据并行） {#workflow-4-fsdp-fully-sharded-data-parallel}
+<a id="workflow-4-fsdp-fully-sharded-data-parallel"></a>
+### 工作流 4：FSDP（全分片数据并行）
 
 **启用 FSDP**：
 ```python
 from accelerate import Accelerator, FullyShardedDataParallelPlugin
 
 fsdp_plugin = FullyShardedDataParallelPlugin(
-    sharding_strategy="FULL_SHARD",  # 相当于 ZeRO-3
+    sharding_strategy="FULL_SHARD",  # 等价于 ZeRO-3
     auto_wrap_policy="TRANSFORMER_AUTO_WRAP",
     cpu_offload=False
 )
@@ -229,7 +240,8 @@ accelerate config
 # 选择：FSDP → Full Shard → No CPU Offload
 ```
 
-### 工作流 5：梯度累积 {#workflow-5-gradient-accumulation}
+<a id="workflow-5-gradient-accumulation"></a>
+### 工作流 5：梯度累积
 
 **累积梯度**：
 ```python
@@ -240,37 +252,39 @@ accelerator = Accelerator(gradient_accumulation_steps=4)
 model, optimizer, dataloader = accelerator.prepare(model, optimizer, dataloader)
 
 for batch in dataloader:
-    with accelerator.accumulate(model):  # 处理累积
+    with accelerator.accumulate(model):  # 处理累积过程
         optimizer.zero_grad()
         loss = model(batch)
         accelerator.backward(loss)
         optimizer.step()
 ```
-
 **有效批量大小**：`batch_size * num_gpus * gradient_accumulation_steps`
-## 何时使用 vs 替代方案 {#when-to-use-vs-alternatives}
+
+<a id="when-to-use-vs-alternatives"></a>
+## 何时使用 vs 替代方案
 
 **使用 Accelerate 的场景**：
-- 需要最简单的分布式训练
-- 只需一份脚本就能适配任意硬件
-- 使用 HuggingFace 生态
-- 需要灵活性（DDP / DeepSpeed / FSDP / Megatron）
+- 想要最简单的分布式训练
+- 需要一份脚本适配任何硬件
+- 使用 HuggingFace 生态系统
+- 需要灵活性（DDP/DeepSpeed/FSDP/Megatron）
 - 需要快速原型开发
 
 **主要优势**：
-- **4 行代码**：改动量极小
-- **统一 API**：同一份代码可运行 DDP、DeepSpeed、FSDP、Megatron
-- **自动化**：设备分配、混合精度、分片自动处理
+- **4 行代码**：代码改动最小
+- **统一 API**：同一份代码支持 DDP、DeepSpeed、FSDP、Megatron
+- **自动化**：设备分配、混合精度、分片
 - **交互式配置**：无需手动设置启动器
-- **单次启动**：随处可用
+- **单一启动**：随处可用
 
-**考虑使用替代方案**：
-- **PyTorch Lightning**：需要回调、高级抽象
+**改用替代方案**：
+- **PyTorch Lightning**：需要回调、高层抽象
 - **Ray Train**：多节点编排、超参数调优
-- **DeepSpeed**：直接 API 控制、高级特性
+- **DeepSpeed**：直接 API 控制、高级功能
 - **原生 DDP**：最大控制、最少抽象
 
-## 常见问题 {#common-issues}
+<a id="common-issues"></a>
+## 常见问题
 
 **问题：设备分配错误**
 
@@ -283,7 +297,7 @@ batch = batch.to('cuda')
 # Accelerate 会在 prepare() 之后自动处理
 ```
 
-**问题：梯度累积无效**
+**问题：梯度累积不生效**
 
 使用上下文管理器：
 ```python
@@ -294,38 +308,40 @@ with accelerator.accumulate(model):
     optimizer.step()
 ```
 
-**问题：分布式训练中的检查点**
+**问题：分布式环境下的检查点保存**
 
 使用 accelerator 的方法：
 ```python
-# 只在主进程保存
+# 仅在主进程保存
 if accelerator.is_main_process:
     accelerator.save_state('checkpoint/')
 
-# 所有进程加载
+# 在所有进程加载
 accelerator.load_state('checkpoint/')
 ```
 
 **问题：使用 FSDP 时结果不一致**
 
-确保随机种子相同：
+确保使用相同的随机种子：
 ```python
 from accelerate.utils import set_seed
 set_seed(42)
 ```
 
-## 高级主题 {#advanced-topics}
+<a id="advanced-topics"></a>
+## 高级主题
 
-**Megatron 集成**：关于张量并行、流水线并行和序列并行的设置，请参阅 [references/megatron-integration.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/accelerate/references/megatron-integration.md)。
+**Megatron 集成**：请参阅 [references/megatron-integration.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/accelerate/references/megatron-integration.md) 了解张量并行、流水线并行和序列并行的设置。
 
-**自定义插件**：关于创建自定义分布式插件和高级配置，请参阅 [references/custom-plugins.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/accelerate/references/custom-plugins.md)。
+**自定义插件**：请参阅 [references/custom-plugins.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/accelerate/references/custom-plugins.md) 了解如何创建自定义分布式插件和高级配置。
 
-**性能调优**：关于性能分析、内存优化和最佳实践，请参阅 [references/performance.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/accelerate/references/performance.md)。
+**性能调优**：请参阅 [references/performance.md](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/accelerate/references/performance.md) 了解性能分析、内存优化和最佳实践。
 
-## 硬件要求 {#hardware-requirements}
+<a id="hardware-requirements"></a>
+## 硬件要求
 
-- **CPU**：支持（速度慢）
-- **单 GPU**：支持
+- **CPU**：可用（速度慢）
+- **单 GPU**：可用
 - **多 GPU**：DDP（默认）、DeepSpeed 或 FSDP
 - **多节点**：DDP、DeepSpeed、FSDP、Megatron
 - **TPU**：支持
@@ -333,15 +349,16 @@ set_seed(42)
 
 **启动器要求**：
 - **DDP**：`torch.distributed.run`（内置）
-- **DeepSpeed**：`deepspeed`（`pip install deepspeed`）
+- **DeepSpeed**：`deepspeed`（pip install deepspeed）
 - **FSDP**：PyTorch 1.12+（内置）
 - **Megatron**：自定义设置
 
-## 资源 {#resources}
+<a id="resources"></a>
+## 资源
 
 - 文档：https://huggingface.co/docs/accelerate
 - GitHub：https://github.com/huggingface/accelerate
 - 版本：1.11.0+
 - 教程："Accelerate your scripts"
 - 示例：https://github.com/huggingface/accelerate/tree/main/examples
-- 被以下项目使用：HuggingFace Transformers、TRL、PEFT 及所有 HF 库
+- 使用者：HuggingFace Transformers、TRL、PEFT 及所有 HF 库

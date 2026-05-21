@@ -4,84 +4,94 @@ sidebar_label: "Huggingface Tokenizers"
 description: "为研究和生产优化的快速分词器"
 ---
 
-{/* 此页面由网站脚本 generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
+{/* This page is auto-generated from the skill's SKILL.md by website/scripts/generate-skill-docs.py. Edit the source SKILL.md, not this page. */}
 
-# Huggingface Tokenizers {#huggingface-tokenizers}
+<a id="huggingface-tokenizers"></a>
+# Huggingface Tokenizers
 
-为研究和生产优化的快速分词器。基于 Rust 的实现可在 &lt;20 秒内完成 1GB 文本的分词。支持 BPE、WordPiece 和 Unigram 算法。可训练自定义词表、跟踪对齐、处理填充/截断。与 transformers 无缝集成。当需要高性能分词或自定义分词器训练时使用。
+为研究和生产优化的快速分词器。基于 Rust 的实现，可在 &lt;20 秒内处理 1GB 文本。支持 BPE、WordPiece 和 Unigram 算法。可训练自定义词表、跟踪对齐、处理填充/截断。与 transformers 无缝集成。在需要高性能分词或自定义分词器训练时使用。
 
-## 技能元数据 {#skill-metadata}
+<a id="skill-metadata"></a>
+## Skill metadata
 
 | | |
 |---|---|
-| 来源 | 可选 — 通过 `hermes skills install official/mlops/huggingface-tokenizers` 安装 |
-| 路径 | `optional-skills/mlops/huggingface-tokenizers` |
-| 版本 | `1.0.0` |
-| 作者 | Orchestra Research |
-| 许可证 | MIT |
-| 依赖 | `tokenizers`, `transformers`, `datasets` |
-| 标签 | `Tokenization`, `HuggingFace`, `BPE`, `WordPiece`, `Unigram`, `Fast Tokenization`, `Rust`, `Custom Tokenizer`, `Alignment Tracking`, `Production` |
+| Source | 可选 — 使用 `hermes skills install official/mlops/huggingface-tokenizers` 安装 |
+| Path | `optional-skills/mlops/huggingface-tokenizers` |
+| Version | `1.0.0` |
+| Author | Orchestra Research |
+| License | MIT |
+| Dependencies | `tokenizers`, `transformers`, `datasets` |
+| Platforms | linux, macos, windows |
+| Tags | `Tokenization`, `HuggingFace`, `BPE`, `WordPiece`, `Unigram`, `Fast Tokenization`, `Rust`, `Custom Tokenizer`, `Alignment Tracking`, `Production` |
 
-## 参考：完整 SKILL.md {#reference-full-skill-md}
+<a id="reference-full-skill-md"></a>
+## Reference: full SKILL.md
 
 :::info
-以下是 Hermes 在触发此技能时加载的完整技能定义。这是 Agent 在技能激活时看到的指令。
+以下是 Hermes 在此技能被触发时加载的完整技能定义。这是技能激活时 Agent 看到的指令。
 :::
 
-# HuggingFace Tokenizers - 面向 NLP 的快速分词 {#huggingface-tokenizers-fast-tokenization-for-nlp}
+<a id="huggingface-tokenizers-fast-tokenization-for-nlp"></a>
+# HuggingFace Tokenizers - 面向 NLP 的快速分词
 
-兼具 Rust 性能与 Python 易用性的、生产就绪的快速分词器。
+快速、生产就绪的分词器，兼具 Rust 的性能和 Python 的易用性。
 
-## 何时使用 HuggingFace Tokenizers {#when-to-use-huggingface-tokenizers}
+<a id="when-to-use-huggingface-tokenizers"></a>
+## When to use HuggingFace Tokenizers
 
-**在以下场景使用 HuggingFace Tokenizers：**
+**在以下情况下使用 HuggingFace Tokenizers：**
 - 需要极快的分词速度（每 GB 文本 &lt;20 秒）
-- 从头训练自定义分词器
-- 需要对齐跟踪（token → 原始文本位置）
+- 从零训练自定义分词器
+- 需要对齐跟踪（词元 → 原始文本位置）
 - 构建生产级 NLP 流水线
-- 需要高效地对大型语料库进行分词
+- 需要高效分词大规模语料
 
-**性能**：
-- **速度**：在 CPU 上每 GB 文本分词时间 &lt;20 秒
-- **实现**：Rust 核心 + Python/Node.js 绑定
-- **效率**：比纯 Python 实现快 10–100 倍
+**性能：**
+- **速度**：CPU 上每 &lt;20 秒处理 1GB
+- **实现**：Rust 核心，带有 Python/Node.js 绑定
+- **效率**：比纯 Python 实现快 10-100 倍
 
-**使用替代方案**：
+**可考虑替代方案：**
 - **SentencePiece**：语言无关，被 T5/ALBERT 使用
 - **tiktoken**：OpenAI 的 BPE 分词器，用于 GPT 模型
-- **transformers AutoTokenizer**：仅加载预训练模型（内部使用本库）
+- **transformers AutoTokenizer**：仅加载预训练模型（内部使用此库）
 
-## 快速开始 {#quick-start}
+<a id="quick-start"></a>
+## Quick start
 
-### 安装 {#installation}
+<a id="installation"></a>
+### 安装
 
 ```bash
-# 安装 tokenizers
+# Install tokenizers
 pip install tokenizers
 
-# 集成 transformers
+# With transformers integration
 pip install tokenizers transformers
 ```
 
-### 加载预训练分词器 {#load-pretrained-tokenizer}
+<a id="load-pretrained-tokenizer"></a>
+### 加载预训练分词器
 
 ```python
 from tokenizers import Tokenizer
 
-# 从 HuggingFace Hub 加载
+# Load from HuggingFace Hub
 tokenizer = Tokenizer.from_pretrained("bert-base-uncased")
 
-# 编码文本
+# Encode text
 output = tokenizer.encode("Hello, how are you?")
 print(output.tokens)  # ['hello', ',', 'how', 'are', 'you', '?']
 print(output.ids)     # [7592, 1010, 2129, 2024, 2017, 1029]
 
-# 解码
+# Decode back
 text = tokenizer.decode(output.ids)
 print(text)  # "hello, how are you?"
 ```
 
-### 训练自定义 BPE 分词器 {#train-custom-bpe-tokenizer}
+<a id="train-custom-bpe-tokenizer"></a>
+### 训练自定义 BPE 分词器
 
 ```python
 from tokenizers import Tokenizer
@@ -89,33 +99,34 @@ from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import Whitespace
 
-# 使用 BPE 模型初始化分词器
+# Initialize tokenizer with BPE model
 tokenizer = Tokenizer(BPE(unk_token="[UNK]"))
 tokenizer.pre_tokenizer = Whitespace()
 
-# 配置训练器
+# Configure trainer
 trainer = BpeTrainer(
     vocab_size=30000,
     special_tokens=["[UNK]", "[CLS]", "[SEP]", "[PAD]", "[MASK]"],
     min_frequency=2
 )
 
-# 在文件上训练
+# Train on files
 files = ["train.txt", "validation.txt"]
 tokenizer.train(files, trainer)
 
-# 保存
+# Save
 tokenizer.save("my-tokenizer.json")
 ```
-**训练时间**：100MB 语料约 1-2 分钟，1GB 语料约 10-20 分钟
+**训练时间**：100MB 语料约需 1–2 分钟，1GB 约需 10–20 分钟
 
-### 带填充的批量编码 {#batch-encoding-with-padding}
+<a id="batch-encoding-with-padding"></a>
+### 带填充的批量编码
 
 ```python
-# 启用填充
+# Enable padding
 tokenizer.enable_padding(pad_id=3, pad_token="[PAD]")
 
-# 批量编码
+# Encode batch
 texts = ["Hello world", "This is a longer sentence"]
 encodings = tokenizer.encode_batch(texts)
 
@@ -125,17 +136,19 @@ for encoding in encodings:
 # [101, 2023, 2003, 1037, 2936, 6251, 102]
 ```
 
-## 分词算法 {#tokenization-algorithms}
+<a id="tokenization-algorithms"></a>
+## 分词算法
 
-### BPE（字节对编码） {#bpe-byte-pair-encoding}
+<a id="bpe-byte-pair-encoding"></a>
+### BPE（字节对编码）
 
 **工作原理**：
 1. 从字符级词表开始
-2. 找出最频繁的字符对
+2. 找到出现最频繁的字符对
 3. 合并为新 token，加入词表
-4. 重复直到达到词表大小
+4. 重复直到达到目标词表大小
 
-**使用模型**：GPT-2、GPT-3、RoBERTa、BART、DeBERTa
+**使用该算法的模型**：GPT-2、GPT-3、RoBERTa、BART、DeBERTa
 
 ```python
 from tokenizers import Tokenizer
@@ -156,23 +169,24 @@ tokenizer.train(files=["data.txt"], trainer=trainer)
 ```
 
 **优点**：
-- 能很好地处理 OOV 词（拆分为子词）
+- 能较好地处理未登录词（拆分为子词）
 - 词表大小灵活
 - 对形态丰富的语言友好
 
 **权衡**：
-- 分词结果依赖合并顺序
-- 可能意外拆分常见词
+- 分词结果依赖于合并顺序
+- 有时会意外拆分常见词
 
-### WordPiece {#wordpiece}
+<a id="wordpiece"></a>
+### WordPiece
 
 **工作原理**：
 1. 从字符级词表开始
-2. 对合并对打分：`frequency(pair) / (frequency(first) × frequency(second))`
+2. 为合并对打分：`frequency(pair) / (frequency(first) × frequency(second))`
 3. 合并得分最高的对
-4. 重复直到达到词表大小
+4. 重复直到达到目标词表大小
 
-**使用模型**：BERT、DistilBERT、MobileBERT
+**使用该算法的模型**：BERT、DistilBERT、MobileBERT
 
 ```python
 from tokenizers import Tokenizer
@@ -195,22 +209,23 @@ tokenizer.train(files=["corpus.txt"], trainer=trainer)
 ```
 
 **优点**：
-- 优先进行有意义的合并（高分 = 语义相关）
-- 在 BERT 中成功使用（达到最先进结果）
+- 优先合并有意义的组合（高分 = 语义相关）
+- 在 BERT 上成功应用（达到 SOTA 效果）
 
 **权衡**：
-- 如果找不到子词匹配，未知词会变成 `[UNK]`
-- 只保存词表，不保存合并规则（文件更大）
+- 若无子词匹配，未知词会变成 `[UNK]`
+- 只保存词表而非合并规则（文件较大）
 
-### Unigram {#unigram}
+<a id="unigram"></a>
+### Unigram
 
 **工作原理**：
 1. 从大词表开始（所有子串）
-2. 用当前词表计算语料损失
+2. 使用当前词表计算语料损失
 3. 移除对损失影响最小的 token
-4. 重复直到达到词表大小
+4. 重复直到达到目标词表大小
 
-**使用模型**：ALBERT、T5、mBART、XLNet（通过 SentencePiece）
+**使用该算法的模型**：ALBERT、T5、mBART、XLNet（通过 SentencePiece）
 
 ```python
 from tokenizers import Tokenizer
@@ -229,18 +244,20 @@ tokenizer.train(files=["data.txt"], trainer=trainer)
 ```
 **优势**：
 - 概率性（找到最可能的 tokenization）
-- 对无词边界的语言效果良好
+- 对没有词边界的语言效果良好
 - 处理多样化的语言上下文
 
 **权衡**：
 - 训练计算成本高
-- 需要调节更多超参数
+- 需要调整更多超参数
 
-## Tokenization 流水线 {#tokenization-pipeline}
+<a id="tokenization-pipeline"></a>
+## Tokenization 流水线
 
 完整流水线：**Normalization → Pre-tokenization → Model → Post-processing**
 
-### Normalization {#normalization}
+<a id="normalization"></a>
+### Normalization
 
 清洗并标准化文本：
 
@@ -264,7 +281,8 @@ tokenizer.normalizer = Sequence([
 - `Strip()` - 去除空白字符
 - `Replace(pattern, content)` - 正则替换
 
-### Pre-tokenization {#pre-tokenization}
+<a id="pre-tokenization"></a>
+### Pre-tokenization
 
 将文本拆分为类似单词的单元：
 
@@ -278,7 +296,7 @@ tokenizer.pre_tokenizer = Sequence([
 ])
 
 # 输入："Hello, world!"
-# 预 tokenization 后：["Hello", ",", "world", "!"]
+# pre-tokenization 后：["Hello", ",", "world", "!"]
 ```
 
 **常用 pre-tokenizer**：
@@ -288,7 +306,8 @@ tokenizer.pre_tokenizer = Sequence([
 - `Digits(individual_digits=True)` - 单独拆分数字
 - `Metaspace()` - 用 ▁ 替换空格（SentencePiece 风格）
 
-### Post-processing {#post-processing}
+<a id="post-processing"></a>
+### Post-processing
 
 为模型输入添加特殊 token：
 
@@ -322,7 +341,8 @@ TemplateProcessing(
 )
 ```
 
-## 对齐追踪 {#alignment-tracking}
+<a id="alignment-tracking"></a>
+## 对齐追踪
 
 追踪 token 在原始文本中的位置：
 
@@ -346,9 +366,11 @@ for token, offset in zip(output.tokens, output.offsets):
 - 问答（提取答案片段）
 - Token 分类（将标签对齐到原始位置）
 
-## 与 transformers 集成 {#integration-with-transformers}
+<a id="integration-with-transformers"></a>
+## 与 transformers 集成
 
-### 使用 AutoTokenizer 加载 {#load-with-autotokenizer}
+<a id="load-with-autotokenizer"></a>
+### 使用 AutoTokenizer 加载
 
 ```python
 from transformers import AutoTokenizer
@@ -363,7 +385,8 @@ print(tokenizer.is_fast)  # True
 fast_tokenizer = tokenizer.backend_tokenizer
 print(type(fast_tokenizer))  # <class 'tokenizers.Tokenizer'>
 ```
-### 将自定义分词器转换为 transformers {#convert-custom-tokenizer-to-transformers}
+<a id="convert-custom-tokenizer-to-transformers"></a>
+### 将自定义分词器转换为 transformers 格式
 
 ```python
 from tokenizers import Tokenizer
@@ -394,9 +417,11 @@ outputs = transformers_tokenizer(
 )
 ```
 
-## 常见模式 {#common-patterns}
+<a id="common-patterns"></a>
+## 常见模式
 
-### 从迭代器训练（大型数据集） {#train-from-iterator-large-datasets}
+<a id="train-from-iterator-large-datasets"></a>
+### 从迭代器训练（大型数据集）
 
 ```python
 from datasets import load_dataset
@@ -413,13 +438,14 @@ def batch_iterator(batch_size=1000):
 tokenizer.train_from_iterator(
     batch_iterator(),
     trainer=trainer,
-    length=len(dataset)  # 用于进度条
+    length=len(dataset)  # 用于显示进度条
 )
 ```
 
 **性能**：处理 1GB 数据约需 10-20 分钟
 
-### 启用截断和填充 {#enable-truncation-and-padding}
+<a id="enable-truncation-and-padding"></a>
+### 启用截断和填充
 
 ```python
 # 启用截断
@@ -437,7 +463,8 @@ output = tokenizer.encode("This is a long sentence that will be truncated...")
 print(len(output.ids))  # 512
 ```
 
-### 多进程处理 {#multi-processing}
+<a id="multi-processing"></a>
+### 多进程处理
 
 ```python
 from tokenizers import Tokenizer
@@ -451,7 +478,7 @@ def encode_batch(texts):
 
 # 并行处理大型语料库
 with Pool(8) as pool:
-    # 将语料库分成多个块
+    # 将语料库分块
     chunk_size = 1000
     chunks = [corpus[i:i+chunk_size] for i in range(0, len(corpus), chunk_size)]
 
@@ -461,19 +488,22 @@ with Pool(8) as pool:
 
 **加速比**：8 核下可达 5-8 倍
 
-## 性能基准测试 {#performance-benchmarks}
+<a id="performance-benchmarks"></a>
+## 性能基准测试
 
-### 训练速度 {#training-speed}
+<a id="training-speed"></a>
+### 训练速度
 
 | 语料库大小 | BPE（30k 词表） | WordPiece（30k） | Unigram（8k） |
-|-------------|-----------------|-----------------|--------------|
-| 10 MB       | 15 秒           | 18 秒           | 25 秒        |
-| 100 MB      | 1.5 分钟        | 2 分钟          | 4 分钟       |
-| 1 GB        | 15 分钟         | 20 分钟         | 40 分钟      |
+|------------|-----------------|------------------|---------------|
+| 10 MB      | 15 秒           | 18 秒            | 25 秒         |
+| 100 MB     | 1.5 分钟        | 2 分钟           | 4 分钟        |
+| 1 GB       | 15 分钟         | 20 分钟          | 40 分钟       |
 
-**硬件**：16 核 CPU，在英文维基百科上测试
+**硬件**：16 核 CPU，测试于英文维基百科
 
-### 分词速度 {#tokenization-speed}
+<a id="tokenization-speed"></a>
+### 分词速度
 
 | 实现方式       | 1 GB 语料库 | 吞吐量       |
 |----------------|-------------|--------------|
@@ -481,18 +511,20 @@ with Pool(8) as pool:
 | HF Tokenizers  | ~15 秒      | ~4 GB/分钟   |
 | **加速比**     | **80 倍**   | **80 倍**    |
 
-**测试**：英文文本，平均句子长度 20 个词
+**测试**：英文文本，平均句子长度 20 词
 
-### 内存使用 {#memory-usage}
+<a id="memory-usage"></a>
+### 内存使用
 
-| 任务                    | 内存    |
-|-------------------------|---------|
-| 加载分词器              | ~10 MB  |
-| 训练 BPE（30k 词表）    | ~200 MB |
-| 编码 100 万条句子       | ~500 MB |
-## 支持的模型 {#supported-models}
+| 任务                     | 内存    |
+|--------------------------|---------|
+| 加载分词器               | ~10 MB  |
+| 训练 BPE（30k 词表）     | ~200 MB |
+| 编码 100 万条句子        | ~500 MB |
+<a id="supported-models"></a>
+## 支持的模型
 
-可通过 `from_pretrained()` 获取的预训练分词器：
+通过 `from_pretrained()` 可用的预训练分词器：
 
 **BERT 系列**：
 - `bert-base-uncased`、`bert-large-cased`
@@ -514,14 +546,16 @@ with Pool(8) as pool:
 
 浏览全部：https://huggingface.co/models?library=tokenizers
 
-## 参考 {#references}
+<a id="references"></a>
+## 参考资料
 
 - **[训练指南](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/huggingface-tokenizers/references/training.md)** - 训练自定义分词器、配置训练器、处理大型数据集
 - **[算法深入解析](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/huggingface-tokenizers/references/algorithms.md)** - 详细解释 BPE、WordPiece、Unigram
 - **[流水线组件](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/huggingface-tokenizers/references/pipeline.md)** - 归一化器、预分词器、后处理器、解码器
 - **[Transformers 集成](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/huggingface-tokenizers/references/integration.md)** - AutoTokenizer、PreTrainedTokenizerFast、特殊标记
 
-## 资源 {#resources}
+<a id="resources"></a>
+## 资源
 
 - **文档**：https://huggingface.co/docs/tokenizers
 - **GitHub**：https://github.com/huggingface/tokenizers ⭐ 9,000+

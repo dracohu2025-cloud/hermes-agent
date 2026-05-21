@@ -1,16 +1,18 @@
 ---
-title: "Peft 微调 — 使用 LoRA、QLoRA 和 25 种以上方法对 LLM 进行参数高效微调"
+title: "Peft 微调 — 使用 LoRA、QLoRA 及 25 种以上方法对 LLM 进行参数高效微调"
 sidebar_label: "Peft 微调"
-description: "使用 LoRA、QLoRA 和 25 种以上方法对 LLM 进行参数高效微调"
+description: "使用 LoRA、QLoRA 及 25 种以上方法对 LLM 进行参数高效微调"
 ---
 
-{/* 此页面由 website/scripts/generate-skill-docs.py 从技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
+{/* 此页面由 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
 
-# Peft 微调 {#peft-fine-tuning}
+<a id="peft-fine-tuning"></a>
+# Peft 微调
 
-使用 LoRA、QLoRA 和 25 种以上方法对 LLM 进行参数高效微调。适用于在 GPU 内存有限的情况下微调大模型（7B-70B）、需要训练不到 1% 的参数且精度损失极小、或进行多适配器服务。HuggingFace 官方库，与 transformers 生态集成。
+使用 LoRA、QLoRA 及 25 种以上方法对 LLM 进行参数高效微调。适用于在 GPU 内存有限的情况下微调大模型（7B-70B），需要训练少于 1% 的参数且精度损失极小，或用于多适配器服务。HuggingFace 官方库，与 transformers 生态系统集成。
 
-## 技能元数据 {#skill-metadata}
+<a id="skill-metadata"></a>
+## 技能元数据
 
 | | |
 |---|---|
@@ -20,39 +22,45 @@ description: "使用 LoRA、QLoRA 和 25 种以上方法对 LLM 进行参数高�
 | 作者 | Orchestra Research |
 | 许可证 | MIT |
 | 依赖 | `peft>=0.13.0`, `transformers>=4.45.0`, `torch>=2.0.0`, `bitsandbytes>=0.43.0` |
-| 标签 | `微调`, `PEFT`, `LoRA`, `QLoRA`, `参数高效`, `适配器`, `低秩`, `内存优化`, `多适配器` |
+| 平台 | linux, macos, windows |
+| 标签 | `Fine-Tuning`, `PEFT`, `LoRA`, `QLoRA`, `Parameter-Efficient`, `Adapters`, `Low-Rank`, `Memory Optimization`, `Multi-Adapter` |
 
-## 参考：完整 SKILL.md {#reference-full-skill-md}
+<a id="reference-full-skill-md"></a>
+## 参考：完整 SKILL.md
 
 :::info
-以下是该技能被触发时 Hermes 加载的完整技能定义。这是 agent 在技能激活时看到的指令。
+以下是该技能被触发时 Hermes 加载的完整技能定义。这是技能激活时 Agent 看到的指令。
 :::
 
-# PEFT（参数高效微调） {#peft-parameter-efficient-fine-tuning}
+<a id="peft-parameter-efficient-fine-tuning"></a>
+# PEFT（参数高效微调）
 
-通过使用 LoRA、QLoRA 和 25 种以上适配器方法训练不到 1% 的参数来微调 LLM。
+使用 LoRA、QLoRA 及 25 种以上适配器方法，通过训练少于 1% 的参数来微调 LLM。
 
-## 何时使用 PEFT {#when-to-use-peft}
+<a id="when-to-use-peft"></a>
+## 何时使用 PEFT
 
-**在以下情况下使用 PEFT/LoRA：**
+**在以下情况使用 PEFT/LoRA：**
 - 在消费级 GPU（RTX 4090、A100）上微调 7B-70B 模型
-- 需要训练不到 1% 的参数（6MB 适配器 vs 14GB 完整模型）
-- 希望使用多个任务特定适配器快速迭代
+- 需要训练少于 1% 的参数（6MB 适配器 vs 14GB 完整模型）
+- 需要快速迭代多个任务特定适配器
 - 从一个基础模型部署多个微调变体
 
-**在以下情况下使用 QLoRA（PEFT + 量化）：**
+**在以下情况使用 QLoRA（PEFT + 量化）：**
 - 在单张 24GB GPU 上微调 70B 模型
 - 内存是主要限制因素
 - 可以接受与全量微调相比约 5% 的质量折衷
 
-**在以下情况下使用全量微调：**
-- 训练小模型（&lt;1B 参数）
+**在以下情况使用全量微调：**
+- 训练小模型（少于 1B 参数）
 - 需要最高质量且有计算预算
 - 显著的领域偏移需要更新所有权重
 
-## 快速开始 {#quick-start}
+<a id="quick-start"></a>
+## 快速开始
 
-### 安装 {#installation}
+<a id="installation"></a>
+### 安装
 
 ```bash
 # 基础安装
@@ -65,7 +73,8 @@ pip install peft bitsandbytes
 pip install peft transformers accelerate bitsandbytes datasets
 ```
 
-### LoRA 微调（标准） {#lora-fine-tuning-standard}
+<a id="lora-fine-tuning-standard"></a>
+### LoRA 微调（标准）
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
@@ -83,7 +92,7 @@ lora_config = LoraConfig(
     task_type=TaskType.CAUSAL_LM,
     r=16,                          # 秩（8-64，越大容量越高）
     lora_alpha=32,                 # 缩放因子（通常为 2*r）
-    lora_dropout=0.05,             # 用于正则化的 Dropout
+    lora_dropout=0.05,             # 用于正则化的丢弃率
     target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],  # 注意力层
     bias="none"                    # 不训练偏置
 )
@@ -128,21 +137,22 @@ trainer.train()
 # 仅保存适配器（6MB vs 16GB）
 model.save_pretrained("./lora-llama-adapter")
 ```
-### QLoRA 微调（内存高效） {#qlora-fine-tuning-memory-efficient}
+<a id="qlora-fine-tuning-memory-efficient"></a>
+### QLoRA 微调（内存高效）
 
 ```python
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from peft import get_peft_model, LoraConfig, prepare_model_for_kbit_training
 
-# 4-bit 量化配置
+# 4位量化配置
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",           # NormalFloat4（最适合 LLM）
-    bnb_4bit_compute_dtype="bfloat16",   # 使用 bf16 计算
+    bnb_4bit_quant_type="nf4",           # NormalFloat4（最适合大语言模型）
+    bnb_4bit_compute_dtype="bfloat16",   # 用 bf16 进行计算
     bnb_4bit_use_double_quant=True       # 嵌套量化
 )
 
-# 加载量化模型
+# 加载量化后的模型
 model = AutoModelForCausalLM.from_pretrained(
     "meta-llama/Llama-3.1-70B",
     quantization_config=bnb_config,
@@ -163,31 +173,35 @@ lora_config = LoraConfig(
 )
 
 model = get_peft_model(model, lora_config)
-# 70B 模型现在可以塞进单张 24GB GPU！
+# 70B 模型现在可以放入单张 24GB GPU！
 ```
 
-## LoRA 参数选择 {#lora-parameter-selection}
+<a id="lora-parameter-selection"></a>
+## LoRA 参数选择
 
-### 秩（r）—— 容量与效率的权衡 {#rank-r-capacity-vs-efficiency}
+<a id="rank-r-capacity-vs-efficiency"></a>
+### 秩（r）—— 容量 vs 效率
 
 | 秩 | 可训练参数量 | 内存 | 质量 | 适用场景 |
 |------|-----------------|--------|---------|----------|
-| 4 | ~3M | 极小 | 较低 | 简单任务、原型验证 |
-| **8** | ~7M | 低 | 良好 | **推荐起点** |
-| **16** | ~14M | 中等 | 较好 | **通用微调** |
+| 4 | ~3M | 极小 | 较低 | 简单任务、快速原型 |
+| **8** | ~7M | 低 | 较好 | **推荐起点** |
+| **16** | ~14M | 中等 | 更好 | **通用微调** |
 | 32 | ~27M | 较高 | 高 | 复杂任务 |
 | 64 | ~54M | 高 | 最高 | 领域适配、70B 模型 |
 
-### Alpha（lora_alpha）—— 缩放因子 {#alpha-loraalpha-scaling-factor}
+<a id="alpha-loraalpha-scaling-factor"></a>
+### Alpha（lora_alpha）—— 缩放因子
 
 ```python
 # 经验法则：alpha = 2 * rank
 LoraConfig(r=16, lora_alpha=32)  # 标准
-LoraConfig(r=16, lora_alpha=16)  # 保守（学习率效果较低）
-LoraConfig(r=16, lora_alpha=64)  # 激进（学习率效果较高）
+LoraConfig(r=16, lora_alpha=16)  # 保守（学习率效果更低）
+LoraConfig(r=16, lora_alpha=64)  # 激进（学习率效果更高）
 ```
 
-### 按架构选择目标模块 {#target-modules-by-architecture}
+<a id="target-modules-by-architecture"></a>
+### 按架构选择目标模块
 
 ```python
 # Llama / Mistral / Qwen
@@ -206,29 +220,32 @@ target_modules = ["query_key_value", "dense", "dense_h_to_4h", "dense_4h_to_h"]
 target_modules = "all-linear"  # PEFT 0.6.0+
 ```
 
-## 加载与合并适配器 {#loading-and-merging-adapters}
+<a id="loading-and-merging-adapters"></a>
+## 加载与合并适配器
 
-### 加载训练好的适配器 {#load-trained-adapter}
+<a id="load-trained-adapter"></a>
+### 加载训练好的适配器
 
 ```python
 from peft import PeftModel, AutoPeftModelForCausalLM
 from transformers import AutoModelForCausalLM
 
-# 方式 1：使用 PeftModel 加载
+# 选项1：使用 PeftModel 加载
 base_model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-8B")
 model = PeftModel.from_pretrained(base_model, "./lora-llama-adapter")
 
-# 方式 2：直接加载（推荐）
+# 选项2：直接加载（推荐）
 model = AutoPeftModelForCausalLM.from_pretrained(
     "./lora-llama-adapter",
     device_map="auto"
 )
 ```
 
-### 将适配器合并到基模型 {#merge-adapter-into-base-model}
+<a id="merge-adapter-into-base-model"></a>
+### 将适配器合并到基模型
 
 ```python
-# 合并用于部署（无适配器开销）
+# 合并以便部署（无适配器开销）
 merged_model = model.merge_and_unload()
 
 # 保存合并后的模型
@@ -238,7 +255,8 @@ tokenizer.save_pretrained("./llama-merged")
 # 推送到 Hub
 merged_model.push_to_hub("username/llama-finetuned")
 ```
-### 多适配器服务 {#multi-adapter-serving}
+<a id="multi-adapter-serving"></a>
+### 多适配器推理
 
 ```python
 from peft import PeftModel
@@ -246,7 +264,7 @@ from peft import PeftModel
 # 加载基础模型及第一个适配器
 model = AutoPeftModelForCausalLM.from_pretrained("./adapter-task1")
 
-# 加载额外适配器
+# 加载更多适配器
 model.load_adapter("./adapter-task2", adapter_name="task2")
 model.load_adapter("./adapter-task3", adapter_name="task3")
 
@@ -262,7 +280,8 @@ with model.disable_adapter():
     base_output = model.generate(**inputs)
 ```
 
-## PEFT 方法对比 {#peft-methods-comparison}
+<a id="peft-methods-comparison"></a>
+## PEFT 方法对比
 
 | 方法 | 可训练参数占比 | 内存 | 速度 | 最佳适用场景 |
 |--------|------------|--------|-------|----------|
@@ -274,7 +293,8 @@ with model.disable_adapter():
 | Prompt Tuning | 0.001% | 极小 | 快 | 简单任务适配 |
 | P-Tuning v2 | 0.1% | 低 | 中等 | NLU 任务 |
 
-### IA3（极少量参数） {#ia3-minimal-parameters}
+<a id="ia3-minimal-parameters"></a>
+### IA3（参数极少）
 
 ```python
 from peft import IA3Config
@@ -284,10 +304,11 @@ ia3_config = IA3Config(
     feedforward_modules=["down_proj"]
 )
 model = get_peft_model(model, ia3_config)
-# 仅训练 0.01% 的参数！
+# Trains only 0.01% of parameters!
 ```
 
-### Prefix Tuning {#prefix-tuning}
+<a id="prefix-tuning"></a>
+### Prefix Tuning
 
 ```python
 from peft import PrefixTuningConfig
@@ -295,14 +316,16 @@ from peft import PrefixTuningConfig
 prefix_config = PrefixTuningConfig(
     task_type="CAUSAL_LM",
     num_virtual_tokens=20,      # 前置虚拟 token 数量
-    prefix_projection=True       # 使用 MLP 投影
+    prefix_projection=True      # 使用 MLP 投影
 )
 model = get_peft_model(model, prefix_config)
 ```
 
-## 集成模式 {#integration-patterns}
+<a id="integration-patterns"></a>
+## 集成模式
 
-### 与 TRL（SFTTrainer）集成 {#with-trl-sfttrainer}
+<a id="with-trl-sfttrainer"></a>
+### 与 TRL (SFTTrainer) 集成
 
 ```python
 from trl import SFTTrainer, SFTConfig
@@ -319,7 +342,8 @@ trainer = SFTTrainer(
 trainer.train()
 ```
 
-### 与 Axolotl（YAML 配置）集成 {#with-axolotl-yaml-config}
+<a id="with-axolotl-yaml-config"></a>
+### 与 Axolotl (YAML 配置) 集成
 
 ```yaml
 # axolotl config.yaml
@@ -332,10 +356,11 @@ lora_target_modules:
   - v_proj
   - k_proj
   - o_proj
-lora_target_linear: true  # 目标为所有线性层
+lora_target_linear: true  # 作用于所有线性层
 ```
 
-### 与 vLLM（推理）集成 {#with-vllm-inference}
+<a id="with-vllm-inference"></a>
+### 与 vLLM (推理) 集成
 
 ```python
 from vllm import LLM
@@ -351,98 +376,109 @@ outputs = llm.generate(
 )
 ```
 
-## 性能基准 {#performance-benchmarks}
+<a id="performance-benchmarks"></a>
+## 性能基准
 
-### 内存使用（Llama 3.1 8B） {#memory-usage-llama-3-1-8b}
+<a id="memory-usage-llama-3-1-8b"></a>
+### 内存使用 (Llama 3.1 8B)
 
-| 方法 | GPU 内存 | 可训练参数量 |
+| 方法 | GPU 内存 | 可训练参数 |
 |--------|-----------|------------------|
 | 全量微调 | 60+ GB | 8B (100%) |
 | LoRA r=16 | 18 GB | 14M (0.17%) |
 | QLoRA r=16 | 6 GB | 14M (0.17%) |
 | IA3 | 16 GB | 800K (0.01%) |
-### 训练速度（A100 80GB） {#training-speed-a100-80gb}
+<a id="training-speed-a100-80gb"></a>
+### 训练速度（A100 80GB）
 
-| 方法 | Tokens/秒 | 对比全量微调 |
+| 方法 | 每秒Token数 | 对比全参数微调 |
 |--------|-----------|------------|
-| 全量微调 | 2,500 | 1x |
+| Full FT | 2,500 | 1x |
 | LoRA | 3,200 | 1.3x |
 | QLoRA | 2,100 | 0.84x |
 
-### 质量（MMLU 基准测试） {#quality-mmlu-benchmark}
+<a id="quality-mmlu-benchmark"></a>
+### 质量（MMLU基准）
 
-| 模型 | 全量微调 | LoRA | QLoRA |
+| 模型 | 全参数微调 | LoRA | QLoRA |
 |-------|---------|------|-------|
 | Llama 2-7B | 45.3 | 44.8 | 44.1 |
 | Llama 2-13B | 54.8 | 54.2 | 53.5 |
 
-## 常见问题 {#common-issues}
+<a id="common-issues"></a>
+## 常见问题
 
-### 训练时 CUDA 内存不足 {#cuda-oom-during-training}
+<a id="cuda-oom-during-training"></a>
+### 训练时CUDA内存不足
 
 ```python
-# 方案 1：启用梯度检查点
+# Solution 1: Enable gradient checkpointing
 model.gradient_checkpointing_enable()
 
-# 方案 2：减小批次大小 + 增加梯度累积
+# Solution 2: Reduce batch size + increase accumulation
 TrainingArguments(
     per_device_train_batch_size=1,
     gradient_accumulation_steps=16
 )
 
-# 方案 3：使用 QLoRA
+# Solution 3: Use QLoRA
 from transformers import BitsAndBytesConfig
 bnb_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4")
 ```
 
-### Adapter 未生效 {#adapter-not-applying}
+<a id="adapter-not-applying"></a>
+### 适配器未生效
 
 ```python
-# 验证 adapter 是否激活
-print(model.active_adapters)  # 应显示 adapter 名称
+# Verify adapter is active
+print(model.active_adapters)  # Should show adapter name
 
-# 检查可训练参数
+# Check trainable parameters
 model.print_trainable_parameters()
 
-# 确保模型处于训练模式
+# Ensure model in training mode
 model.train()
 ```
 
-### 质量下降 {#quality-degradation}
+<a id="quality-degradation"></a>
+### 质量下降
 
 ```python
-# 增加秩
+# Increase rank
 LoraConfig(r=32, lora_alpha=64)
 
-# 针对更多模块
+# Target more modules
 target_modules = "all-linear"
 
-# 使用更多训练数据和轮次
+# Use more training data and epochs
 TrainingArguments(num_train_epochs=5)
 
-# 降低学习率
+# Lower learning rate
 TrainingArguments(learning_rate=1e-4)
 ```
 
-## 最佳实践 {#best-practices}
+<a id="best-practices"></a>
+## 最佳实践
 
-1. **从 r=8-16 开始**，如果质量不足再增加
+1. **从 r=8-16 开始**，若质量不足则增加
 2. **使用 alpha = 2 * rank** 作为起点
-3. **针对注意力层 + MLP 层**以获得最佳质量/效率
+3. **针对注意力层和MLP层**，以获得最佳质量/效率
 4. **启用梯度检查点**以节省内存
-5. **频繁保存 adapter**（文件小，易于回滚）
-6. **在合并前对保留数据进行评估**
-7. **在消费级硬件上对 70B+ 模型使用 QLoRA**
+5. **频繁保存适配器**（文件小，易于回滚）
+6. **在保留数据上评估**后再合并
+7. **在消费级硬件上对70B+模型使用QLoRA**
 
-## 参考资料 {#references}
+<a id="references"></a>
+## 参考
 
 - **[高级用法](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/peft/references/advanced-usage.md)** - DoRA、LoftQ、秩稳定、自定义模块
 - **[故障排除](https://github.com/NousResearch/hermes-agent/blob/main/optional-skills/mlops/peft/references/troubleshooting.md)** - 常见错误、调试、优化
 
-## 资源 {#resources}
+<a id="resources"></a>
+## 资源
 
 - **GitHub**: https://github.com/huggingface/peft
 - **文档**: https://huggingface.co/docs/peft
-- **LoRA 论文**: arXiv:2106.09685
-- **QLoRA 论文**: arXiv:2305.14314
+- **LoRA论文**: arXiv:2106.09685
+- **QLoRA论文**: arXiv:2305.14314
 - **模型**: https://huggingface.co/models?library=peft

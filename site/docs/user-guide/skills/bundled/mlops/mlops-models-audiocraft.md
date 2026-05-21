@@ -1,115 +1,123 @@
 ---
-title: "Audiocraft 音频生成 — AudioCraft: MusicGen 文本转音乐, AudioGen 文本转声音"
+title: "Audiocraft 音频生成 — AudioCraft：MusicGen 文本生成音乐，AudioGen 文本生成声音"
 sidebar_label: "Audiocraft 音频生成"
-description: "AudioCraft: MusicGen 文本转音乐, AudioGen 文本转声音"
+description: "AudioCraft：MusicGen 文本生成音乐，AudioGen 文本生成声音"
 ---
 
-{/* 此页面由 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
+{/* 此页面由脚本 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，不要编辑此页面。 */}
 
-# Audiocraft 音频生成 {#audiocraft-audio-generation}
+<a id="audiocraft-audio-generation"></a>
+# Audiocraft 音频生成
 
-AudioCraft: MusicGen 文本转音乐, AudioGen 文本转声音。
+AudioCraft：MusicGen 文本生成音乐，AudioGen 文本生成声音。
 
-## 技能元数据 {#skill-metadata}
+<a id="skill-metadata"></a>
+## 技能元数据
 
 | | |
 |---|---|
-| 来源 | 内置（默认安装） |
+| 来源 | 捆绑（默认安装） |
 | 路径 | `skills/mlops/models/audiocraft` |
 | 版本 | `1.0.0` |
 | 作者 | Orchestra Research |
 | 许可证 | MIT |
-| 依赖 | `audiocraft`, `torch>=2.0.0`, `transformers>=4.30.0` |
-| 标签 | `Multimodal`, `Audio Generation`, `Text-to-Music`, `Text-to-Audio`, `MusicGen` |
+| 依赖项 | `audiocraft`, `torch>=2.0.0`, `transformers>=4.30.0` |
+| 平台 | linux, macos |
+| 标签 | `多模态`, `音频生成`, `文本生成音乐`, `文本生成音频`, `MusicGen` |
 
-## 参考：完整 SKILL.md {#reference-full-skill-md}
+<a id="reference-full-skill-md"></a>
+## 参考：完整的 SKILL.md
 
 :::info
-以下是 Hermes 在触发此技能时加载的完整技能定义。当技能激活时，Agent 会看到这些指令。
+以下是 Hermes 在此技能被触发时加载的完整技能定义。技能激活时，Agent 将看到这些指令。
 :::
 
-<a id="audiocraft-audio-generation"></a>
-# AudioCraft: 音频生成
+# AudioCraft：音频生成
 
-使用 Meta 的 AudioCraft 进行文本转音乐和文本转音频生成的全面指南，涵盖 MusicGen、AudioGen 和 EnCodec。
+使用 Meta 的 AudioCraft 进行文本生成音乐和文本生成音频的全面指南，支持 MusicGen、AudioGen 和 EnCodec。
 
-## 何时使用 AudioCraft {#when-to-use-audiocraft}
+<a id="when-to-use-audiocraft"></a>
+## 何时使用 AudioCraft
 
 **使用 AudioCraft 的场景：**
 - 需要根据文本描述生成音乐
 - 创建音效和环境音频
 - 构建音乐生成应用
-- 需要旋律条件音乐生成
-- 想要立体声输出
-- 需要可控的音乐生成及风格迁移
+- 需要基于旋律条件的音乐生成
+- 想要立体声音频输出
+- 需要可控制的音乐生成及风格迁移
 
 **主要特性：**
-- **MusicGen**：带旋律条件的文本转音乐生成
-- **AudioGen**：文本转音效生成
+- **MusicGen**：带旋律条件的文本生成音乐
+- **AudioGen**：文本生成音效
 - **EnCodec**：高保真神经音频编解码器
-- **多种模型大小**：从 Small（300M）到 Large（3.3B）
-- **立体声支持**：完整的立体声音频生成
+- **多模型大小**：小（300M）到大（3.3B）
+- **立体声支持**：完整立体声音频生成
 - **风格条件**：MusicGen-Style 基于参考的生成
 
-**替代方案：**
+**备选方案：**
 - **Stable Audio**：用于更长的商业音乐生成
 - **Bark**：用于带音乐/音效的文本转语音
 - **Riffusion**：基于频谱图的音乐生成
 - **OpenAI Jukebox**：带歌词的原始音频生成
 
-## 快速开始 {#quick-start}
+<a id="quick-start"></a>
+## 快速开始
 
-### 安装 {#installation}
+<a id="installation"></a>
+### 安装
 
 ```bash
-# 从 PyPI 安装
+# From PyPI
 pip install audiocraft
 
-# 从 GitHub 安装（最新版）
+# From GitHub (latest)
 pip install git+https://github.com/facebookresearch/audiocraft.git
 
-# 或使用 HuggingFace Transformers
+# Or use HuggingFace Transformers
 pip install transformers torch torchaudio
 ```
 
-### 基础文本转音乐（AudioCraft） {#basic-text-to-music-audiocraft}
+<a id="basic-text-to-music-audiocraft"></a>
+### 基础文本生成音乐（AudioCraft）
 
 ```python
 import torchaudio
 from audiocraft.models import MusicGen
 
-# 加载模型
+# Load model
 model = MusicGen.get_pretrained('facebook/musicgen-small')
 
-# 设置生成参数
+# Set generation parameters
 model.set_generation_params(
-    duration=8,  # 秒
+    duration=8,  # seconds
     top_k=250,
     temperature=1.0
 )
 
-# 从文本生成
-descriptions = ["欢快、充满活力的电子舞曲，带有合成器"]
+# Generate from text
+descriptions = ["happy upbeat electronic dance music with synths"]
 wav = model.generate(descriptions)
 
-# 保存音频
+# Save audio
 torchaudio.save("output.wav", wav[0].cpu(), sample_rate=32000)
 ```
 
-### 使用 HuggingFace Transformers {#using-huggingface-transformers}
+<a id="using-huggingface-transformers"></a>
+### 使用 HuggingFace Transformers
 
 ```python
 from transformers import AutoProcessor, MusicgenForConditionalGeneration
 import scipy
 
-# 加载模型和处理器
+# Load model and processor
 processor = AutoProcessor.from_pretrained("facebook/musicgen-small")
 model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-small")
 model.to("cuda")
 
-# 生成音乐
+# Generate music
 inputs = processor(
-    text=["80年代流行曲风，带有低音鼓和合成器"],
+    text=["80s pop track with bassy drums and synth"],
     padding=True,
     return_tensors="pt"
 ).to("cuda")
@@ -121,79 +129,86 @@ audio_values = model.generate(
     max_new_tokens=256
 )
 
-# 保存
+# Save
 sampling_rate = model.config.audio_encoder.sampling_rate
 scipy.io.wavfile.write("output.wav", rate=sampling_rate, data=audio_values[0, 0].cpu().numpy())
 ```
-### 使用 AudioGen 进行文本到音效生成 {#text-to-sound-with-audiogen}
+<a id="text-to-sound-with-audiogen"></a>
+### 使用 AudioGen 进行文本到声音生成
 
 ```python
 from audiocraft.models import AudioGen
 
-# 加载 AudioGen
+# Load AudioGen
 model = AudioGen.get_pretrained('facebook/audiogen-medium')
 
 model.set_generation_params(duration=5)
 
-# 生成音效
-descriptions = ["狗在公园里叫，鸟儿在啁啾"]
+# Generate sound effects
+descriptions = ["dog barking in a park with birds chirping"]
 wav = model.generate(descriptions)
 
 torchaudio.save("sound.wav", wav[0].cpu(), sample_rate=16000)
 ```
 
-## 核心概念 {#core-concepts}
+<a id="core-concepts"></a>
+## 核心概念
 
-### 架构概览 {#architecture-overview}
+<a id="architecture-overview"></a>
+### 架构概览
 
 <!-- ascii-guard-ignore -->
 ```
-AudioCraft 架构：
+AudioCraft Architecture:
 ┌──────────────────────────────────────────────────────────────┐
-│                    文本编码器 (T5)                             │
+│                    Text Encoder (T5)                          │
 │                         │                                     │
-│                    文本嵌入                                   │
+│                    Text Embeddings                            │
 └────────────────────────┬─────────────────────────────────────┘
                          │
 ┌────────────────────────▼─────────────────────────────────────┐
-│               Transformer 解码器 (LM)                          │
-│     自回归生成音频 Token                                       │
-│     使用高效的 Token 交错模式                                   │
+│              Transformer Decoder (LM)                         │
+│     Auto-regressively generates audio tokens                  │
+│     Using efficient token interleaving patterns               │
 └────────────────────────┬─────────────────────────────────────┘
                          │
 ┌────────────────────────▼─────────────────────────────────────┐
-│                EnCodec 音频解码器                               │
-│       将 Token 转换回音频波形                                   │
+│                EnCodec Audio Decoder                          │
+│        Converts tokens back to audio waveform                 │
 └──────────────────────────────────────────────────────────────┘
 ```
 <!-- ascii-guard-ignore-end -->
 
-### 模型变体 {#model-variants}
+<a id="model-variants"></a>
+### 模型变体
 
-| 模型 | 参数量 | 描述 | 适用场景 |
+| Model | Size | Description | Use Case |
 |-------|------|-------------|----------|
-| `musicgen-small` | 300M | 文本生成音乐 | 快速生成 |
-| `musicgen-medium` | 1.5B | 文本生成音乐 | 均衡 |
-| `musicgen-large` | 3.3B | 文本生成音乐 | 最佳质量 |
-| `musicgen-melody` | 1.5B | 文本 + 旋律 | 旋律条件生成 |
+| `musicgen-small` | 300M | 文本到音乐 | 快速生成 |
+| `musicgen-medium` | 1.5B | 文本到音乐 | 平衡 |
+| `musicgen-large` | 3.3B | 文本到音乐 | 最佳质量 |
+| `musicgen-melody` | 1.5B | 文本 + 旋律 | 旋律控制 |
 | `musicgen-melody-large` | 3.3B | 文本 + 旋律 | 最佳旋律 |
-| `musicgen-stereo-*` | 不等 | 立体声输出 | 立体声生成 |
+| `musicgen-stereo-*` | 可变 | 立体声输出 | 立体声生成 |
 | `musicgen-style` | 1.5B | 风格迁移 | 基于参考 |
-| `audiogen-medium` | 1.5B | 文本生成音效 | 音效 |
+| `audiogen-medium` | 1.5B | 文本到声音 | 音效 |
 
-### 生成参数 {#generation-parameters}
+<a id="generation-parameters"></a>
+### 生成参数
 
-| 参数 | 默认值 | 描述 |
+| Parameter | Default | Description |
 |-----------|---------|-------------|
-| `duration` | 8.0 | 时长（秒，1-120） |
-| `top_k` | 250 | Top-k 采样 |
-| `top_p` | 0.0 | 核采样（0 = 禁用） |
+| `duration` | 8.0 | 时长（秒，范围为1-120） |
+| `top_k` | 250 | top-k采样 |
+| `top_p` | 0.0 | 核采样（0表示禁用） |
 | `temperature` | 1.0 | 采样温度 |
 | `cfg_coef` | 3.0 | 无分类器引导系数 |
 
-## MusicGen 使用 {#musicgen-usage}
+<a id="musicgen-usage"></a>
+## MusicGen 使用方法
 
-### 文本生成音乐 {#text-to-music-generation}
+<a id="text-to-music-generation"></a>
+### 文本到音乐生成
 
 ```python
 from audiocraft.models import MusicGen
@@ -201,67 +216,70 @@ import torchaudio
 
 model = MusicGen.get_pretrained('facebook/musicgen-medium')
 
-# 配置生成参数
+# Configure generation
 model.set_generation_params(
-    duration=30,          # 最长 30 秒
-    top_k=250,            # 采样多样性
-    top_p=0.0,            # 0 = 仅使用 top_k
-    temperature=1.0,      # 创造力（越高越多样）
-    cfg_coef=3.0          # 文本遵循度（越高越严格）
+    duration=30,          # Up to 30 seconds
+    top_k=250,            # Sampling diversity
+    top_p=0.0,            # 0 = use top_k only
+    temperature=1.0,      # Creativity (higher = more varied)
+    cfg_coef=3.0          # Text adherence (higher = stricter)
 )
 
-# 生成多个样本
+# Generate multiple samples
 descriptions = [
-    "史诗管弦乐配乐，包含弦乐和铜管",
-    "轻松低保真嘻哈节拍，带有爵士钢琴",
-    "充满活力的摇滚歌曲，电吉他演奏"
+    "epic orchestral soundtrack with strings and brass",
+    "chill lo-fi hip hop beat with jazzy piano",
+    "energetic rock song with electric guitar"
 ]
 
-# 生成（返回 [batch, channels, samples]）
+# Generate (returns [batch, channels, samples])
 wav = model.generate(descriptions)
 
-# 分别保存
+# Save each
 for i, audio in enumerate(wav):
     torchaudio.save(f"music_{i}.wav", audio.cpu(), sample_rate=32000)
 ```
-### 旋律条件生成 {#melody-conditioned-generation}
+<a id="melody-conditioned-generation"></a>
+### 旋律条件生成
 
 ```python
 from audiocraft.models import MusicGen
 import torchaudio
 
-# Load melody model
+# 加载旋律模型
 model = MusicGen.get_pretrained('facebook/musicgen-melody')
 model.set_generation_params(duration=30)
 
-# Load melody audio
+# 加载旋律音频
 melody, sr = torchaudio.load("melody.wav")
 
-# Generate with melody conditioning
+# 使用旋律条件生成
 descriptions = ["acoustic guitar folk song"]
 wav = model.generate_with_chroma(descriptions, melody, sr)
 
 torchaudio.save("melody_conditioned.wav", wav[0].cpu(), sample_rate=32000)
 ```
 
-### 立体声生成 {#stereo-generation}
+<a id="stereo-generation"></a>
+### 立体声生成
 
 ```python
 from audiocraft.models import MusicGen
 
-# Load stereo model
+# 加载立体声模型
 model = MusicGen.get_pretrained('facebook/musicgen-stereo-medium')
 model.set_generation_params(duration=15)
 
 descriptions = ["ambient electronic music with wide stereo panning"]
 wav = model.generate(descriptions)
 
-# wav shape: [batch, 2, samples] for stereo
+# wav 形状：[batch, 2, samples] 对应立体声
 print(f"Stereo shape: {wav.shape}")  # [1, 2, 480000]
 torchaudio.save("stereo.wav", wav[0].cpu(), sample_rate=32000)
 ```
 
-### 音频续写 {#audio-continuation}
+<a id="audio-continuation"></a>
+### 音频续写
 
 ```python
 from transformers import AutoProcessor, MusicgenForConditionalGeneration
@@ -269,11 +287,11 @@ from transformers import AutoProcessor, MusicgenForConditionalGeneration
 processor = AutoProcessor.from_pretrained("facebook/musicgen-medium")
 model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-medium")
 
-# Load audio to continue
+# 加载要续写的音频
 import torchaudio
 audio, sr = torchaudio.load("intro.wav")
 
-# Process with text and audio
+# 结合文本和音频进行处理
 inputs = processor(
     audio=audio.squeeze().numpy(),
     sampling_rate=sr,
@@ -282,57 +300,62 @@ inputs = processor(
     return_tensors="pt"
 )
 
-# Generate continuation
+# 生成续写内容
 audio_values = model.generate(**inputs, do_sample=True, guidance_scale=3, max_new_tokens=512)
 ```
 
-## MusicGen-Style 用法 {#musicgen-style-usage}
+<a id="musicgen-style-usage"></a>
+## MusicGen-Style 用法
 
-### 风格条件生成 {#style-conditioned-generation}
+<a id="style-conditioned-generation"></a>
+### 风格条件生成
 
 ```python
 from audiocraft.models import MusicGen
 
-# Load style model
+# 加载风格模型
 model = MusicGen.get_pretrained('facebook/musicgen-style')
 
-# Configure generation with style
+# 配置生成参数，设定风格
 model.set_generation_params(
     duration=30,
     cfg_coef=3.0,
-    cfg_coef_beta=5.0  # Style influence
+    cfg_coef_beta=5.0  # 风格影响程度
 )
 
-# Configure style conditioner
+# 配置风格调节器
 model.set_style_conditioner_params(
-    eval_q=3,          # RVQ quantizers (1-6)
-    excerpt_length=3.0  # Style excerpt length
+    eval_q=3,          # RVQ 量化器数量（1-6）
+    excerpt_length=3.0  # 风格片段长度
 )
 
-# Load style reference
+# 加载风格参考
 style_audio, sr = torchaudio.load("reference_style.wav")
 
-# Generate with text + style
+# 基于文本 + 风格生成
 descriptions = ["upbeat dance track"]
 wav = model.generate_with_style(descriptions, style_audio, sr)
 ```
 
-### 仅风格生成（无文本） {#style-only-generation-no-text}
+<a id="style-only-generation-no-text"></a>
+### 纯风格生成（无文本）
 
 ```python
-# Generate matching style without text prompt
+# 不提供文本提示，直接生成与风格匹配的内容
 model.set_generation_params(
     duration=30,
     cfg_coef=3.0,
-    cfg_coef_beta=None  # Disable double CFG for style-only
+    cfg_coef_beta=None  # 纯风格模式禁用双 CFG
 )
 
 wav = model.generate_with_style([None], style_audio, sr)
 ```
 
-## AudioGen 用法 {#audiogen-usage}
+<a id="audiogen-usage"></a>
+## AudioGen 用法
 
-### 音效生成 {#sound-effect-generation}
+<a id="sound-effect-generation"></a>
+### 音效生成
 
 ```python
 from audiocraft.models import AudioGen
@@ -341,7 +364,7 @@ import torchaudio
 model = AudioGen.get_pretrained('facebook/audiogen-medium')
 model.set_generation_params(duration=10)
 
-# Generate various sounds
+# 生成多种声音
 descriptions = [
     "thunderstorm with heavy rain and lightning",
     "busy city traffic with car horns",
@@ -354,9 +377,11 @@ wav = model.generate(descriptions)
 for i, audio in enumerate(wav):
     torchaudio.save(f"sound_{i}.wav", audio.cpu(), sample_rate=16000)
 ```
-## EnCodec 用法 {#encodec-usage}
+<a id="encodec-usage"></a>
+## EnCodec 用法
 
-### 音频压缩 {#audio-compression}
+<a id="audio-compression"></a>
+### 音频压缩
 
 ```python
 from audiocraft.models import CompressionModel
@@ -386,9 +411,11 @@ with torch.no_grad():
 torchaudio.save("reconstructed.wav", decoded[0].cpu(), sample_rate=32000)
 ```
 
-## 常见工作流 {#common-workflows}
+<a id="common-workflows"></a>
+## 常见工作流程
 
-### 工作流 1：音乐生成流水线 {#workflow-1-music-generation-pipeline}
+<a id="workflow-1-music-generation-pipeline"></a>
+### 工作流程 1：音乐生成管道
 
 ```python
 import torch
@@ -424,17 +451,18 @@ class MusicGenerator:
     def save(self, audio, path):
         torchaudio.save(path, audio, sample_rate=self.sample_rate)
 
-# 使用示例
+# 用法示例
 generator = MusicGenerator()
 audio = generator.generate(
-    "史诗级电影管弦乐",
+    "epic cinematic orchestral music",
     duration=30,
     temperature=1.0
 )
 generator.save(audio, "epic_music.wav")
 ```
 
-### 工作流 2：音效批量处理 {#workflow-2-sound-design-batch-processing}
+<a id="workflow-2-sound-design-batch-processing"></a>
+### 工作流程 2：音效批量处理
 
 ```python
 import json
@@ -447,7 +475,7 @@ def batch_generate_sounds(sound_specs, output_dir):
     根据规格批量生成音效。
 
     参数：
-        sound_specs: 列表，每个元素为 {"name": str, "description": str, "duration": float}
+        sound_specs: 列表，元素为 {"name": str, "description": str, "duration": float}
         output_dir: 输出目录路径
     """
     model = AudioGen.get_pretrained('facebook/audiogen-medium')
@@ -472,16 +500,17 @@ def batch_generate_sounds(sound_specs, output_dir):
 
     return results
 
-# 使用示例
+# 用法示例
 sounds = [
-    {"name": "explosion", "description": "伴有碎石的巨大爆炸声", "duration": 3},
-    {"name": "footsteps", "description": "木地板上的脚步声", "duration": 5},
-    {"name": "door", "description": "木门吱呀作响并关闭", "duration": 2}
+    {"name": "explosion", "description": "massive explosion with debris", "duration": 3},
+    {"name": "footsteps", "description": "footsteps on wooden floor", "duration": 5},
+    {"name": "door", "description": "wooden door creaking and closing", "duration": 2}
 ]
 
 results = batch_generate_sounds(sounds, "sound_effects/")
 ```
-### 工作流 3：Gradio 演示 {#workflow-3-gradio-demo}
+<a id="workflow-3-gradio-demo"></a>
+### 工作流 3：Gradio 演示
 
 ```python
 import gradio as gr
@@ -521,15 +550,17 @@ demo = gr.Interface(
 demo.launch()
 ```
 
-## 性能优化 {#performance-optimization}
+<a id="performance-optimization"></a>
+## 性能优化
 
-### 内存优化 {#memory-optimization}
+<a id="memory-optimization"></a>
+### 内存优化
 
 ```python
 # 使用更小的模型
 model = MusicGen.get_pretrained('facebook/musicgen-small')
 
-# 每次生成后清除缓存
+# 在每次生成后清除缓存
 torch.cuda.empty_cache()
 
 # 生成更短的时长
@@ -539,42 +570,47 @@ model.set_generation_params(duration=10)  # 代替 30
 model = model.half()
 ```
 
-### 批处理效率 {#batch-processing-efficiency}
+<a id="batch-processing-efficiency"></a>
+### 批处理效率
 
 ```python
 # 一次处理多个提示（更高效）
 descriptions = ["prompt1", "prompt2", "prompt3", "prompt4"]
-wav = model.generate(descriptions)  # 单批次
+wav = model.generate(descriptions)  # 单次批处理
 
-# 而不是
+# 而不是：
 for desc in descriptions:
-    wav = model.generate([desc])  # 多批次（更慢）
+    wav = model.generate([desc])  # 多次批处理（较慢）
 ```
 
-### GPU 内存需求 {#gpu-memory-requirements}
+<a id="gpu-memory-requirements"></a>
+### GPU 内存需求
 
-| 模型 | FP32 显存 | FP16 显存 |
+| 模型 | FP32 VRAM | FP16 VRAM |
 |-------|-----------|-----------|
 | musicgen-small | ~4GB | ~2GB |
 | musicgen-medium | ~8GB | ~4GB |
 | musicgen-large | ~16GB | ~8GB |
 
-## 常见问题 {#common-issues}
+<a id="common-issues"></a>
+## 常见问题
 
 | 问题 | 解决方案 |
 |-------|----------|
-| CUDA 内存不足 | 使用更小的模型，缩短时长 |
-| 质量差 | 提高 cfg_coef，优化提示词 |
-| 生成内容太短 | 检查最大时长设置 |
+| CUDA 内存不足 | 使用更小的模型，减少时长 |
+| 质量差 | 增加 cfg_coef，优化提示词 |
+| 生成太短 | 检查最大时长设置 |
 | 音频伪影 | 尝试不同的温度值 |
-| 立体声不工作 | 使用立体声模型变体 |
+| 立体声无法工作 | 使用立体声模型变体 |
 
-## 参考 {#references}
+<a id="references"></a>
+## 参考
 
-- **[高级用法](https://github.com/NousResearch/hermes-agent/blob/main/skills/mlops/models/audiocraft/references/advanced-usage.md)** - 训练、微调、部署
+- **[进阶用法](https://github.com/NousResearch/hermes-agent/blob/main/skills/mlops/models/audiocraft/references/advanced-usage.md)** - 训练、微调、部署
 - **[故障排除](https://github.com/NousResearch/hermes-agent/blob/main/skills/mlops/models/audiocraft/references/troubleshooting.md)** - 常见问题及解决方案
 
-## 资源 {#resources}
+<a id="resources"></a>
+## 资源
 
 - **GitHub**: https://github.com/facebookresearch/audiocraft
 - **论文（MusicGen）**: https://arxiv.org/abs/2306.05284

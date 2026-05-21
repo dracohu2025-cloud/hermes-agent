@@ -1,48 +1,55 @@
 ---
-title: "测试驱动开发 — TDD：强制 RED-GREEN-REFACTOR，先写测试再写代码"
+title: "测试驱动开发 — TDD：遵循 RED-GREEN-REFACTOR，先写测试再写代码"
 sidebar_label: "测试驱动开发"
-description: "TDD：强制 RED-GREEN-REFACTOR，先写测试再写代码"
+description: "TDD：遵循 RED-GREEN-REFACTOR，先写测试再写代码"
 ---
 
-{/* 此页面由 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
+{/* This page is auto-generated from the skill's SKILL.md by website/scripts/generate-skill-docs.py. Edit the source SKILL.md, not this page. */}
 
-# 测试驱动开发 {#test-driven-development}
+<a id="test-driven-development"></a>
+# 测试驱动开发
 
-TDD：强制 RED-GREEN-REFACTOR，先写测试再写代码。
+TDD：遵循 RED-GREEN-REFACTOR，先写测试再写代码。
 
-## 技能元数据 {#skill-metadata}
+<a id="skill-metadata"></a>
+## 技能元数据
 
 | | |
 |---|---|
-| 来源 | 内置（默认安装） |
+| 来源 | 内建（默认安装） |
 | 路径 | `skills/software-development/test-driven-development` |
 | 版本 | `1.1.0` |
 | 作者 | Hermes Agent（改编自 obra/superpowers） |
 | 许可证 | MIT |
+| 平台 | linux, macos, windows |
 | 标签 | `testing`, `tdd`, `development`, `quality`, `red-green-refactor` |
-| 相关技能 | [`systematic-debugging`](/user-guide/skills/bundled/software-development/software-development-systematic-debugging), [`writing-plans`](/user-guide/skills/bundled/software-development/software-development-writing-plans), [`subagent-driven-development`](/user-guide/skills/bundled/software-development/software-development-subagent-driven-development) |
+| 相关技能 | [`systematic-debugging`](/user-guide/skills/bundled/software-development/software-development-systematic-debugging)、[`writing-plans`](/user-guide/skills/bundled/software-development/software-development-writing-plans)、[`subagent-driven-development`](/user-guide/skills/bundled/software-development/software-development-subagent-driven-development) |
 
-## 参考：完整 SKILL.md {#reference-full-skill-md}
+<a id="reference-full-skill-md"></a>
+## 参考：完整 SKILL.md
 
 :::info
-以下是该技能被触发时 Hermes 加载的完整技能定义。当技能激活时，Agent 会看到这些指令。
+以下是 Hermes 在该技能被触发时加载的完整技能定义。技能激活时，Agent 会以此作为指令。
 :::
 
-# 测试驱动开发（TDD） {#test-driven-development-tdd}
+<a id="test-driven-development-tdd"></a>
+# 测试驱动开发（TDD）
 
-## 概述 {#overview}
+<a id="overview"></a>
+## 概述
 
 先写测试。看着它失败。再写最少的代码让它通过。
 
-**核心原则：** 如果你没有看到测试失败，你就不知道它是否测试了正确的东西。
+**核心原则：** 如果你没有亲眼看到测试失败，你就不知道它是否在测试正确的东西。
 
-**违反规则的文字，就是违反规则的精神。**
+**违背规则的文字就是违背规则的精神。**
 
-## 何时使用 {#when-to-use}
+<a id="when-to-use"></a>
+## 何时使用
 
-**始终使用：**
+**总是：**
 - 新功能
-- Bug 修复
+- 错误修复
 - 重构
 - 行为变更
 
@@ -51,31 +58,34 @@ TDD：强制 RED-GREEN-REFACTOR，先写测试再写代码。
 - 生成的代码
 - 配置文件
 
-心里想“就这一次跳过 TDD”？打住。那是在找借口。
+想着“就这一次跳过 TDD”？停下。那是自我合理化。
 
-## 铁律 {#the-iron-law}
+<a id="the-iron-law"></a>
+## 铁律
 
 ```
-没有先写一个会失败的测试，就不准写生产代码
+没有先失败的测试，就不写生产代码
 ```
 
-先写了代码？删掉。重新开始。
+先写代码后写测试？删掉。重来。
 
 **没有例外：**
-- 不要留着当“参考”
-- 不要在写测试时“改编”它
+- 不要把它当作“参考”保留
+- 不要在写测试时“调整”它
 - 不要看它
-- 删就是删
+- 删掉就是删掉
 
-从测试开始全新实现。没有商量余地。
+根据测试重新实现。就这样。
 
-## 红-绿-重构循环 {#red-green-refactor-cycle}
+<a id="red-green-refactor-cycle"></a>
+## 红-绿-重构循环
 
-### 红色 — 编写会失败的测试 {#red-write-failing-test}
+<a id="red-write-failing-test"></a>
+### 红 — 编写失败的测试
 
-写一个最小的测试，展示应该发生什么。
+编写一个最小测试，展示应该发生什么。
 
-**好测试：**
+**好的测试：**
 ```python
 def test_retries_failed_operations_3_times():
     attempts = 0
@@ -91,52 +101,54 @@ def test_retries_failed_operations_3_times():
     assert result == 'success'
     assert attempts == 3
 ```
-名称清晰，测试真实行为，只测一件事。
+清晰的名字，测试真实行为，只测一件事。
 
-**坏测试：**
+**糟糕的测试：**
 ```python
 def test_retry_works():
     mock = MagicMock()
     mock.side_effect = [Exception(), Exception(), 'success']
     result = retry_operation(mock)
-    assert result == 'success'  # 重试次数呢？时机呢？
+    assert result == 'success'  # What about retry count? Timing?
 ```
-名称模糊，测试的是 mock 而非真实代码。
+名字模糊，测试的是 mock 而不是真实代码。
 
 **要求：**
-- 每个测试只测一个行为
-- 名称清晰描述性（名称里出现“和”？拆开）
-- 用真实代码，不用 mock（除非实在无法避免）
-- 名称描述行为，而非实现
+- 每个测试只测一种行为
+- 清晰描述的名字（名字里有“and”？拆开）
+- 用真实代码，不用 mock（除非真的无法避免）
+- 名字描述行为，而不是实现
 
-### 验证红色 — 看着它失败 {#verify-red-watch-it-fail}
+<a id="verify-red-watch-it-fail"></a>
+### 验证红 — 看着它失败
+**MANDATORY. 不可跳过。**
 
-**必须执行。绝不可跳过。**
 ```bash
-# 使用终端工具运行特定的测试
+# 使用终端工具运行指定测试
 pytest tests/test_feature.py::test_specific_behavior -v
 ```
 
 确认：
-- 测试失败（而不是因拼写错误导致的错误）
+- 测试失败（不是由于拼写错误导致的报错）
 - 失败信息符合预期
-- 因为功能缺失而失败
+- 失败原因是功能缺失
 
-**测试立即通过了？** 你测试的是已有行为。修复测试。
+**测试立刻通过？** 说明你测试的是已有行为。修改测试。
 
-**测试报错？** 修复错误，重新运行直到正确失败。
+**测试报错？** 先修复错误，重新运行直到它正确失败。
 
-### GREEN — 最简代码 {#green-minimal-code}
+<a id="green-minimal-code"></a>
+### GREEN — 最简代码
 
-编写最简单的代码使测试通过。不要多余。
+写出能通过测试的最简单代码。不做多余的事。
 
-**好：**
+**好的写法：**
 ```python
 def add(a, b):
-    return a + b  # 不要多余
+    return a + b  # 不多不少
 ```
 
-**坏：**
+**不好的写法：**
 ```python
 def add(a, b):
     result = a + b
@@ -144,160 +156,170 @@ def add(a, b):
     return result
 ```
 
-不要添加功能、重构其他代码或在测试之外进行"改进"。
+不要添加功能、重构其他代码，或者“优化”超出测试范围的内容。
 
-**在 GREEN 阶段，作弊是允许的：**
+**在 GREEN 阶段作弊是允许的：**
 - 硬编码返回值
 - 复制粘贴
 - 重复代码
-- 跳过边缘情况
+- 跳过边界情况
 
 我们会在 REFACTOR 阶段修复。
 
-### 验证 GREEN — 确保测试通过 {#verify-green-watch-it-pass}
+<a id="verify-green-watch-it-pass"></a>
+### 验证 GREEN — 观察它通过
 
-**必须执行。**
+**MANDATORY.**
 
 ```bash
-# 运行特定的测试
+# 运行指定测试
 pytest tests/test_feature.py::test_specific_behavior -v
 
-# 然后运行所有测试以检查回归
+# 然后运行所有测试，检查回归问题
 pytest tests/ -q
 ```
 
 确认：
 - 测试通过
-- 其他测试仍能通过
+- 其他测试依然通过
 - 输出干净（无错误、无警告）
 
-**测试失败？** 修复代码，而不是测试。
+**测试失败？** 修复代码，而不是修改测试。
 
-**其他测试失败？** 立即修复回归。
+**其他测试失败？** 立即修复回归问题。
 
-### REFACTOR — 清理 {#refactor-clean-up}
+<a id="refactor-clean-up"></a>
+### REFACTOR — 清理代码
 
-仅在通过绿色后：
+仅在绿灯通过后：
 - 消除重复
 - 改进命名
-- 抽取辅助函数
+- 提取辅助函数
 - 简化表达式
 
-全程保持测试通过。不要添加行为。
+保持测试一直通过。不要增加行为。
 
-**如果在重构过程中测试失败：** 立即撤销。采取更小的步骤。
+**如果重构过程中测试失败：** 立即撤销。采取更小的步骤。
 
-### 重复 {#repeat}
+<a id="repeat"></a>
+### 重复循环
 
-下一个失败测试对应下一个行为。一次一个周期。
+下一个行为的失败测试。一次一个循环。
 
-## 为什么顺序重要 {#why-order-matters}
+<a id="why-order-matters"></a>
+## 为什么顺序很重要
 
-**"我会先写代码，再写测试来验证它是否工作"**
+**“我会在写代码之后写测试来验证它是否能工作”**
 
-代码之后编写的测试会立即通过。立即通过证明不了什么：
-- 可能测试的是错误的东西
-- 可能测试的是实现，而非行为
-- 可能遗漏了你忘记的边缘情况
-- 你从未见过它抓到 bug
+开发之后写的测试会立刻通过。立刻通过证明不了什么：
+- 可能测试了错误的东西
+- 可能测试了实现而非行为
+- 可能遗漏了你忘记的边界情况
+- 你从未见过它捕获到 Bug
 
 测试优先迫使你看到测试失败，证明它确实在测试某些东西。
 
-**"我已经手动测试了所有边缘情况"**
+**“我已经手动测试了所有边界情况”**
 
-手动测试是临时的。你以为测试了所有情况，但：
-- 没有记录测试了什么
+手动测试是临时性的。你以为自己测试了所有情况，但实际上：
+- 没有记录测试了哪些内容
 - 代码变更后无法重新运行
-- 在压力下容易忘记情况
-- "我试的时候能工作" ≠ 全面
+- 压力下容易忘记用例
+- “我试过它没问题” ≠ 全面
 
-自动化测试是系统化的。它们每次都以相同方式运行。
+自动化测试是系统性的。它们每次都按相同的方式运行。
 
-**"删掉 X 小时的工作是浪费"**
+**“删掉 X 小时的工作太浪费了”**
 
-沉没成本谬误。时间已经过去了。你现在的选择：
-- 删除并用 TDD 重写（高信心）
-- 保留它并在之后添加测试（低信心，很可能有 bug）
+这是沉没成本谬误。时间已经过去了。你现在面临的选择：
+- 删掉并用 TDD 重写（高置信度）
+- 保留并在之后添加测试（低置信度，很可能有 bug）
 
-"浪费"是保留你不能信任的代码。
+所谓的“浪费”是保留那些你无法信任的代码。
 
-**"TDD 是教条主义的，务实意味着适应调整"**
+**“TDD 太教条了，务实就是学会变通”**
 
-TDD 恰恰是务实的：
-- 在提交前发现 bug（比事后调试更快）
-- 防止回归（测试立即捕捉破坏）
-- 记录行为（测试展示如何使用代码）
-- 支持重构（自由更改，测试捕捉破坏）
+TDD 本身就很务实：
+- 在提交前发现 bug（比提交后再调试要快）
+- 防止回归（测试能立即捕获破坏）
+- 文档化行为（测试展示了如何使用代码）
+- 支持重构（自由修改，测试会捕获破坏）
 
-"务实"的捷径 = 在生产中调试 = 更慢。
+所谓的“务实”捷径 = 在生产环境调试 = 更慢。
 
-**"之后测试达到相同目标——这是精神而非仪式"**
+**“事后写测试也能达到同样目标——重要的是精神而不是仪式”**
 
-不。后写测试回答"这段代码做什么？"测试优先回答"这段代码应该做什么？"
-后置测试会受到你实现方式的影响。你测试的是你构建的东西，而不是真正需要的东西。先写测试则能迫使你在实现之前发现边界情况。
+不对。事后测试回答的是“这段代码做了什么？”而测试优先回答的是“这段代码应该做什么？”
+事后测试会受你的实现影响。你测试的是你构建的内容，而不是真正需要的内容。测试先行强制你在实现之前发现边界情况。
 
-## 常见借口 {#common-rationalizations}
+<a id="common-rationalizations"></a>
+## 常见的合理化借口
 
 | 借口 | 现实 |
 |--------|---------|
-| “太简单了，不用测” | 简单代码也会出问题。写个测试只需30秒。 |
-| “我之后再测” | 测试立即通过说明不了任何问题。 |
-| “后写测试也能达到同样目的” | 后写测试 = “这段代码是干什么的？” 先写测试 = “这段代码应该干什么？” |
-| “已经手动测过了” | 临时测试 ≠ 系统测试。没有记录，无法重跑。 |
-| “删掉X小时的工作太浪费了” | 沉没成本谬误。保留未经验证的代码就是技术债。 |
-| “先留着当参考，再写测试” | 你会去改它。那还是后写测试。删掉就是删掉。 |
-| “需要先探索一下” | 可以。探索完扔掉，从TDD开始。 |
-| “测试难写 = 设计不清晰” | 听测试的。难测 = 难用。 |
-| “TDD会拖慢我” | TDD比调试快。务实 = 先写测试。 |
-| “手动测试更快” | 手动测试无法验证边界情况。每次改动你都得重新测。 |
-| “现有代码没有测试” | 你正在改进它。为你改动的代码添加测试。 |
+| “太简单了，不用测试” | 简单的代码也会出问题。测试只需 30 秒。 |
+| “我之后会测试” | 立即通过的测试说明不了任何问题。 |
+| “事后测试能达到同样的目的” | 事后测试 = “这代码是干什么的？”；测试先行 = “这代码应该干什么？” |
+| “已经手动测试过了” | 临时测试 ≠ 系统性测试。没有记录，无法重跑。 |
+| “删掉 X 小时的工作太浪费了” | 沉没成本谬误。保留未经验证的代码就是技术债。 |
+| “先留着作参考，之后再写测试” | 你会去修改它，那还是事后测试。要删就彻底删除。 |
+| “需要先探索一下” | 可以。探索完就弃掉，从头开始 TDD。 |
+| “测试难写 = 设计不清晰” | 倾听测试的声音。难以测试 = 难以使用。 |
+| “TDD 会拖慢我的速度” | TDD 比调试更快。务实做法 = 测试先行。 |
+| “手动测试更快” | 手动测试无法验证边界情况。每次改动都要重新测。 |
+| “现有代码没有测试” | 你正在改进它。为你接触到的代码添加测试。 |
 
-## 危险信号 —— 停下并重来 {#red-flags-stop-and-start-over}
+<a id="red-flags-stop-and-start-over"></a>
+## 危险信号 —— 立即停止并重新开始
 
-如果你发现自己做了以下任何一件事，删掉代码，用TDD重新开始：
+如果你发现自己做了以下任何一件事，删除代码并用 TDD 重启：
 
-- 先写代码，后写测试
-- 实现之后才写测试
+- 先写代码再写测试
+- 实现之后才测试
 - 测试第一次运行就通过
 - 无法解释测试为什么失败
-- 测试“之后”再补
-- 找借口“就这一次”
-- “我已经手动测过了”
-- “后写测试也能达到同样目的”
-- “先留着当参考”或“改改现有代码”
-- “已经花了X小时，删掉太浪费”
-- “TDD太教条，我这是务实”
-- “这次不一样，因为……”
+- 测试“之后”再添加
+- 找借口说“就这一次”
+- “我已经手动测试过了”
+- “事后测试能达到同样的目的”
+- “先留着作参考”或“复用现有代码”
+- “已经花了 X 小时，删掉太浪费了”
+- “TDD 太教条了，我这样才务实”
+- “这次情况不同，因为……”
 
-**所有这些都意味着：删掉代码，用TDD重来。**
+**所有这些都意味着：删除代码。用 TDD 重新开始。**
 
-## 验证清单 {#verification-checklist}
+<a id="verification-checklist"></a>
+## 验证清单
 
 在标记工作完成之前：
 
-- [ ] 每个新函数/方法都有测试
-- [ ] 在实现之前，亲眼看到每个测试失败
-- [ ] 每个测试因预期原因失败（功能缺失，而非拼写错误）
-- [ ] 编写最简代码使每个测试通过
-- [ ] 所有测试通过
+- [ ] 每个新函数/方法都有对应的测试
+- [ ] 在实现之前观察了每个测试的失败
+- [ ] 每个测试的失败原因符合预期（功能缺失，而非拼写错误）
+- [ ] 编写了最少量的代码来通过每个测试
+- [ ] 所有测试均通过
 - [ ] 输出干净（无错误、无警告）
-- [ ] 测试使用真实代码（仅当无法避免时才用mock）
+- [ ] 测试使用真实代码（仅在无法避免时才使用 mock）
 - [ ] 覆盖了边界情况和错误
 
-不能勾选所有项？你跳过了TDD。重来。
+无法勾选所有项目？那你跳过了 TDD。重新开始。
 
-## 卡住时怎么办 {#when-stuck}
+<a id="when-stuck"></a>
+## 卡住时怎么办
 
 | 问题 | 解决方案 |
 |---------|----------|
-| 不知道如何测试 | 写出你期望的API。先写断言。问用户。 |
+| 不知道如何测试 | 先写出期望的 API。先写断言。向用户提问。 |
 | 测试太复杂 | 设计太复杂。简化接口。 |
-| 必须mock一切 | 代码耦合太紧。使用依赖注入。 |
-| 测试设置太庞大 | 提取辅助函数。还是复杂？简化设计。 |
+| 必须 mock 所有东西 | 代码耦合度过高。使用依赖注入。 |
+| 测试设置过于庞大 | 提取辅助方法。依然复杂？简化设计。 |
 
-## Hermes Agent 集成 {#hermes-agent-integration}
+<a id="hermes-agent-integration"></a>
+## Hermes Agent 集成
 
-### 运行测试 {#running-tests}
+<a id="running-tests"></a>
+### 运行测试
 
 使用 `terminal` 工具在每一步运行测试：
 
@@ -308,23 +330,24 @@ terminal("pytest tests/test_feature.py::test_name -v")
 # GREEN — 验证通过
 terminal("pytest tests/test_feature.py::test_name -v")
 
-# 完整套件 — 验证无回归
+# 全量套件 — 验证无回归
 terminal("pytest tests/ -q")
 ```
 
-### 配合 delegate_task {#with-delegatetask}
+<a id="with-delegatetask"></a>
+### 配合 delegate_task
 
-当派发子Agent进行实现时，在目标中强制使用TDD：
+当派发子 Agent 进行实现时，在目标中强制使用 TDD：
 ```python
 delegate_task(
     goal="使用严格的 TDD 实现 [功能]",
     context="""
     遵循测试驱动开发技能：
-    1. 首先编写会失败的测试
+    1. 先编写会失败的测试
     2. 运行测试，确认它失败
     3. 编写最简代码使其通过
     4. 运行测试，确认它通过
-    5. 如有需要则重构
+    5. 如有需要，进行重构
     6. 提交
 
     项目测试命令：pytest tests/ -q
@@ -334,20 +357,23 @@ delegate_task(
 )
 ```
 
-### 配合 systematic-debugging {#with-systematic-debugging}
+<a id="with-systematic-debugging"></a>
+### 结合 systematic-debugging
 
-发现 Bug？先编写能复现它的失败测试。遵循 TDD 循环。该测试既证明修复有效，又防止回归。
+发现 Bug？先编写能复现它的失败测试。遵循 TDD 循环。该测试既能证明修复有效，也能防止回归。
 
 永远不要在无测试的情况下修复 Bug。
 
-## 测试反模式 {#testing-anti-patterns}
+<a id="testing-anti-patterns"></a>
+## 测试反模式
 
-- **测试 mock 行为而非真实行为** —— mock 应验证交互，而非替代被测系统
+- **测试模拟行为而非真实行为** —— 模拟应验证交互，而非替代被测系统
 - **测试实现细节** —— 测试行为/结果，而非内部方法调用
-- **只测快乐路径** —— 始终测试边界情况、错误和边界值
+- **只测快乐路径** —— 始终测试边界情况、错误和边界
 - **脆弱的测试** —— 测试应验证行为，而非结构；重构不应破坏它们
 
-## 最终规则 {#final-rule}
+<a id="final-rule"></a>
+## 最终规则
 
 ```
 生产代码 → 测试已存在且先失败

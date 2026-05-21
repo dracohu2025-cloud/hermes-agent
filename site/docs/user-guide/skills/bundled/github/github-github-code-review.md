@@ -1,16 +1,18 @@
 ---
-title: "Github Code Review — 通过 gh 或 REST 审查 PR：差异与行内评论"
+title: "Github Code Review — 通过 gh 或 REST 审查 PR：差异、内联评论"
 sidebar_label: "Github Code Review"
-description: "审查 PR：通过 gh 或 REST 查看差异与行内评论"
+description: "通过 gh 或 REST 审查 PR：差异、内联评论"
 ---
 
-{/* 此页面由 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非此页面。 */}
+{/* 本页面由脚本 website/scripts/generate-skill-docs.py 根据技能的 SKILL.md 自动生成。请编辑源文件 SKILL.md，而非本页面。 */}
 
-# Github Code Review {#github-code-review}
+<a id="github-code-review"></a>
+# Github Code Review
 
-审查 PR：通过 gh 或 REST 查看差异与行内评论。
+通过 gh 或 REST 审查 PR：差异、内联评论。
 
-## 技能元数据 {#skill-metadata}
+<a id="skill-metadata"></a>
+## 技能元数据
 
 | | |
 |---|---|
@@ -19,26 +21,29 @@ description: "审查 PR：通过 gh 或 REST 查看差异与行内评论"
 | 版本 | `1.1.0` |
 | 作者 | Hermes Agent |
 | 许可证 | MIT |
+| 平台 | linux, macos, windows |
 | 标签 | `GitHub`, `Code-Review`, `Pull-Requests`, `Git`, `Quality` |
 | 相关技能 | [`github-auth`](/user-guide/skills/bundled/github/github-github-auth), [`github-pr-workflow`](/user-guide/skills/bundled/github/github-github-pr-workflow) |
 
-## 参考：完整 SKILL.md {#reference-full-skill-md}
+<a id="reference-full-skill-md"></a>
+## 参考：完整 SKILL.md
 
 :::info
-以下是该技能被触发时 Hermes 加载的完整技能定义。这是 Agent 在技能激活时看到的指令。
+以下是此技能被触发时 Hermes 加载的完整技能定义。这是 Agent 在技能激活时看到的指令。
 :::
 
-<a id="github-code-review"></a>
 # GitHub Code Review
 
-在推送前对本地更改进行代码审查，或审查 GitHub 上的开放 PR。此技能大部分使用纯 `git` —— `gh`/`curl` 的分支仅在 PR 级别的交互中起作用。
+在推送前对本地更改执行代码审查，或在 GitHub 上审查打开的 PR。本技能大部分使用普通的 `git` — `gh`/`curl` 的区分仅对 PR 级别的交互有意义。
 
-## 前置条件 {#prerequisites}
+<a id="prerequisites"></a>
+## 前置条件
 
-- 已通过 GitHub 认证（参见 `github-auth` 技能）
+- 已通过 GitHub 身份验证（参见 `github-auth` 技能）
 - 位于 git 仓库内
 
-### 设置（用于 PR 交互） {#setup-for-pr-interactions}
+<a id="setup-for-pr-interactions"></a>
+### 设置（用于 PR 交互）
 
 ```bash
 if command -v gh &>/dev/null && gh auth status &>/dev/null; then
@@ -62,17 +67,19 @@ REPO=$(echo "$OWNER_REPO" | cut -d/ -f2)
 
 ---
 
-## 1. 审查本地更改（推送前） {#1-reviewing-local-changes-pre-push}
+<a id="1-reviewing-local-changes-pre-push"></a>
+## 1. 审查本地更改（推送前）
 
-这是纯 `git` 操作 —— 随处可用，无需 API。
+这部分纯靠 `git` — 无需 API，随处可用。
 
-### 获取差异 {#get-the-diff}
+<a id="get-the-diff"></a>
+### 获取差异
 
 ```bash
-# 已暂存的更改（即将提交的内容）
+# 已暂存的更改（将要提交的内容）
 git diff --staged
 
-# 与 main 分支相比的所有更改（PR 将包含的内容）
+# 与 main 分支的所有更改（PR 会包含的内容）
 git diff main...HEAD
 
 # 仅文件名
@@ -82,16 +89,17 @@ git diff main...HEAD --name-only
 git diff main...HEAD --stat
 ```
 
-### 审查策略 {#review-strategy}
+<a id="review-strategy"></a>
+### 审查策略
 
-1. **先获取整体概览：**
+1. **先看全局：**
 
 ```bash
 git diff main...HEAD --stat
 git log main..HEAD --oneline
 ```
 
-2. **逐个文件审查** —— 使用 `read_file` 查看更改文件的完整上下文，并通过差异了解具体变化：
+2. **逐个文件审查** — 用 `read_file` 查看变更文件的完整上下文，用 diff 查看具体变化：
 
 ```bash
 git diff main...HEAD -- src/auth/login.py
@@ -112,37 +120,40 @@ git diff main...HEAD | grep -in "password\|secret\|api_key\|token.*=\|private_ke
 # 合并冲突标记
 git diff main...HEAD | grep -n "<<<<<<\|>>>>>>\|======="
 ```
-4. **向用户呈现结构化的反馈**。
+4. **向用户提供结构化的反馈**。
 
-### 审查输出格式 {#review-output-format}
+<a id="review-output-format"></a>
+### 审查输出格式
 
-审查本地变更时，请按以下结构呈现发现：
+当审查本地变更时，按以下结构呈现发现结果：
 
 ```
 ## 代码审查总结
 
-### 严重问题
+### 关键问题
 - **src/auth.py:45** — SQL 注入：用户输入直接传入查询。
   建议：使用参数化查询。
 
 ### 警告
 - **src/models/user.py:23** — 密码以明文存储。请使用 bcrypt 或 argon2。
-- **src/api/routes.py:112** — 登录端点未设置速率限制。
+- **src/api/routes.py:112** — 登录端点无速率限制。
 
 ### 建议
-- **src/utils/helpers.py:8** — 与 `src/core/utils.py:34` 逻辑重复。请合并。
+- **src/utils/helpers.py:8** — 与 `src/core/utils.py:34` 逻辑重复。建议合并。
 - **tests/test_auth.py** — 缺少边界情况：过期令牌测试。
 
-### 表现良好
-- 中间件层职责分离清晰
-- 正常路径的测试覆盖良好
+### 看起来不错
+- 中间件层职责清晰分离
+- 正向路径的测试覆盖率良好
 ```
 
 ---
 
-## 2. 在 GitHub 上审查 Pull Request {#2-reviewing-a-pull-request-on-github}
+<a id="2-reviewing-a-pull-request-on-github"></a>
+## 2. 在 GitHub 上审查 Pull Request
 
-### 查看 PR 详情 {#view-pr-details}
+<a id="view-pr-details"></a>
+### 查看 PR 详情
 
 **使用 gh：**
 
@@ -157,7 +168,7 @@ gh pr diff 123 --name-only
 ```bash
 PR_NUMBER=123
 
-# 获取 PR 详情
+# Get PR details
 curl -s \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$OWNER/$REPO/pulls/$PR_NUMBER \
@@ -170,7 +181,7 @@ print(f\"Branch: {pr['head']['ref']} -> {pr['base']['ref']}\")
 print(f\"State: {pr['state']}\")
 print(f\"Body:\n{pr['body']}\")"
 
-# 列出变更文件
+# List changed files
 curl -s \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$OWNER/$REPO/pulls/$PR_NUMBER/files \
@@ -180,18 +191,19 @@ for f in json.load(sys.stdin):
     print(f\"{f['status']:10} +{f['additions']:-4} -{f['deletions']:-4}  {f['filename']}\")"
 ```
 
-### 在本地签出 PR 进行完整审查 {#check-out-pr-locally-for-full-review}
+<a id="check-out-pr-locally-for-full-review"></a>
+### 在本地检出 PR 进行完整审查
 
-这仅需纯 `git` 即可完成，无需 `gh`：
+这与纯 `git` 配合使用——无需 `gh`：
 
 ```bash
-# 获取 PR 分支并签出
+# Fetch the PR branch and check it out
 git fetch origin pull/123/head:pr-123
 git checkout pr-123
 
-# 现在你可以使用 read_file、search_files、运行测试等
+# Now you can use read_file, search_files, run tests, etc.
 
-# 查看与基础分支的差异
+# View diff against the base branch
 git diff main...pr-123
 ```
 
@@ -201,43 +213,45 @@ git diff main...pr-123
 gh pr checkout 123
 ```
 
-### 在 PR 上留下评论 {#leave-comments-on-a-pr}
+<a id="leave-comments-on-a-pr"></a>
+### 在 PR 上留言
 
-**通用 PR 评论 — 使用 gh：**
+**通用 PR 评论——使用 gh：**
 
 ```bash
-gh pr comment 123 --body "整体看起来不错，下面有一些建议。"
+gh pr comment 123 --body "Overall looks good, a few suggestions below."
 ```
 
-**通用 PR 评论 — 使用 curl：**
+**通用 PR 评论——使用 curl：**
 
 ```bash
 curl -s -X POST \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$OWNER/$REPO/issues/$PR_NUMBER/comments \
-  -d '{"body": "整体看起来不错，下面有一些建议。"}'
+  -d '{"body": "Overall looks good, a few suggestions below."}'
 ```
 
-### 留下内联审查评论 {#leave-inline-review-comments}
+<a id="leave-inline-review-comments"></a>
+### 发表内联审查评论
 
-**单条内联评论 — 使用 gh（通过 API）：**
+**单条内联评论——使用 gh（通过 API）：**
 
 ```bash
 HEAD_SHA=$(gh pr view 123 --json headRefOid --jq '.headRefOid')
 
 gh api repos/$OWNER/$REPO/pulls/123/comments \
   --method POST \
-  -f body="这可以用列表推导式简化。" \
+  -f body="This could be simplified with a list comprehension." \
   -f path="src/auth/login.py" \
   -f commit_id="$HEAD_SHA" \
   -f line=45 \
   -f side="RIGHT"
 ```
 
-**单条内联评论 — 使用 curl：**
+**单条内联评论——使用 curl：**
 
 ```bash
-# 获取 head commit 的 SHA
+# Get the head commit SHA
 HEAD_SHA=$(curl -s \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$OWNER/$REPO/pulls/$PR_NUMBER \
@@ -247,24 +261,25 @@ curl -s -X POST \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$OWNER/$REPO/pulls/$PR_NUMBER/comments \
   -d "{
-    \"body\": \"这可以用列表推导式简化。\",
+    \"body\": \"This could be simplified with a list comprehension.\",
     \"path\": \"src/auth/login.py\",
     \"commit_id\": \"$HEAD_SHA\",
     \"line\": 45,
     \"side\": \"RIGHT\"
   }"
 ```
-### 提交正式审查（批准 / 请求变更） {#submit-a-formal-review-approve-request-changes}
+<a id="submit-a-formal-review-approve-request-changes"></a>
+### 提交正式审查（批准 / 请求变更）
 
 **使用 gh：**
 
 ```bash
-gh pr review 123 --approve --body "LGTM!"
-gh pr review 123 --request-changes --body "See inline comments."
-gh pr review 123 --comment --body "Some suggestions, nothing blocking."
+gh pr review 123 --approve --body "LGTM！"
+gh pr review 123 --request-changes --body "请查看行内评论。"
+gh pr review 123 --comment --body "一些建议，不影响合并。"
 ```
 
-**使用 curl — 以原子方式提交多条评论的审查：**
+**使用 curl —— 以原子方式提交多条评论的审查：**
 
 ```bash
 HEAD_SHA=$(curl -s \
@@ -278,94 +293,105 @@ curl -s -X POST \
   -d "{
     \"commit_id\": \"$HEAD_SHA\",
     \"event\": \"COMMENT\",
-    \"body\": \"Code review from Hermes Agent\",
+    \"body\": \"来自 Hermes Agent 的代码审查\",
     \"comments\": [
-      {\"path\": \"src/auth.py\", \"line\": 45, \"body\": \"Use parameterized queries to prevent SQL injection.\"},
-      {\"path\": \"src/models/user.py\", \"line\": 23, \"body\": \"Hash passwords with bcrypt before storing.\"},
-      {\"path\": \"tests/test_auth.py\", \"line\": 1, \"body\": \"Add test for expired token edge case.\"}
+      {\"path\": \"src/auth.py\", \"line\": 45, \"body\": \"使用参数化查询以防止 SQL 注入。\"},
+      {\"path\": \"src/models/user.py\", \"line\": 23, \"body\": \"在存储前使用 bcrypt 对密码进行哈希处理。\"},
+      {\"path\": \"tests/test_auth.py\", \"line\": 1, \"body\": \"添加对过期令牌边缘情况的测试。\"}
     ]
   }"
 ```
 
-事件值：`"APPROVE"`、`"REQUEST_CHANGES"`、`"COMMENT"`
+事件取值：`"APPROVE"`、`"REQUEST_CHANGES"`、`"COMMENT"`
 
-`line` 字段指的是文件*新版本*中的行号。对于已删除的行，请使用 `"side": "LEFT"`。
+`line` 字段指文件*新版本*中的行号。对于已删除的行，请使用 `"side": "LEFT"`。
 
 ---
 
-## 3. 审查清单 {#3-review-checklist}
+<a id="3-review-checklist"></a>
+## 3. 审查清单
 
-执行代码审查（本地或 PR）时，请系统性地检查以下内容：
+执行代码审查（本地或 PR 时），请系统性地检查以下方面：
 
-### 正确性 {#correctness}
+<a id="correctness"></a>
+### 正确性
 - 代码是否实现了它声称的功能？
-- 是否处理了边界情况（空输入、null、大数据、并发访问）？
-- 错误路径是否被优雅地处理？
+- 是否考虑了边缘情况（空输入、null、大数据、并发访问）？
+- 错误路径是否得到妥善处理？
 
-### 安全性 {#security}
+<a id="security"></a>
+### 安全性
 - 没有硬编码的密钥、凭据或 API 密钥
 - 对面向用户的输入进行输入验证
 - 没有 SQL 注入、XSS 或路径遍历
-- 在需要的地方进行身份验证/授权检查
+- 必要时进行身份验证/授权检查
 
-### 代码质量 {#code-quality}
+<a id="code-quality"></a>
+### 代码质量
 - 命名清晰（变量、函数、类）
-- 没有不必要的复杂性或过早抽象
-- DRY — 没有应该提取的重复逻辑
-- 函数职责单一（单一职责）
+- 没有不必要的复杂性或过早的抽象
+- 遵循 DRY 原则——不应有应被提取的重复逻辑
+- 函数职责单一（单一职责原则）
 
-### 测试 {#testing}
-- 新的代码路径是否被测试？
-- 快乐路径和错误情况是否覆盖？
+<a id="testing"></a>
+### 测试
+- 新的代码路径是否已测试？
+- 是否覆盖了正常路径和错误情况？
 - 测试是否可读且可维护？
 
-### 性能 {#performance}
+<a id="performance"></a>
+### 性能
 - 没有 N+1 查询或不必要的循环
-- 在有益的地方使用适当的缓存
+- 在有益的地方使用了合适的缓存
 - 异步代码路径中没有阻塞操作
 
-### 文档 {#documentation}
-- 公共 API 有文档
-- 非显而易见的逻辑有注释解释“为什么”
+<a id="documentation"></a>
+### 文档
+- 公共 API 是否已文档化
+- 非显而易见的逻辑是否有注释解释“为什么”
 - 如果行为发生变化，README 已更新
 
 ---
 
-## 4. 推送前审查工作流 {#4-pre-push-review-workflow}
+<a id="4-pre-push-review-workflow"></a>
+## 4. 推送前审查工作流
 
 当用户要求你“审查代码”或“推送前检查”时：
 
-1. `git diff main...HEAD --stat` — 查看变更范围
-2. `git diff main...HEAD` — 阅读完整差异
-3. 对于每个变更的文件，如果需要更多上下文，使用 `read_file`
-4. 应用上述清单
-5. 以结构化格式呈现发现（严重问题 / 警告 / 建议 / 看起来不错）
-6. 如果发现严重问题，主动提出在用户推送前修复它们
+1. `git diff main...HEAD --stat` —— 查看变更范围
+2. `git diff main...HEAD` —— 阅读完整差异
+3. 对于每个变更的文件，如需更多上下文，使用 `read_file`
+4. 应用上述审查清单
+5. 按结构化格式呈现发现（严重问题 / 警告 / 建议 / 看起来不错）
+6. 如果发现严重问题，主动在用户推送前修复它们
 
 ---
 
-## 5. PR 审查工作流（端到端） {#5-pr-review-workflow-end-to-end}
+<a id="5-pr-review-workflow-end-to-end"></a>
+## 5. PR 审查工作流（端到端）
 
-当用户要求你“审查 PR #N”、“看看这个 PR”或给你一个 PR URL 时，请遵循以下步骤：
-### 步骤 1：设置环境 {#step-1-set-up-environment}
+当用户要求你“审查 PR #N”、“看看这个 PR”，或给你一个 PR 链接时，请遵循以下步骤：
+<a id="step-1-set-up-environment"></a>
+### 第 1 步：设置环境
 
 ```bash
 source "${HERMES_HOME:-$HOME/.hermes}/skills/github/github-auth/scripts/gh-env.sh"
-# 或者运行本技能顶部的内联设置块
+# 或者运行本技能顶部的内联配置块
 ```
 
-### 步骤 2：收集 PR 上下文 {#step-2-gather-pr-context}
+<a id="step-2-gather-pr-context"></a>
+### 第 2 步：收集 PR 上下文
 
-在深入代码之前，先获取 PR 的元数据、描述和变更文件列表，以了解整体范围。
+获取 PR 的元数据、描述和变更文件列表，以便在深入代码前了解范围。
 
-**使用 gh：**
+**使用 `gh`：**
 ```bash
 gh pr view 123
 gh pr diff 123 --name-only
 gh pr checks 123
 ```
 
-**使用 curl：**
+**使用 `curl`：**
 ```bash
 PR_NUMBER=123
 
@@ -378,59 +404,64 @@ curl -s -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$GH_OWNER/$GH_REPO/pulls/$PR_NUMBER/files
 ```
 
-### 步骤 3：在本地检出 PR {#step-3-check-out-the-pr-locally}
+<a id="step-3-check-out-the-pr-locally"></a>
+### 第 3 步：在本地检出 PR
 
-这样你就可以完全访问 `read_file`、`search_files`，并且能够运行测试。
+这样你就可以完整使用 `read_file`、`search_files`，并能够运行测试。
 
 ```bash
 git fetch origin pull/$PR_NUMBER/head:pr-$PR_NUMBER
 git checkout pr-$PR_NUMBER
 ```
 
-### 步骤 4：阅读 diff 并理解变更 {#step-4-read-the-diff-and-understand-changes}
+<a id="step-4-read-the-diff-and-understand-changes"></a>
+### 第 4 步：阅读 diff 并理解改动
 
 ```bash
 # 与基础分支的完整 diff
 git diff main...HEAD
 
-# 对于大型 PR，可以逐个文件查看
+# 或针对大型 PR 按文件逐个查看
 git diff main...HEAD --name-only
-# 然后针对每个文件：
+# 然后对每个文件：
 git diff main...HEAD -- path/to/file.py
 ```
 
-对于每个变更文件，使用 `read_file` 查看变更周围的完整上下文——仅靠 diff 可能会遗漏只有结合周围代码才能发现的问题。
+对于每个变更文件，使用 `read_file` 查看变更周围的完整上下文——仅凭 diff 可能会遗漏只有结合周围代码才能发现的问题。
 
-### 步骤 5：在本地运行自动化检查（如适用） {#step-5-run-automated-checks-locally-if-applicable}
+<a id="step-5-run-automated-checks-locally-if-applicable"></a>
+### 第 5 步：在本地运行自动检查（如适用）
 
 ```bash
-# 如果有测试套件，运行测试
+# 如果有测试套件则运行测试
 python -m pytest 2>&1 | tail -20
-# 或：npm test, cargo test, go test ./..., 等。
+# 或：npm test、cargo test、go test ./... 等
 
-# 如果配置了 linter，运行它
+# 如果配置了 linter 则运行
 ruff check . 2>&1 | head -30
-# 或：eslint, clippy, 等。
+# 或：eslint、clippy 等
 ```
 
-### 步骤 6：应用审查清单（第 3 节） {#step-6-apply-the-review-checklist-section-3}
+<a id="step-6-apply-the-review-checklist-section-3"></a>
+### 第 6 步：应用审查清单（第 3 节）
 
 逐一检查每个类别：正确性、安全性、代码质量、测试、性能、文档。
 
-### 步骤 7：将审查结果发布到 GitHub {#step-7-post-the-review-to-github}
+<a id="step-7-post-the-review-to-github"></a>
+### 第 7 步：将审查结果发布到 GitHub
 
-收集你的发现，并以带有内联评论的正式审查形式提交。
+整理你的发现，并将其作为正式的审查提交（包含行内评论）。
 
-**使用 gh：**
+**使用 `gh`：**
 ```bash
 # 如果没有问题——批准
-gh pr review $PR_NUMBER --approve --body "由 Hermes Agent 审查。代码看起来干净——测试覆盖良好，无安全问题。"
+gh pr review $PR_NUMBER --approve --body "Hermes Agent 已审查。代码看起来干净——测试覆盖良好，无安全顾虑。"
 
-# 如果发现问题——请求变更并附带内联评论
-gh pr review $PR_NUMBER --request-changes --body "发现几个问题——请查看内联评论。"
+# 如果发现问题——要求修改并附带行内评论
+gh pr review $PR_NUMBER --request-changes --body "发现几个问题——请参见行内评论。"
 ```
 
-**使用 curl——带有多个内联评论的原子化审查：**
+**使用 `curl`——包含多条行内评论的原子审查：**
 ```bash
 HEAD_SHA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$GH_OWNER/$GH_REPO/pulls/$PR_NUMBER \
@@ -443,17 +474,18 @@ curl -s -X POST \
   -d "{
     \"commit_id\": \"$HEAD_SHA\",
     \"event\": \"REQUEST_CHANGES\",
-    \"body\": \"## Hermes Agent 审查\n\n发现 2 个问题，1 个建议。请查看内联评论。\",
+    \"body\": \"## Hermes Agent 审查\n\n发现 2 个问题，1 个建议。请参见行内评论。\",
     \"comments\": [
-      {\"path\": \"src/auth.py\", \"line\": 45, \"body\": \"🔴 **严重：** 用户输入直接传递给 SQL 查询——请使用参数化查询。\"},
-      {\"path\": \"src/models.py\", \"line\": 23, \"body\": \"⚠️ **警告：** 密码未经过哈希处理即存储。\"},
+      {\"path\": \"src/auth.py\", \"line\": 45, \"body\": \"🔴 **严重：** 用户输入直接传递到 SQL 查询——请使用参数化查询。\"},
+      {\"path\": \"src/models.py\", \"line\": 23, \"body\": \"⚠️ **警告：** 密码未经过哈希存储。\"},
       {\"path\": \"src/utils.py\", \"line\": 8, \"body\": \"💡 **建议：** 此逻辑与 core/utils.py:34 重复。\"}
     ]
   }"
 ```
-### 步骤 8：同时发布一条总结评论 {#step-8-also-post-a-summary-comment}
+<a id="step-8-also-post-a-summary-comment"></a>
+### 步骤 8：同时发布总结评论
 
-除了行内评论外，再添加一条顶层总结，让 PR 作者一眼就能看到全貌。使用 `references/review-output-template.md` 中的审查输出格式。
+除了行内评论外，还要在顶层发布一条总结评论，让 PR 作者一眼就能看到全貌。请使用 `references/review-output-template.md` 中的审查输出格式。
 
 **使用 gh：**
 ```bash
@@ -481,15 +513,17 @@ EOF
 )"
 ```
 
-### 步骤 9：清理 {#step-9-clean-up}
+<a id="step-9-clean-up"></a>
+### 步骤 9：清理
 
 ```bash
 git checkout main
 git branch -D pr-$PR_NUMBER
 ```
 
-### 决策：批准 vs 请求修改 vs 评论 {#decision-approve-vs-request-changes-vs-comment}
+<a id="decision-approve-vs-request-changes-vs-comment"></a>
+### 决策：批准 vs 请求变更 vs 评论
 
-- **批准** — 没有严重或警告级别的问题，只有轻微建议或一切正常
-- **请求修改** — 存在任何应在合并前修复的严重或警告级别问题
-- **评论** — 提出观察和建议，但无阻塞项（当你不确定或 PR 为草稿时使用）
+- **批准** — 没有严重或警告级别的问题，只有轻微建议或全部通过
+- **请求变更** — 存在任何应在合并前修复的严重或警告级别问题
+- **评论** — 提出观察和建议，但无阻塞性问题（当你不确定或 PR 为草稿时使用）
