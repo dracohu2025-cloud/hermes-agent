@@ -66,7 +66,7 @@
     "guides/xai-grok-oauth.md": "d121e9707b7ca74ca2ca2ddeca62f15e11f1c57b93e21cbac06e89f8c46f2869",
     "index.md": "b135afc10576ca44fbe4927337acc331b0555522a56da87f62bcdeff3e2a29cc",
     "integrations/index.md": "c436aed404f0fd9503718ab9c4d47318d1d6ef6c3c25ef5d82855bc11b9d85c5",
-    "integrations/providers.md": "0f25bc8e18920699f64aa7f5650ed79f1176c63595ceedafea0870747f0b9d7f",
+    "integrations/providers.md": "8a38154d25f33ae2a427403b4be57e7f36a744242b7b531c0d656faded35af5a",
     "reference/_category_.json": "6338c834ad8635203644600a2219ab971428cd334b5e30e1ea21e257cfc0ab2a",
     "reference/cli-commands.md": "c872c4d983e153f3b75eb27ad0807a8b2cae6445b9b62db4d6452b80abcee0a7",
     "reference/environment-variables.md": "9d5814edd7b5566cf81184df5251cd01494810a0bd6f15428b6704ef93feb034",
@@ -161,6 +161,8 @@
     "user-guide/messaging/yuanbao.md": "da565bbc82035269468a2d6688690823380dbed12bb43d5a51c4f3aeda2563c7",
     "user-guide/profile-distributions.md": "00b68dd6995ce65ea08b2d408186716977266059bba989228464138b5a442606",
     "user-guide/profiles.md": "9ba92f376ccb8bb726d15e3cb2a1da417695f67893d7feea3e86e370a67d0154",
+    "user-guide/secrets/bitwarden.md": "7e74c12913c9fb0647abca532dfdd4caa716ff24d457baea3245816e7d01f41d",
+    "user-guide/secrets/index.md": "04387f0f467f762120fbea148f49e0e8b57235dd96f19aebd9676c30539813cc",
     "user-guide/security.md": "f4a0b8c1fccd0cfa04e4e49f588eec7e2b29d133906630f201b533a094191744",
     "user-guide/sessions.md": "d7672763d8fb0e2c063ea27305e6b04f599ef9218d722ac4ca225b95f7461bc3",
     "user-guide/skills/bundled/apple/apple-apple-notes.md": "a3f2750bbba9cd0864eb2e102a3dad56a9e70871aad7911977df85cc30308aa7",
@@ -334,7 +336,7 @@
     "user-guide/skills/optional/security/security-sherlock.md": "ac4222502f512b0f1d80e87b210a0808e89245c6cb60fa9271e4701a211a8779",
     "user-guide/skills/optional/software-development/software-development-rest-graphql-debug.md": "d2fa4806934ff25d2e7d200ee3eb91c3d7af0fb54667052aa8773eed272d666e",
     "user-guide/skills/optional/web-development/web-development-page-agent.md": "75d0062d6ab1dcc3e4c28a4f96bbdfb9f9469d854151efedb7ae130cf377d62b",
-    "user-guide/tui.md": "974df40f55f738590fdf545179ad09d5447d8be830210e17bdf0de2c51773007",
+    "user-guide/tui.md": "b00322b6526cd78111da059c934f2bb4efd2985b6cd4950f00bafd2921cd712f",
     "user-guide/windows-native.md": "05b48a2b5bda84e46203bd4e2d1502ca47223cb6b4f04e5e13e408d2b102ca76",
     "user-guide/windows-wsl-quickstart.md": "84b1ca956ef1da9f517528c8a6e949c3dff4ed55e6c78aae295d32b641ceedc4",
     "user-stories.mdx": "7fbebb89ef9a31b5b96914ec89ade5ded2a462beb618e9956027b14a67b5d7e8"
@@ -368,7 +370,7 @@
     "img/nous-logo.png": "2627a50f6826b2fae83183533efee34c8fb8197bc5af60872420c894e8f5b9eb"
   },
   "watched_files": {
-    "website/sidebars.ts": "6382271dec8c9c0b71937d58c84b7cb7322fea1067a39c1e9c9b3ba0db15bcfa",
+    "website/sidebars.ts": "38b6bcf5864c8ac38be11bd87235a09e6c6a1176265c14a0f6761d86783956c5",
     "website/docusaurus.config.ts": "0148b8acfa2bf139b6f9fc91a7acf0ced792403cba31184ca3d584824de89fea"
   }
 }
