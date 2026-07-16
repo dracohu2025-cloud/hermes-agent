@@ -1,5 +1,11 @@
 {
-  "installCommand": "npm install",
+  "installCommand": "echo 'Static retirement page: no dependencies to install.'",
   "buildCommand": "npm run build",
-  "outputDirectory": "build"
+  "outputDirectory": "public",
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
 }

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fbf7ef" />
+    <meta name="description" content="Hermes Agent 中文文档已迁移至官方站点。" />
+    <title>Hermes Agent 中文文档已迁移</title>
+    <style>
+      :root { color: #25211d; background: #fbf7ef; font-family: "Noto Serif SC", "Songti SC", STSong, Georgia, serif; }
+      * { box-sizing: border-box; }
+      body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: radial-gradient(circle at 18% 20%, #f0d7a6 0, transparent 29rem), radial-gradient(circle at 80% 83%, #d8e2c5 0, transparent 27rem), #fbf7ef; }
+      main { width: min(42rem, calc(100% - 3rem)); padding: clamp(2.5rem, 8vw, 5.5rem) 0; }
+      .mark { display: inline-grid; place-items: center; width: 3rem; height: 3rem; border: 1px solid #7b6036; border-radius: 50%; color: #7b6036; font: 600 1.1rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .eyebrow { margin: 2rem 0 0.8rem; color: #7b6036; font: 600 0.78rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.12em; text-transform: uppercase; }
+      h1 { max-width: 9em; margin: 0; font-size: clamp(2.45rem, 8vw, 5.2rem); font-weight: 500; line-height: 1.08; letter-spacing: -0.055em; }
+      p { max-width: 34rem; margin: 1.6rem 0 0; color: #5e554b; font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", sans-serif; font-size: 1.05rem; line-height: 1.9; }
+      a { display: inline-flex; align-items: center; gap: 0.7rem; margin-top: 2.3rem; padding: 0.9rem 1.1rem 0.9rem 1.25rem; border-radius: 999px; background: #25211d; color: #fffaf0; font-family: "Noto Sans SC", "PingFang SC", sans-serif; font-size: 0.95rem; font-weight: 600; text-decoration: none; transition: transform 150ms ease, background 150ms ease; }
+      a:hover { background: #7b6036; transform: translateY(-2px); }
+      footer { margin-top: 5rem; color: #877b6b; font: 0.78rem/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
+      @media (prefers-reduced-motion: reduce) { a { transition: none; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="mark" aria-hidden="true">H</span>
+      <p class="eyebrow">Hermes Agent Documentation</p>
+      <h1>中文文档已迁移至官方站。</h1>
+      <p>为提供更及时、完整的内容，Hermes Agent 中文文档现由官方站统一维护。此站点不再更新。</p>
+      <a id="official-docs" href="https://hermes-agent.nousresearch.com/docs/zh-Hans/">前往官方中文文档 <span aria-hidden="true">↗</span></a>
+      <footer>hermes-doc.aigc.green</footer>
+    </main>
+    <script>
+      (() => {
+        const officialBase = 'https://hermes-agent.nousresearch.com/docs/zh-Hans/';
+        const path = window.location.pathname.replace(/^\/+/, '');
+        const legacyDocPrefixes = [
+          'developer-guide/',
+          'getting-started/',
+          'guides/',
+          'integrations/',
+          'reference/',
+          'user-guide/'
+        ];
+        if (!legacyDocPrefixes.some((prefix) => path.startsWith(prefix))) return;
+        const destination = officialBase + path + window.location.search + window.location.hash;
+        window.location.replace(destination);
+      })();
+    </script>
+  </body>
+</html>
